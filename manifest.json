@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Novel Chapter Tracker",
+  "version": "4.0.0",
+  "description": "Guarda automáticamente el capítulo y posición de lectura, sistema de cultivo, sincronización en la nube y avisos por WhatsApp.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "omnibox": {
+    "keyword": "nt"
+  },
+  "commands": {
+    "continue-latest-novel": {
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      },
+      "description": "Abrir el último capítulo de la lectura más reciente"
+    }
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "NovelTrack"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["locales/es.json", "locales/en.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
