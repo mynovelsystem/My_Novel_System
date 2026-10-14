@@ -37,7 +37,8 @@
   }
 
   // Patrón 1: Con palabra clave explícita (Capítulo 12, Cap. 12, Chapter 12, Episode 12, Ep. 12, Parte 12, c12, #12)
-  const CHAPTER_EXPLICIT_REGEX = /\b(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|part|tomo|volumen|volume|ch\.?|cap\.?|ep\.?|pt\.?|vol\.?|v\.?|c\.?)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b|(?:^|\s)#(\d{1,5}(?:[.,-]\d{1,2})?)(?:\s|:|-|$)/i;
+  const CHAPTER_EXPLICIT_REGEX = /\b(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|part|ch\.?|cap\.?|ep\.?|pt\.?|c\.?)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b|(?:^|\s)#(\d{1,5}(?:[.,-]\d{1,2})?)(?:\s|:|-|$)/i;
+  const VOLUME_FALLBACK_REGEX = /\b(?:tomo|volumen|volume|vol\.?|v\.?)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b/i;
 
   // Patrón para capítulos especiales (Prólogo, Epílogo, One-shot, Extra, etc.)
   const SPECIAL_CHAPTER_REGEX = /\b(pr[oó]logo|prologue|ep[ií]logo|epilogue|oneshot|one-shot|extra|special|especial|side\s*story)\b/i;
@@ -244,7 +245,8 @@
   }
 
   function hasChapterPattern(text) {
-    return CHAPTER_EXPLICIT_REGEX.test(String(text || ""));
+    const s = String(text || "");
+    return CHAPTER_EXPLICIT_REGEX.test(s) || VOLUME_FALLBACK_REGEX.test(s);
   }
 
   function canonicalizeSeriesPathForId(pathname) {
@@ -420,9 +422,12 @@
 
   function matchExplicitChapter(text) {
     if (!text) return null;
-    const m = String(text).match(CHAPTER_EXPLICIT_REGEX);
-    if (!m) return null;
-    return parseValidChapterNumber(m[1] || m[2]);
+    const str = String(text);
+    const m = str.match(CHAPTER_EXPLICIT_REGEX);
+    if (m) return parseValidChapterNumber(m[1] || m[2]);
+    const mVol = str.match(VOLUME_FALLBACK_REGEX);
+    if (mVol) return parseValidChapterNumber(mVol[1]);
+    return null;
   }
 
   function matchLeadingNumberChapter(text, novelNameHint = "") {
@@ -1047,7 +1052,7 @@
 
   function sendDetectedPayload(seriesId, novelName, novelUrl, chapter, confident) {
     const finalSeriesId = seriesId || buildSeriesIdFromName(novelName || cleanHost(location.href), cleanHost(location.href));
-    const dedupeSignature = `${finalSeriesId}::${chapter}::${location.href}::${confident ? "1" : "0"}`;
+    const dedupeSignature = `${finalSeriesId}::${novelName || ""}::${chapter}::${location.href}::${confident ? "1" : "0"}`;
     if (dedupeSignature === lastSentKey) return;
 
     lastSentKey = dedupeSignature;
@@ -1093,6 +1098,7 @@
     retryCount = 0;
     clearTimeout(debounceTimer);
     clearTimeout(retryTimer);
+    if (!isAuthenticReadingContext()) return;
     startTemporaryBodyObserver();
     debounceTimer = setTimeout(evaluatePage, 600);
   }

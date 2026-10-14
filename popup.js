@@ -11,37 +11,38 @@ const THEMES_CONFIG = {
     icon: "⛩️",
     isPremium: false,
     realms: [
-      { id: "qi_condensation", minQi: 0, nextQi: 100, hasStages: true, gradient: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 55%, #10b981 100%)" },
-      { id: "foundation_establishment", minQi: 100, nextQi: 400, hasStages: true, gradient: "linear-gradient(135deg, #10b981 0%, #059669 55%, #fbbf24 100%)" },
-      { id: "golden_core", minQi: 400, nextQi: 1000, hasStages: true, gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #fde047 100%)" },
-      { id: "nascent_soul", minQi: 1000, nextQi: 2500, hasStages: true, gradient: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 55%, #38bdf8 100%)" },
-      { id: "spirit_transformation", minQi: 2500, nextQi: 5000, hasStages: true, gradient: "linear-gradient(135deg, #f43f5e 0%, #9333ea 55%, #fbbf24 100%)" },
-      { id: "void_refinement", minQi: 5000, nextQi: 9000, hasStages: true, gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 55%, #a855f7 100%)" },
-      { id: "body_integration", minQi: 9000, nextQi: 15000, hasStages: true, gradient: "linear-gradient(135deg, #ea580c 0%, #dc2626 55%, #facc15 100%)" },
-      { id: "mahayana", minQi: 15000, nextQi: 25000, hasStages: true, gradient: "linear-gradient(135deg, #06b6d4 0%, #6366f1 55%, #f472b6 100%)" },
-      { id: "heavenly_tribulation", minQi: 25000, nextQi: 40000, hasStages: true, gradient: "linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #fde047 100%)" },
-      { id: "immortal_ascension", minQi: 40000, nextQi: null, hasStages: false, gradient: "linear-gradient(135deg, #fbbf24 0%, #ec4899 50%, #06b6d4 100%)" }
+      { id: "qi_condensation", minQi: 0, nextQi: 100, hasStages: true, colors: ["#0ea5e9", "#6366f1", "#10b981"], gradient: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 55%, #10b981 100%)" },
+      { id: "foundation_establishment", minQi: 100, nextQi: 400, hasStages: true, colors: ["#10b981", "#059669", "#fbbf24"], gradient: "linear-gradient(135deg, #10b981 0%, #059669 55%, #fbbf24 100%)" },
+      { id: "golden_core", minQi: 400, nextQi: 1000, hasStages: true, colors: ["#f59e0b", "#d97706", "#fde047"], gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #fde047 100%)" },
+      { id: "nascent_soul", minQi: 1000, nextQi: 2500, hasStages: true, colors: ["#8b5cf6", "#ec4899", "#38bdf8"], gradient: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 55%, #38bdf8 100%)" },
+      { id: "spirit_transformation", minQi: 2500, nextQi: 5000, hasStages: true, colors: ["#f43f5e", "#9333ea", "#fbbf24"], gradient: "linear-gradient(135deg, #f43f5e 0%, #9333ea 55%, #fbbf24 100%)" },
+      { id: "void_refinement", minQi: 5000, nextQi: 9000, hasStages: true, colors: ["#3b82f6", "#1d4ed8", "#a855f7"], gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 55%, #a855f7 100%)" },
+      { id: "body_integration", minQi: 9000, nextQi: 15000, hasStages: true, colors: ["#ea580c", "#dc2626", "#facc15"], gradient: "linear-gradient(135deg, #ea580c 0%, #dc2626 55%, #facc15 100%)" },
+      { id: "mahayana", minQi: 15000, nextQi: 25000, hasStages: true, colors: ["#06b6d4", "#6366f1", "#f472b6"], gradient: "linear-gradient(135deg, #06b6d4 0%, #6366f1 55%, #f472b6 100%)" },
+      { id: "heavenly_tribulation", minQi: 25000, nextQi: 40000, hasStages: true, colors: ["#7c3aed", "#db2777", "#fde047"], gradient: "linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #fde047 100%)" },
+      { id: "immortal_ascension", minQi: 40000, nextQi: null, hasStages: false, colors: ["#fbbf24", "#ec4899", "#06b6d4"], gradient: "linear-gradient(135deg, #fbbf24 0%, #ec4899 50%, #06b6d4 100%)" }
     ],
     titles: [
-      { id: "outer_disciple", tier: 1, symbol: "📜", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
-      { id: "scroll_initiate", tier: 1, symbol: "📖", minRealmIndex: 0, minStage: 2, reqNovelsStarted: 5 },
-      { id: "diligent_reader", tier: 1, symbol: "🕯️", minRealmIndex: 0, minStage: 3, reqSingleDay: 15 },
-      { id: "body_refiner", tier: 1, symbol: "🥋", minRealmIndex: 0, minStage: 5, reqChapters: 60, reqStreak: 5 },
-      { id: "meridian_opener", tier: 2, symbol: "💫", minRealmIndex: 1, minStage: 1, reqSingleDay: 25 },
-      { id: "secluded_cultivator", tier: 2, symbol: "🪷", minRealmIndex: 1, minStage: 2, reqStreak: 14 },
-      { id: "thousand_scrolls", tier: 2, symbol: "📚", minRealmIndex: 1, minStage: 4, reqNovelsStarted: 25 },
-      { id: "spirit_temperer", tier: 2, symbol: "🔮", minRealmIndex: 1, minStage: 6, req30Days: 150, reqStreak: 20 },
-      { id: "pill_refiner", tier: 2, symbol: "🧪", minRealmIndex: 1, minStage: 7, reqNovelsCompleted: 3 },
-      { id: "chapter_devourer", tier: 3, symbol: "⚡", minRealmIndex: 2, minStage: 1, req30Days: 250 },
-      { id: "tribulation_overcomer", tier: 3, symbol: "⚔️", minRealmIndex: 2, minStage: 4, reqNovelsCompleted: 7 },
-      { id: "domain_ruler", tier: 3, symbol: "🌌", minRealmIndex: 2, minStage: 7, reqStreak: 35 },
-      { id: "bottleneck_breaker", tier: 3, symbol: "💥", minRealmIndex: 3, minStage: 1, reqChapters: 400, reqQi: 1000 },
-      { id: "ancient_scholar", tier: 3, symbol: "🏛️", minRealmIndex: 3, minStage: 5, reqChapters: 750, reqNovelsCompleted: 10 },
-      { id: "dao_heart", tier: 4, symbol: "💖", minRealmIndex: 4, minStage: 1, reqStreak: 60 },
-      { id: "golden_immortal", tier: 4, symbol: "👑", minRealmIndex: 5, minStage: 1, reqChapters: 1500, reqNovelsCompleted: 15 },
-      { id: "heaven_defier", tier: 4, symbol: "🐉", minRealmIndex: 6, minStage: 1, reqChapters: 2500, reqStreak: 90 },
-      { id: "cosmic_sovereign", tier: 4, symbol: "🪐", minRealmIndex: 7, minStage: 1, reqChapters: 3500, reqNovelsCompleted: 25 },
-      { id: "primordial_immortal", tier: 4, symbol: "☯️", minRealmIndex: 9, minStage: 1, reqQi: 40000 }
+      { id: "outer_disciple", tier: 1, symbol: "📜", color: "#0284c7", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
+      { id: "scroll_initiate", tier: 1, symbol: "📖", color: "#0284c7", minRealmIndex: 0, minStage: 2, reqNovelsStarted: 5 },
+      { id: "diligent_reader", tier: 1, symbol: "🕯️", color: "#0284c7", minRealmIndex: 0, minStage: 3, reqSingleDay: 15 },
+      { id: "body_refiner", tier: 1, symbol: "🥋", color: "#ea580c", minRealmIndex: 0, minStage: 5, reqChapters: 60, reqStreak: 5 },
+      { id: "meridian_opener", tier: 2, symbol: "💫", color: "#0891b2", minRealmIndex: 1, minStage: 1, reqSingleDay: 25 },
+      { id: "secluded_cultivator", tier: 2, symbol: "🪷", color: "#059669", minRealmIndex: 1, minStage: 2, reqStreak: 14 },
+      { id: "thousand_scrolls", tier: 2, symbol: "📚", color: "#d97706", minRealmIndex: 1, minStage: 4, reqNovelsStarted: 25 },
+      { id: "spirit_temperer", tier: 2, symbol: "🔮", color: "#6d28d9", minRealmIndex: 1, minStage: 6, req30Days: 150, reqStreak: 20 },
+      { id: "pill_refiner", tier: 2, symbol: "🧪", color: "#10b981", minRealmIndex: 1, minStage: 7, reqNovelsCompleted: 3 },
+      { id: "chapter_devourer", tier: 3, symbol: "⚡", color: "#e11d48", minRealmIndex: 2, minStage: 1, req30Days: 250 },
+      { id: "tribulation_overcomer", tier: 3, symbol: "⚔️", color: "#ca8a04", minRealmIndex: 2, minStage: 4, reqNovelsCompleted: 7 },
+      { id: "domain_ruler", tier: 3, symbol: "🌌", color: "#9333ea", minRealmIndex: 2, minStage: 7, reqStreak: 35 },
+      { id: "bottleneck_breaker", tier: 4, symbol: "💥", color: "#0d9488", minRealmIndex: 3, minStage: 1, reqChapters: 400, reqQi: 1000 },
+      { id: "ancient_scholar", tier: 4, symbol: "🏛️", color: "#3b82f6", minRealmIndex: 3, minStage: 5, reqChapters: 750, reqNovelsCompleted: 10 },
+      { id: "dao_heart", tier: 5, symbol: "💖", color: "#7c3aed", minRealmIndex: 4, minStage: 1, reqStreak: 60 },
+      { id: "golden_immortal", tier: 6, symbol: "👑", color: "#b45309", minRealmIndex: 5, minStage: 1, reqChapters: 1500, reqNovelsCompleted: 15 },
+      { id: "heaven_defier", tier: 7, symbol: "🐉", color: "#be185d", minRealmIndex: 6, minStage: 1, reqChapters: 2500, reqStreak: 90 },
+      { id: "cosmic_sovereign", tier: 8, symbol: "🪐", color: "#f59e0b", minRealmIndex: 7, minStage: 1, reqChapters: 3500, reqNovelsCompleted: 25 },
+      { id: "tribulation_emperor", tier: 9, symbol: "⚡", color: "#db2777", minRealmIndex: 8, minStage: 1, reqChapters: 4200, reqStreak: 100 },
+      { id: "primordial_immortal", tier: 9, symbol: "☯️", color: "#ec4899", minRealmIndex: 9, minStage: 1, reqQi: 40000 }
     ]
   },
   hunter: {
@@ -50,19 +51,19 @@ const THEMES_CONFIG = {
     icon: "🗡️",
     isPremium: true,
     realms: [
-      { id: "hunter_rank_e", minQi: 0, nextQi: 100, hasStages: true, gradient: "linear-gradient(135deg, #64748b 0%, #475569 100%)" },
-      { id: "hunter_rank_d", minQi: 100, nextQi: 400, hasStages: true, gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)" },
-      { id: "hunter_rank_c", minQi: 400, nextQi: 1000, hasStages: true, gradient: "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)" },
-      { id: "hunter_rank_b", minQi: 1000, nextQi: 2500, hasStages: true, gradient: "linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%)" },
-      { id: "hunter_rank_a", minQi: 2500, nextQi: 6000, hasStages: true, gradient: "linear-gradient(135deg, #b45309 0%, #f59e0b 100%)" },
-      { id: "hunter_rank_s", minQi: 6000, nextQi: 15000, hasStages: true, gradient: "linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)" },
-      { id: "hunter_national", minQi: 15000, nextQi: null, hasStages: false, gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)" }
+      { id: "hunter_rank_e", minQi: 0, nextQi: 100, hasStages: true, colors: ["#64748b", "#475569", "#94a3b8"], gradient: "linear-gradient(135deg, #64748b 0%, #475569 100%)" },
+      { id: "hunter_rank_d", minQi: 100, nextQi: 400, hasStages: true, colors: ["#10b981", "#059669", "#34d399"], gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)" },
+      { id: "hunter_rank_c", minQi: 400, nextQi: 1000, hasStages: true, colors: ["#3b82f6", "#2563eb", "#60a5fa"], gradient: "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)" },
+      { id: "hunter_rank_b", minQi: 1000, nextQi: 2500, hasStages: true, colors: ["#8b5cf6", "#7c3aed", "#a78bfa"], gradient: "linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%)" },
+      { id: "hunter_rank_a", minQi: 2500, nextQi: 6000, hasStages: true, colors: ["#f59e0b", "#d97706", "#fbbf24"], gradient: "linear-gradient(135deg, #b45309 0%, #f59e0b 100%)" },
+      { id: "hunter_rank_s", minQi: 6000, nextQi: 15000, hasStages: true, colors: ["#ef4444", "#dc2626", "#f87171"], gradient: "linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)" },
+      { id: "hunter_national", minQi: 15000, nextQi: null, hasStages: false, colors: ["#fbbf24", "#7c3aed", "#f43f5e"], gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)" }
     ],
     titles: [
-      { id: "hunter_awakening", tier: 1, symbol: "🗡️", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
-      { id: "dungeon_scout", tier: 2, symbol: "🚪", minRealmIndex: 1, minStage: 1, reqChapters: 120, reqStreak: 10 },
-      { id: "shadow_monarch", tier: 3, symbol: "👥", minRealmIndex: 2, minStage: 1, reqChapters: 500, req30Days: 200 },
-      { id: "national_hunter", tier: 4, symbol: "🛡️", minRealmIndex: 5, minStage: 1, reqChapters: 2000, reqNovelsCompleted: 15 }
+      { id: "hunter_awakening", tier: 1, symbol: "🗡️", color: "#64748b", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
+      { id: "dungeon_scout", tier: 2, symbol: "🚪", color: "#059669", minRealmIndex: 1, minStage: 1, reqChapters: 120, reqStreak: 10 },
+      { id: "shadow_monarch", tier: 3, symbol: "👥", color: "#7c3aed", minRealmIndex: 2, minStage: 1, reqChapters: 500, req30Days: 200 },
+      { id: "national_hunter", tier: 6, symbol: "🛡️", color: "#f59e0b", minRealmIndex: 5, minStage: 1, reqChapters: 2000, reqNovelsCompleted: 15 }
     ]
   },
   legendary_novels: {
@@ -71,16 +72,16 @@ const THEMES_CONFIG = {
     icon: "📖",
     isPremium: true,
     realms: [
-      { id: "novice_reader", minQi: 0, nextQi: 200, hasStages: true, gradient: "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)" },
-      { id: "lore_seeker", minQi: 200, nextQi: 800, hasStages: true, gradient: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" },
-      { id: "omniscient_observer", minQi: 800, nextQi: 3000, hasStages: true, gradient: "linear-gradient(135deg, #7e22ce 0%, #9333ea 100%)" },
-      { id: "mythic_chronicler", minQi: 3000, nextQi: null, hasStages: false, gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #06b6d4 100%)" }
+      { id: "novice_reader", minQi: 0, nextQi: 200, hasStages: true, colors: ["#0284c7", "#0369a1", "#38bdf8"], gradient: "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)" },
+      { id: "lore_seeker", minQi: 200, nextQi: 800, hasStages: true, colors: ["#6366f1", "#4f46e5", "#818cf8"], gradient: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" },
+      { id: "omniscient_observer", minQi: 800, nextQi: 3000, hasStages: true, colors: ["#9333ea", "#7e22ce", "#c084fc"], gradient: "linear-gradient(135deg, #7e22ce 0%, #9333ea 100%)" },
+      { id: "mythic_chronicler", minQi: 3000, nextQi: null, hasStages: false, colors: ["#f59e0b", "#ec4899", "#06b6d4"], gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #06b6d4 100%)" }
     ],
     titles: [
-      { id: "fool_pathway", tier: 2, symbol: "🃏", minRealmIndex: 1, minStage: 1, reqChapters: 150 },
-      { id: "constellation_reader", tier: 3, symbol: "⭐", minRealmIndex: 2, minStage: 1, reqChapters: 600, reqNovelsStarted: 20 },
-      { id: "nano_symbiosis", tier: 3, symbol: "⚙️", minRealmIndex: 2, minStage: 1, reqSingleDay: 30 },
-      { id: "primordial_author", tier: 4, symbol: "🖋️", minRealmIndex: 3, minStage: 1, reqChapters: 3000, reqNovelsCompleted: 20 }
+      { id: "fool_pathway", tier: 2, symbol: "🃏", color: "#6366f1", minRealmIndex: 1, minStage: 1, reqChapters: 150 },
+      { id: "constellation_reader", tier: 3, symbol: "⭐", color: "#9333ea", minRealmIndex: 2, minStage: 1, reqChapters: 600, reqNovelsStarted: 20 },
+      { id: "nano_symbiosis", tier: 3, symbol: "⚙️", color: "#06b6d4", minRealmIndex: 2, minStage: 1, reqSingleDay: 30 },
+      { id: "primordial_author", tier: 4, symbol: "🖋️", color: "#f59e0b", minRealmIndex: 3, minStage: 1, reqChapters: 3000, reqNovelsCompleted: 20 }
     ]
   }
 };
@@ -196,15 +197,32 @@ function initNavigation() {
     document.querySelector('[data-target="view-settings"]')?.click();
   });
 
-  document.getElementById("headerCultivationBar")?.addEventListener("click", () => {
+  const openCultivation = () => {
     document.querySelector('[data-target="view-cultivation"]')?.click();
+  };
+
+  const cultBar = document.getElementById("headerCultivationBar");
+  cultBar?.addEventListener("click", openCultivation);
+  cultBar?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openCultivation();
+    }
   });
 
-  document.getElementById("headerEquippedTitle")?.addEventListener("click", () => {
-    document.querySelector('[data-target="view-cultivation"]')?.click();
+  const eqTitle = document.getElementById("headerEquippedTitle");
+  const focusEquipped = () => {
+    openCultivation();
     setTimeout(() => {
       document.getElementById("equippedTitleSelect")?.focus();
     }, 80);
+  };
+  eqTitle?.addEventListener("click", focusEquipped);
+  eqTitle?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      focusEquipped();
+    }
   });
 }
 
@@ -311,21 +329,71 @@ function computeNaturalRealmAndStage(qi, realms = CULTIVATION_REALMS) {
   return { realmIndex, realmId: realm.id, stage };
 }
 
+function getLocalDateStr(ts = Date.now()) {
+  const d = new Date(ts);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function daysBetweenDateStrings(d1Str, d2Str) {
+  if (!d1Str || !d2Str) return 0;
+  const [y1, m1, day1] = d1Str.split("-").map(Number);
+  const [y2, m2, day2] = d2Str.split("-").map(Number);
+  const utc1 = Date.UTC(y1, m1 - 1, day1);
+  const utc2 = Date.UTC(y2, m2 - 1, day2);
+  return Math.round((utc2 - utc1) / (24 * 60 * 60 * 1000));
+}
+
+function pruneAndSumDailyChapters(dailyChapters, nowTs = Date.now()) {
+  const pruned = {};
+  const todayStr = getLocalDateStr(nowTs);
+  let last30DaysSum = 0;
+  let maxSingleDay = 0;
+
+  for (const [dateStr, count] of Object.entries(dailyChapters || {})) {
+    const num = Math.max(0, Number(count) || 0);
+    const diffDays = daysBetweenDateStrings(dateStr, todayStr);
+    if (diffDays >= 0 && diffDays <= 30) {
+      pruned[dateStr] = num;
+      last30DaysSum += num;
+      if (num > maxSingleDay) maxSingleDay = num;
+    }
+  }
+
+  return { pruned, last30DaysSum, maxSingleDay };
+}
+
 function getCultivationState(stats, themeId = "cultivation") {
   const theme = THEMES_CONFIG[themeId] || THEMES_CONFIG.cultivation;
   const realms = theme.realms;
   const totalQi = calculateQi(stats);
 
-  let cultivatedRealmIndex = stats?.cultivatedRealmIndex;
-  let cultivatedStage = stats?.cultivatedStage;
+  const themeData = stats?.cultivationThemes?.[themeId];
+  let cultivatedRealmIndex = themeData?.realmIndex;
+  let cultivatedStage = themeData?.stage;
 
-  if (cultivatedRealmIndex === undefined || cultivatedStage === undefined) {
+  // Fallback a campos planos raíz si la temática es "cultivation"
+  if (themeId === "cultivation") {
+    if (cultivatedRealmIndex === undefined && stats?.cultivatedRealmIndex !== undefined) {
+      cultivatedRealmIndex = stats.cultivatedRealmIndex;
+      cultivatedStage = stats.cultivatedStage;
+    }
+  }
+
+  if (cultivatedRealmIndex === undefined) {
     const natural = computeNaturalRealmAndStage(totalQi, realms);
     cultivatedRealmIndex = natural.realmIndex;
-    cultivatedStage = natural.stage || 1;
+    cultivatedStage = natural.stage;
   } else {
     cultivatedRealmIndex = Math.min(realms.length - 1, Math.max(0, Number(cultivatedRealmIndex) || 0));
-    cultivatedStage = Math.min(9, Math.max(1, Number(cultivatedStage) || 1));
+    const targetRealm = realms[cultivatedRealmIndex] || realms[0];
+    if (!targetRealm.hasStages || targetRealm.nextQi === null) {
+      cultivatedStage = null;
+    } else {
+      cultivatedStage = Math.min(9, Math.max(1, Number(cultivatedStage) || 1));
+    }
   }
 
   const currentRealm = realms[cultivatedRealmIndex] || realms[0];
@@ -338,7 +406,7 @@ function getCultivationState(stats, themeId = "cultivation") {
   let overflowQi = 0;
   let pct = 100;
 
-  if (!isPeakRealm && currentRealm.hasStages) {
+  if (!isPeakRealm && currentRealm.hasStages && cultivatedStage !== null) {
     const span = currentRealm.nextQi - currentRealm.minQi;
     const stageStep = span / 9;
     currentStageCapQi = Math.round(currentRealm.minQi + cultivatedStage * stageStep);
@@ -383,6 +451,54 @@ function getCultivationState(stats, themeId = "cultivation") {
   };
 }
 
+function evaluateUnlockedTitles(stats, currentThemeId = "cultivation") {
+  const unlocked = new Set(Array.isArray(stats.unlockedTitles) ? stats.unlockedTitles : []);
+  const totalQi = calculateQi(stats);
+  const { last30DaysSum, maxSingleDay } = pruneAndSumDailyChapters(stats.dailyChapters);
+  const maxStreak = Math.max(Number(stats.streakDays) || 0, Number(stats.bestStreak) || 0);
+
+  for (const tConfig of Object.values(THEMES_CONFIG)) {
+    const themeState = getCultivationState(stats, tConfig.id);
+    const themeRealmIndex = themeState.realmIndex;
+    const themeStage = themeState.stage;
+
+    for (const title of tConfig.titles) {
+      if (unlocked.has(title.id)) continue;
+
+      // 1. Level Gating: Check minimum realm and stage within THIS title's theme
+      let levelSatisfied = false;
+      if (themeRealmIndex > title.minRealmIndex) {
+        levelSatisfied = true;
+      } else if (themeRealmIndex === title.minRealmIndex) {
+        levelSatisfied = (themeStage === null || (themeStage >= (title.minStage || 1)));
+      }
+
+      if (!levelSatisfied) continue;
+
+      // 2. Reading requirements
+      let reqSatisfied = true;
+      if (title.reqChapters && (Number(stats.chaptersRead) || 0) < title.reqChapters) reqSatisfied = false;
+      if (title.reqNovelsStarted && (Number(stats.novelsStarted) || 0) < title.reqNovelsStarted) reqSatisfied = false;
+      if (title.reqNovelsCompleted && (Number(stats.novelsCompleted) || 0) < title.reqNovelsCompleted) reqSatisfied = false;
+      if (title.reqStreak && maxStreak < title.reqStreak) reqSatisfied = false;
+      if (title.reqSingleDay && maxSingleDay < title.reqSingleDay) reqSatisfied = false;
+      if (title.req30Days && last30DaysSum < title.req30Days) reqSatisfied = false;
+      if (title.reqQi && totalQi < title.reqQi) reqSatisfied = false;
+
+      if (reqSatisfied) {
+        unlocked.add(title.id);
+      }
+    }
+  }
+
+  const unlockedArr = Array.from(unlocked);
+  stats.unlockedTitles = unlockedArr;
+  if (!stats.equippedTitle && unlockedArr.length > 0) {
+    stats.equippedTitle = unlockedArr[unlockedArr.length - 1];
+  }
+  return stats;
+}
+
 async function renderCultivationUI() {
   const { stats: rawStats, settings: rawSettings } = await chrome.storage.local.get(["stats", "settings"]);
   const stats = rawStats || {
@@ -398,7 +514,7 @@ async function renderCultivationUI() {
     lastBreakthrough: null
   };
   const settings = rawSettings || {};
-  const activeThemeId = settings.activeThemeId || "cultivation";
+  const activeThemeId = currentThemeFilter || settings.activeThemeId || "cultivation";
 
   const cultState = getCultivationState(stats, activeThemeId);
 
@@ -477,10 +593,11 @@ async function renderCultivationUI() {
   }
 
   const btBanner = document.getElementById("breakthroughBanner");
-  if (stats.lastBreakthrough && stats.lastBreakthrough.realmId) {
-    const realmStr = t(`realm_${stats.lastBreakthrough.realmId}`);
-    const stageStr = stats.lastBreakthrough.stage
-      ? `(${t("header_stage", { stage: stats.lastBreakthrough.stage })})`
+  const lastBt = stats?.cultivationThemes?.[activeThemeId]?.lastBreakthrough || stats?.lastBreakthrough;
+  if (lastBt && lastBt.realmId) {
+    const realmStr = t(`realm_${lastBt.realmId}`);
+    const stageStr = lastBt.stage
+      ? `(${t("header_stage", { stage: lastBt.stage })})`
       : "";
     const btText = document.getElementById("breakthroughText");
     if (btText) {
@@ -576,7 +693,7 @@ async function renderCultivationUI() {
       }
 
       return `
-        <div class="title-item tier-${tier} ${stateClass} ${equippedClass}" data-title-id="${escapeHtml(title.id)}">
+        <div class="title-item tier-${tier} ${stateClass} ${equippedClass}" data-title-id="${escapeHtml(title.id)}" ${isUnlocked ? `tabindex="0" role="button" aria-label="${escapeHtml(t(`title_${title.id}_name`))}"` : ""}>
           <div class="title-emblem">${cfg.symbol}</div>
           <div class="title-info">
             <div class="title-header-row">
@@ -598,19 +715,37 @@ function initCultivationEvents() {
     await equipTitleById(e.target.value);
   });
 
-  document.getElementById("titlesList")?.addEventListener("click", async (e) => {
-    const card = e.target.closest(".title-item.unlocked");
+  const handleTitleActivation = async (card) => {
     if (!card) return;
     const titleId = card.getAttribute("data-title-id");
     if (titleId) {
       await equipTitleById(titleId);
     }
+  };
+
+  document.getElementById("titlesList")?.addEventListener("click", async (e) => {
+    const card = e.target.closest(".title-item.unlocked");
+    await handleTitleActivation(card);
+  });
+
+  document.getElementById("titlesList")?.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      const card = e.target.closest(".title-item.unlocked");
+      if (card) {
+        e.preventDefault();
+        await handleTitleActivation(card);
+      }
+    }
   });
 
   document.getElementById("btnDismissBreakthrough")?.addEventListener("click", async () => {
-    const { stats } = await chrome.storage.local.get(["stats"]);
+    const { stats, settings } = await chrome.storage.local.get(["stats", "settings"]);
     if (stats) {
       stats.lastBreakthrough = null;
+      const themeId = currentThemeFilter || settings?.activeThemeId || "cultivation";
+      if (stats.cultivationThemes && stats.cultivationThemes[themeId]) {
+        stats.cultivationThemes[themeId].lastBreakthrough = null;
+      }
       await chrome.storage.local.set({ stats });
     }
     document.getElementById("breakthroughBanner")?.classList.remove("visible");
@@ -620,22 +755,21 @@ function initCultivationEvents() {
     const btn = document.getElementById("btnBreakthrough");
     if (btn) btn.disabled = true;
 
-    const header = document.querySelector(".header");
-    if (header) {
-      header.classList.remove("ascension-burst");
-      void header.offsetWidth;
-      header.classList.add("ascension-burst");
-      setTimeout(() => {
-        header.classList.remove("ascension-burst");
-      }, 950);
-    }
-
     try {
       const res = await chrome.runtime.sendMessage({
         type: "PERFORM_BREAKTHROUGH",
         themeId: currentThemeFilter
       });
       if (res && res.ok) {
+        const header = document.querySelector(".header");
+        if (header) {
+          header.classList.remove("ascension-burst");
+          void header.offsetWidth;
+          header.classList.add("ascension-burst");
+          setTimeout(() => {
+            header.classList.remove("ascension-burst");
+          }, 950);
+        }
         await renderCultivationUI();
       }
     } catch (err) {
@@ -650,6 +784,12 @@ function initCultivationEvents() {
       const theme = chip.getAttribute("data-theme");
       if (theme && THEMES_CONFIG[theme]) {
         currentThemeFilter = theme;
+        const { settings: rawSettings } = await chrome.storage.local.get(["settings"]);
+        const settings = { ...(rawSettings || {}), activeThemeId: theme };
+        await chrome.storage.local.set({ settings });
+        try {
+          chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
+        } catch {}
         await renderCultivationUI();
       }
     });
@@ -823,9 +963,7 @@ function initLibraryEvents() {
     if (statusManual === "completed" && !completedCounted) {
       completedCounted = true;
       stats.novelsCompleted = (Number(stats.novelsCompleted) || 0) + 1;
-      if (stats.novelsCompleted >= 5 && !(stats.unlockedTitles || []).includes("tribulation_overcomer")) {
-        stats.unlockedTitles = [...(stats.unlockedTitles || []), "tribulation_overcomer"];
-      }
+      evaluateUnlockedTitles(stats, currentThemeFilter);
       stats.updatedAt = Date.now();
     }
 
@@ -1351,6 +1489,10 @@ async function loadSettings() {
   const perfToggle = document.getElementById("enablePerfMode");
   if (perfToggle) perfToggle.checked = isPerf;
   document.body.classList.toggle("perf-mode", isPerf);
+
+  if (settings.activeThemeId && THEMES_CONFIG[settings.activeThemeId]) {
+    currentThemeFilter = settings.activeThemeId;
+  }
 }
 
 function extractDomain(url) {
