@@ -1082,6 +1082,71 @@ function mergeStatsObjects(localStats, cloudStats) {
 
   const mergedUnlocked = Array.from(new Set([...(l.unlockedTitles || []), ...(c.unlockedTitles || [])]));
 
+  // Resolver nivel y etapa de cultivo evitando regresiones y asegurando persistencia
+  let realmIndex = undefined;
+  let stage = undefined;
+  const lRealm = l.cultivatedRealmIndex;
+  const cRealm = c.cultivatedRealmIndex;
+  const lStage = l.cultivatedStage;
+  const cStage = c.cultivatedStage;
+
+  if (lRealm !== undefined && cRealm !== undefined) {
+    if (lRealm > cRealm) {
+      realmIndex = lRealm;
+      stage = lStage;
+    } else if (cRealm > lRealm) {
+      realmIndex = cRealm;
+      stage = cStage;
+    } else {
+      realmIndex = lRealm;
+      stage = Math.max(Number(lStage) || 1, Number(cStage) || 1);
+    }
+  } else if (winner.cultivatedRealmIndex !== undefined) {
+    realmIndex = winner.cultivatedRealmIndex;
+    stage = winner.cultivatedStage;
+  } else if (older.cultivatedRealmIndex !== undefined) {
+    realmIndex = older.cultivatedRealmIndex;
+    stage = older.cultivatedStage;
+  }
+
+  // Fusión por temática si existen estructuras multi-tema
+  const allThemeKeys = new Set([
+    ...Object.keys(l.cultivationThemes || {}),
+    ...Object.keys(c.cultivationThemes || {})
+  ]);
+  let mergedThemes = undefined;
+  if (allThemeKeys.size > 0) {
+    mergedThemes = {};
+    for (const tKey of allThemeKeys) {
+      const lT = (l.cultivationThemes || {})[tKey];
+      const cT = (c.cultivationThemes || {})[tKey];
+      if (lT && cT) {
+        if ((lT.realmIndex || 0) > (cT.realmIndex || 0)) {
+          mergedThemes[tKey] = { ...lT };
+        } else if ((cT.realmIndex || 0) > (lT.realmIndex || 0)) {
+          mergedThemes[tKey] = { ...cT };
+        } else {
+          mergedThemes[tKey] = {
+            realmIndex: lT.realmIndex,
+            stage: Math.max(Number(lT.stage) || 1, Number(cT.stage) || 1),
+            lastBreakthrough: (lT.lastBreakthrough?.timestamp || 0) >= (cT.lastBreakthrough?.timestamp || 0)
+              ? lT.lastBreakthrough
+              : cT.lastBreakthrough
+          };
+        }
+      } else {
+        mergedThemes[tKey] = { ...(lT || cT) };
+      }
+    }
+  }
+
+  let bestBreakthrough = winner.lastBreakthrough;
+  if (older.lastBreakthrough) {
+    if (!bestBreakthrough || (older.lastBreakthrough.timestamp || 0) > (bestBreakthrough.timestamp || 0)) {
+      bestBreakthrough = older.lastBreakthrough;
+    }
+  }
+
   const merged = {
     chaptersRead: Math.max(Number(l.chaptersRead) || 0, Number(c.chaptersRead) || 0),
     novelsStarted: Math.max(Number(l.novelsStarted) || 0, Number(c.novelsStarted) || 0),
@@ -1092,7 +1157,10 @@ function mergeStatsObjects(localStats, cloudStats) {
     unlockedTitles: mergedUnlocked,
     equippedTitle: winner.equippedTitle || older.equippedTitle || "",
     dailyChapters: pruned,
-    lastBreakthrough: winner.lastBreakthrough || older.lastBreakthrough || null,
+    cultivatedRealmIndex: realmIndex,
+    cultivatedStage: stage,
+    lastBreakthrough: bestBreakthrough || null,
+    ...(mergedThemes ? { cultivationThemes: mergedThemes } : {}),
     updatedAt: Math.max(l.updatedAt || 0, c.updatedAt || 0)
   };
 
