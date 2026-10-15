@@ -26,6 +26,7 @@
 
     body {
       width: 390px;
+      height: 600px;
       max-height: 600px;
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
       background-color: var(--bg-base);
@@ -78,6 +79,23 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .brand-crest:hover {
+      transform: translateY(-1px) scale(1.03);
+    }
+
+    .brand-crest.has-equipped {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0;
+    }
+
+    .brand-crest.has-equipped .novel-badge {
+      width: 34px;
+      height: 34px;
     }
 
     .brand-crest-inner {
@@ -120,8 +138,8 @@
     .achievement-under-n {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 3px 9px;
+      gap: 6px;
+      padding: 3px 8px 3px 6px;
       border-radius: 6px;
       font-size: 10.5px;
       font-weight: 700;
@@ -130,22 +148,253 @@
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(168, 85, 247, 0.18) 100%);
       border: 1px solid rgba(251, 191, 36, 0.45);
       color: #fde68a;
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
       width: fit-content;
+      max-width: 220px;
     }
 
     .achievement-under-n:hover {
       transform: translateY(-1px);
+    }
+
+    .achievement-under-n.rarity-common {
+      background: linear-gradient(135deg, rgba(180, 83, 9, 0.2) 0%, rgba(120, 53, 15, 0.25) 100%);
+      border-color: rgba(245, 158, 11, 0.45);
+      color: #fed7aa;
+      filter: drop-shadow(0 2px 5px rgba(180, 83, 9, 0.3));
+    }
+    .achievement-under-n.rarity-common:hover {
+      border-color: rgba(245, 158, 11, 0.8);
+      filter: drop-shadow(0 3px 8px rgba(180, 83, 9, 0.45));
+    }
+
+    .achievement-under-n.rarity-rare {
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.22) 0%, rgba(6, 182, 212, 0.22) 100%);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #a7f3d0;
+      filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.35));
+    }
+    .achievement-under-n.rarity-rare:hover {
+      border-color: rgba(52, 211, 153, 0.85);
+      filter: drop-shadow(0 3px 10px rgba(16, 185, 129, 0.55));
+    }
+
+    .achievement-under-n.rarity-epic {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.25) 0%, rgba(217, 70, 239, 0.22) 100%);
+      border-color: rgba(168, 85, 247, 0.65);
+      color: #f5d0fe;
+      filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.45)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
+      animation: epicHaloPulse 3s ease-in-out infinite;
+    }
+    .achievement-under-n.rarity-epic:hover {
+      border-color: rgba(216, 180, 254, 0.95);
+      filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.75));
+    }
+
+    .achievement-under-n.rarity-legendary {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(236, 72, 153, 0.25) 50%, rgba(6, 182, 212, 0.2) 100%);
       border-color: rgba(251, 191, 36, 0.8);
-      box-shadow: 0 3px 12px rgba(245, 158, 11, 0.28);
+      color: #fef08a;
+      filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6)) drop-shadow(0 0 14px rgba(236, 72, 153, 0.4));
+      animation: legendaryAuraShimmer 2.2s ease-in-out infinite;
+    }
+    .achievement-under-n.rarity-legendary:hover {
+      border-color: #fef08a;
+      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.9)) drop-shadow(0 0 20px rgba(236, 72, 153, 0.65));
     }
 
     .achievement-under-n.empty {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px dashed rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
       color: var(--text-secondary);
       font-weight: 500;
-      box-shadow: none;
+      filter: none;
+      animation: none;
+    }
+    .achievement-under-n.empty:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: var(--text-primary);
+    }
+
+    .header-badge-inline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-badge-inline .novel-badge {
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-tier-tag {
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 0.5px 4px;
+      border-radius: 3px;
+      letter-spacing: 0.2px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+    }
+    .header-tier-tag.rarity-common { color: #f59e0b; border-color: rgba(245, 158, 11, 0.35); }
+    .header-tier-tag.rarity-rare { color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+    .header-tier-tag.rarity-epic { color: #c084fc; border-color: rgba(168, 85, 247, 0.45); }
+    .header-tier-tag.rarity-legendary { color: #fde047; border-color: rgba(251, 191, 36, 0.55); }
+
+    .header-title-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 140px;
+    }
+
+    @keyframes epicHaloPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.4)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
+      }
+      50% {
+        filter: drop-shadow(0 0 10px rgba(192, 38, 211, 0.7)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.65));
+      }
+    }
+
+    @keyframes legendaryAuraShimmer {
+      0%, 100% {
+        filter: drop-shadow(0 0 7px rgba(245, 158, 11, 0.55)) drop-shadow(0 0 12px rgba(236, 72, 153, 0.35));
+      }
+      50% {
+        filter: drop-shadow(0 0 13px rgba(251, 191, 36, 0.85)) drop-shadow(0 0 18px rgba(244, 63, 94, 0.55));
+      }
+    }
+
+    /* Componente Reutilizable Novel-Badge con halo exterior y marco con silueta */
+    .novel-badge {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .novel-badge.badge-size-sm {
+      width: 34px;
+      height: 34px;
+    }
+
+    .novel-badge.badge-size-md {
+      width: 42px;
+      height: 42px;
+    }
+
+    .novel-badge.badge-size-lg {
+      width: 80px;
+      height: 80px;
+    }
+
+    .novel-badge .badge-halo {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+      transition: filter 0.25s ease, transform 0.25s ease;
+    }
+
+    .novel-badge.rarity-common .badge-halo {
+      filter: drop-shadow(0 2px 5px rgba(180, 83, 9, 0.45));
+    }
+
+    .novel-badge.rarity-rare .badge-halo {
+      filter: drop-shadow(0 2px 7px rgba(16, 185, 129, 0.5));
+    }
+
+    .novel-badge.rarity-epic .badge-halo {
+      filter: drop-shadow(0 0 7px rgba(168, 85, 247, 0.6)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+      animation: epicBadgeHaloPulse 3s ease-in-out infinite;
+    }
+
+    .novel-badge.rarity-legendary .badge-halo {
+      filter: drop-shadow(0 0 9px rgba(245, 158, 11, 0.7)) drop-shadow(0 0 16px rgba(236, 72, 153, 0.5));
+      animation: legendaryBadgeAuraShimmer 2.2s ease-in-out infinite;
+    }
+
+    .novel-badge.badge-empty .badge-halo {
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+    }
+
+    .novel-badge .badge-frame-layer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .novel-badge .badge-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .novel-badge .badge-silhouette-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    @keyframes epicBadgeHaloPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.5)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+      }
+      50% {
+        filter: drop-shadow(0 0 12px rgba(192, 38, 211, 0.8)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+      }
+    }
+
+    @keyframes legendaryBadgeAuraShimmer {
+      0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.65)) drop-shadow(0 0 15px rgba(236, 72, 153, 0.45));
+      }
+      50% {
+        filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.9)) drop-shadow(0 0 22px rgba(244, 63, 94, 0.65));
+      }
+    }
+
+    @keyframes titleHighlightFlash {
+      0% {
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.9), 0 0 25px rgba(251, 191, 36, 0.7);
+        border-color: #fde047 !important;
+        transform: scale(1.02);
+      }
+      50% {
+        box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.65), 0 0 35px rgba(245, 158, 11, 0.85);
+        border-color: #fef08a !important;
+        transform: scale(1.025);
+      }
+      100% {
+        box-shadow: 0 0 14px rgba(251, 191, 36, 0.35);
+        border-color: #fde047 !important;
+        transform: scale(1);
+      }
+    }
+
+    .title-item.highlight-flash {
+      animation: titleHighlightFlash 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+      z-index: 10;
+      position: relative;
+    }
+
+    .title-actions-cluster {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .achievement-icon {
@@ -189,6 +438,431 @@
     .sync-pill.online .status-dot {
       background: var(--success);
       box-shadow: 0 0 8px var(--success);
+    }
+
+    /* HEADER RIGHT CLUSTER & AVATAR WITH MINI-INDICATORS (PHASE 3 & 6) */
+    .header-right-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .profile-avatar-btn {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(99, 102, 241, 0.4), rgba(15, 15, 25, 0.95));
+      border: 1.5px solid rgba(139, 92, 246, 0.5);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+    }
+    .profile-avatar-btn:hover {
+      transform: scale(1.06);
+      border-color: #c084fc;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.55);
+    }
+    .profile-avatar-btn.logged-in {
+      border-color: rgba(56, 189, 248, 0.7);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.45);
+    }
+    .avatar-portrait {
+      font-size: 15px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .avatar-mini-slots {
+      position: absolute;
+      inset: -4px;
+      pointer-events: none;
+    }
+    .avatar-mini-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 1.5px solid #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7.5px;
+      line-height: 1;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+      pointer-events: auto;
+      cursor: help;
+      transition: transform 0.15s ease;
+    }
+    .avatar-mini-dot:hover {
+      transform: scale(1.25);
+      z-index: 10;
+    }
+    .avatar-mini-dot.slot-0 { top: -3px; right: -3px; }
+    .avatar-mini-dot.slot-1 { bottom: -3px; right: -2px; }
+    .avatar-mini-dot.slot-2 { bottom: -3px; left: -2px; }
+    .avatar-mini-dot.rarity-common { border-color: #d97706; box-shadow: 0 0 5px rgba(217,119,6,0.6); }
+    .avatar-mini-dot.rarity-rare { border-color: #06b6d4; box-shadow: 0 0 6px rgba(6,182,212,0.7); }
+    .avatar-mini-dot.rarity-epic { border-color: #c084fc; box-shadow: 0 0 7px rgba(192,132,252,0.8); }
+    .avatar-mini-dot.rarity-legendary { border-color: #fbbf24; box-shadow: 0 0 9px rgba(251,191,36,0.9); }
+
+    /* DIFFICULTY TAGS (PHASE 2) */
+    .title-diff-tag {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+    .title-diff-tag.diff-1 { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.35); }
+    .title-diff-tag.diff-2 { background: rgba(52, 211, 153, 0.15); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.35); }
+    .title-diff-tag.diff-3 { background: rgba(251, 191, 36, 0.15); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.35); }
+    .title-diff-tag.diff-4 { background: rgba(249, 115, 22, 0.15); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.35); }
+    .title-diff-tag.diff-5 { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .title-diff-tag.diff-6 { background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(236,72,153,0.25)); color: #fef08a; border: 1px solid rgba(251,191,36,0.6); box-shadow: 0 0 6px rgba(251,191,36,0.3); }
+
+    /* INVENTORY SLOTS & QI FORMULA (PHASE 4 & 5) */
+    .system-tag-accent {
+      font-size: 10px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+    .system-subtext {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .card-heading-cluster {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .qi-multiplier-pill {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fde047;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 88, 12, 0.2));
+      border: 1px solid rgba(251, 191, 36, 0.5);
+      padding: 2px 8px;
+      border-radius: 99px;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+    .equipped-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .equipped-slot-card {
+      background: rgba(15, 15, 23, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .equipped-slot-card.slot-filled {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+    .equipped-slot-card.slot-filled.rarity-common { border-color: rgba(217, 119, 6, 0.4); }
+    .equipped-slot-card.slot-filled.rarity-rare { border-color: rgba(6, 182, 212, 0.5); }
+    .equipped-slot-card.slot-filled.rarity-epic { border-color: rgba(192, 132, 252, 0.6); }
+    .equipped-slot-card.slot-filled.rarity-legendary { border-color: rgba(251, 191, 36, 0.7); box-shadow: 0 0 10px rgba(251, 191, 36, 0.25); }
+    .equipped-slot-card.slot-empty {
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.02);
+      justify-content: center;
+      min-height: 86px;
+    }
+    .slot-item-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .slot-item-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .slot-item-bonus {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #34d399;
+    }
+    .btn-slot-unequip {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fda4af;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 2px;
+      transition: all 0.15s ease;
+    }
+    .btn-slot-unequip:hover {
+      background: rgba(244, 63, 94, 0.25);
+      color: #fff;
+    }
+    .qi-formula-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8, 8, 14, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-top: 4px;
+    }
+    .formula-term {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .term-lbl {
+      font-size: 8.5px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .term-val {
+      font-size: 12px;
+      font-weight: 800;
+      color: #f8fafc;
+      font-variant-numeric: tabular-nums;
+    }
+    .term-val-mult { color: #fde047; }
+    .term-val-bonus { color: #a78bfa; }
+    .term-val-total { color: #38bdf8; font-size: 13px; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
+    .formula-operator {
+      font-size: 13px;
+      font-weight: 800;
+      color: #64748b;
+    }
+    .inventory-items-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 4px;
+    }
+    .inventory-item-card {
+      background: rgba(18, 18, 26, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 9px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+    .inventory-item-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-1px);
+    }
+    .item-card-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+    .item-card-icon {
+      font-size: 22px;
+      line-height: 1;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .item-card-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .item-card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .item-card-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-card-desc {
+      font-size: 10px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+    .item-card-bonus-tag {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 1px 5px;
+      border-radius: 4px;
+      width: fit-content;
+      margin-top: 2px;
+    }
+    .btn-equip-item {
+      padding: 5px 10px;
+      font-size: 10.5px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(135deg, #06b6d4, #6366f1);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .btn-equip-item:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-equip-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .item-equipped-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #818cf8;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .inventory-empty-state {
+      padding: 20px 14px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.5;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    /* ACCOUNT MODAL (PHASE 3) */
+    .account-modal-dialog {
+      max-width: 320px;
+      padding: 20px 18px 18px;
+    }
+    .account-modal-header {
+      text-align: center;
+      margin-bottom: 2px;
+    }
+    .account-modal-heading {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .account-profile-avatar-large {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .account-portrait-ring {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(99, 102, 241, 0.3), rgba(10, 10, 18, 0.95));
+      border: 2px solid #818cf8;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .account-form-links {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .link-btn {
+      background: transparent;
+      border: none;
+      color: #a5b4fc;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 2px 4px;
+      transition: color 0.15s ease;
+    }
+    .link-btn:hover {
+      color: #fff;
+    }
+
+    /* FANTASY CULTIVATION REDESIGN (PHASE 8) */
+    .void-card {
+      background: linear-gradient(145deg, rgba(16, 16, 24, 0.92) 0%, rgba(10, 10, 16, 0.96) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .cultivation-stats-fantasy {
+      border: 1px solid rgba(99, 102, 241, 0.28);
+      position: relative;
+    }
+    .cultivation-stats-fantasy::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.7), transparent);
+    }
+    .title-progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.5px;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+    .title-progress-pct {
+      font-weight: 700;
+      color: #38bdf8;
     }
 
     .cultivation-bar {
@@ -275,6 +949,27 @@
     @keyframes bottleneckPulse {
       0%, 100% { border-color: rgba(245, 158, 11, 0.45); }
       50% { border-color: rgba(239, 68, 68, 0.85); box-shadow: 0 0 16px rgba(239, 68, 68, 0.25); }
+    }
+
+    .bottleneck-card.major-realm-card {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.22) 0%, rgba(219, 39, 119, 0.2) 100%) !important;
+      border: 1px solid rgba(168, 85, 247, 0.7) !important;
+      box-shadow: 0 0 18px rgba(168, 85, 247, 0.3) !important;
+      animation: majorRealmPulse 2s ease-in-out infinite !important;
+    }
+
+    @keyframes majorRealmPulse {
+      0%, 100% { border-color: rgba(168, 85, 247, 0.55); box-shadow: 0 0 14px rgba(168, 85, 247, 0.25); }
+      50% { border-color: rgba(236, 72, 153, 0.9); box-shadow: 0 0 20px rgba(236, 72, 153, 0.45); }
+    }
+
+    .bottleneck-card.major-realm-card .bottleneck-title {
+      color: #fbcfe8 !important;
+    }
+
+    .bottleneck-card.major-realm-card .btn-breakthrough {
+      background: linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #f59e0b 100%) !important;
+      box-shadow: 0 3px 12px rgba(147, 51, 234, 0.4) !important;
     }
 
     .bottleneck-card-header {
@@ -474,8 +1169,8 @@
 
     .view-container {
       padding: 4px 16px 12px;
-      height: 315px;
-      max-height: 335px;
+      flex: 1;
+      min-height: 0;
       overflow-y: auto;
     }
 
@@ -567,13 +1262,21 @@
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
       color: var(--text-secondary);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
-      padding: 4px 8px;
+      padding: 0 12px;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 99px;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s;
+    }
+
+    .filter-chip:focus-visible {
+      outline: 2px solid #6366f1;
     }
 
     .filter-chip.active {
@@ -893,26 +1596,22 @@
     .title-item.tier-3.unlocked {
       border-color: rgba(225, 29, 72, 0.4);
       background: linear-gradient(135deg, rgba(225, 29, 72, 0.1) 0%, rgba(9, 9, 12, 0.7) 100%);
-      animation: tier3Pulse 3.5s ease-in-out infinite;
     }
     .title-item.tier-3.unlocked .title-emblem {
       background: linear-gradient(135deg, rgba(225, 29, 72, 0.3) 0%, rgba(244, 63, 94, 0.15) 100%);
       border-color: rgba(244, 63, 94, 0.65);
       box-shadow: 0 0 12px rgba(225, 29, 72, 0.35);
-      animation: emblemFloat 2.8s ease-in-out infinite;
     }
 
     /* TIER 4: Inmortal / Supremo (Oro Divino / Dragón Cósmico / Corazón Primordial) */
     .title-item.tier-4.unlocked {
       border-color: rgba(250, 204, 21, 0.55);
       background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(236, 72, 153, 0.08) 50%, rgba(9, 9, 12, 0.75) 100%);
-      animation: tier4Radiance 3s ease-in-out infinite;
     }
     .title-item.tier-4.unlocked .title-emblem {
       background: linear-gradient(135deg, rgba(250, 204, 21, 0.35) 0%, rgba(236, 72, 153, 0.25) 100%);
       border-color: rgba(250, 204, 21, 0.85);
       box-shadow: 0 0 16px rgba(250, 204, 21, 0.45);
-      animation: emblemFloat 2.2s ease-in-out infinite;
     }
 
     /* TIER 5: Alma Naciente / Transformación Espiritual */
@@ -924,7 +1623,6 @@
       background: linear-gradient(135deg, rgba(147, 51, 234, 0.3) 0%, rgba(244, 63, 94, 0.2) 100%);
       border-color: rgba(168, 85, 247, 0.65);
       box-shadow: 0 0 12px rgba(147, 51, 234, 0.35);
-      animation: emblemFloat 2.6s ease-in-out infinite;
     }
 
     /* TIER 6: Refinamiento del Vacío */
@@ -936,7 +1634,6 @@
       background: linear-gradient(135deg, rgba(37, 99, 235, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%);
       border-color: rgba(96, 165, 250, 0.65);
       box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
-      animation: emblemFloat 2.4s ease-in-out infinite;
     }
 
     /* TIER 7: Integración Sagrada */
@@ -948,33 +1645,61 @@
       background: linear-gradient(135deg, rgba(234, 88, 12, 0.3) 0%, rgba(250, 204, 21, 0.2) 100%);
       border-color: rgba(251, 146, 60, 0.65);
       box-shadow: 0 0 14px rgba(234, 88, 12, 0.35);
-      animation: emblemFloat 2.2s ease-in-out infinite;
     }
 
     /* TIER 8: Soberano Mahayana */
     .title-item.tier-8.unlocked {
       border-color: rgba(6, 182, 212, 0.5);
       background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(99, 102, 241, 0.1) 50%, rgba(9, 9, 12, 0.75) 100%);
-      animation: tier8Pulse 3.2s ease-in-out infinite;
     }
     .title-item.tier-8.unlocked .title-emblem {
       background: linear-gradient(135deg, rgba(6, 182, 212, 0.35) 0%, rgba(244, 114, 182, 0.25) 100%);
       border-color: rgba(103, 232, 249, 0.75);
       box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
-      animation: emblemFloat 2.0s ease-in-out infinite;
     }
 
     /* TIER 9: Cúspide Celestial / Inmortal Primordial */
     .title-item.tier-9.unlocked {
       border-color: rgba(251, 191, 36, 0.65);
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.14) 0%, rgba(236, 72, 153, 0.12) 45%, rgba(6, 182, 212, 0.08) 100%);
-      animation: tier9Apex 2.8s ease-in-out infinite;
     }
     .title-item.tier-9.unlocked .title-emblem {
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.4) 0%, rgba(236, 72, 153, 0.3) 100%);
       border-color: rgba(253, 224, 71, 0.9);
       box-shadow: 0 0 20px rgba(251, 191, 36, 0.55);
+    }
+
+    /* Animaciones continuas de títulos limitadas estrictamente a Épico y Legendario (Ajustes 3 y 5) */
+    .title-item.rarity-epic.unlocked {
+      animation: epicCardRadiance 3s ease-in-out infinite;
+    }
+    .title-item.rarity-epic.unlocked .title-emblem {
+      animation: emblemFloat 2.4s ease-in-out infinite;
+    }
+
+    .title-item.rarity-legendary.unlocked {
+      animation: legendaryCardRadiance 2.5s ease-in-out infinite;
+    }
+    .title-item.rarity-legendary.unlocked .title-emblem {
       animation: emblemFloat 1.8s ease-in-out infinite;
+    }
+
+    @keyframes epicCardRadiance {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(168, 85, 247, 0.25);
+      }
+      50% {
+        box-shadow: 0 0 16px rgba(192, 38, 211, 0.45);
+      }
+    }
+
+    @keyframes legendaryCardRadiance {
+      0%, 100% {
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 22px rgba(251, 191, 36, 0.6), 0 0 14px rgba(236, 72, 153, 0.35);
+      }
     }
 
     @keyframes tier8Pulse {
@@ -1101,6 +1826,12 @@
       color: #fef08a;
       border-color: rgba(250, 204, 21, 0.6);
       box-shadow: 0 0 10px rgba(250, 204, 21, 0.25);
+    }
+    .title-action-btn.btn-equipped:hover {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(244, 63, 94, 0.3) 100%);
+      border-color: rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
     }
     .title-action-btn.btn-locked {
       background: rgba(255, 255, 255, 0.04);
@@ -1269,10 +2000,22 @@
       color: var(--text-primary);
     }
 
+    .switch-interactive {
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      transition: background 0.2s;
+    }
+    .switch-interactive:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
     .ios-switch {
       position: relative;
-      width: 36px;
-      height: 20px;
+      width: 44px;
+      height: 24px;
       flex-shrink: 0;
     }
 
@@ -1294,8 +2037,8 @@
     .slider:before {
       position: absolute;
       content: "";
-      height: 14px;
-      width: 14px;
+      height: 18px;
+      width: 18px;
       left: 3px;
       bottom: 3px;
       background-color: white;
@@ -1308,7 +2051,135 @@
     }
 
     .ios-switch input:checked + .slider:before {
-      transform: translateX(16px);
+      transform: translateX(20px);
+    }
+
+    .btn-banner-close {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .btn-banner-close:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .status-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      flex: 1;
+      text-align: center;
+    }
+    .status-chip:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .status-chip.active {
+      background: var(--accent-gradient);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 2px 6px var(--accent-glow);
+    }
+
+    .lang-segment-btn.active {
+      background: var(--accent-gradient) !important;
+      color: #fff !important;
+      box-shadow: 0 2px 8px var(--accent-glow) !important;
+    }
+
+    .input-error {
+      border-color: #f43f5e !important;
+      box-shadow: 0 0 6px rgba(244, 63, 94, 0.4) !important;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 60px;
+      left: 12px;
+      right: 12px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .toast-item {
+      pointer-events: auto;
+      background: rgba(18, 18, 24, 0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      animation: toastIn 0.25s ease-out;
+      font-size: 11px;
+      color: #f8fafc;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .toast-item.success { border-color: rgba(16, 185, 129, 0.5); }
+    .toast-item.error { border-color: rgba(244, 63, 94, 0.5); }
+    .toast-item.info { border-color: rgba(99, 102, 241, 0.5); }
+    .toast-item.warning { border-color: rgba(245, 158, 11, 0.5); }
+
+    .toast-undo-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fef08a;
+      font-weight: 700;
+      font-size: 10.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .toast-undo-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .blacklist-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      font-size: 11px;
+    }
+
+    .btn-blacklist-delete {
+      background: transparent;
+      border: none;
+      color: #fda4af;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .btn-blacklist-delete:hover {
+      background: rgba(244, 63, 94, 0.2);
     }
 
     .btn-primary {
@@ -1392,6 +2263,423 @@
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
+
+    /* NOVEL CHAPTER TRACKER — V4 ACHIEVEMENTS & BADGES REDESIGN */
+    .title-progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 5px;
+      width: 100%;
+    }
+    .title-progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .title-progress-pct {
+      color: #93c5fd;
+      font-weight: 700;
+    }
+    .title-progress-track {
+      width: 100%;
+      height: 4.5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .title-progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+    .title-progress-fill.rarity-common { background: linear-gradient(90deg, #b45309, #f59e0b); }
+    .title-progress-fill.rarity-rare { background: linear-gradient(90deg, #059669, #10b981, #06b6d4); }
+    .title-progress-fill.rarity-epic { background: linear-gradient(90deg, #7c3aed, #c026d3, #ec4899); }
+    .title-progress-fill.rarity-legendary { background: linear-gradient(90deg, #f59e0b, #fbbf24, #fef08a); box-shadow: 0 0 6px rgba(251, 191, 36, 0.6); }
+
+    .title-rarity-tag {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .rarity-tag-common { background: rgba(180, 83, 9, 0.2); color: #fbbf24; border: 1px solid rgba(180, 83, 9, 0.4); }
+    .rarity-tag-rare { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .rarity-tag-epic { background: rgba(168, 85, 247, 0.22); color: #e879f9; border: 1px solid rgba(168, 85, 247, 0.45); }
+    .rarity-tag-legendary { background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(236, 72, 153, 0.2)); color: #fef08a; border: 1px solid rgba(250, 204, 21, 0.6); box-shadow: 0 0 6px rgba(250, 204, 21, 0.3); }
+
+    .title-emblem .badge-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+      transition: transform 0.2s ease;
+    }
+    .title-item.unlocked:hover .title-emblem .badge-img {
+      transform: scale(1.08);
+    }
+
+    .btn-claim-reward {
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+      animation: claimPulse 1.8s ease-in-out infinite;
+      white-space: nowrap;
+    }
+    @keyframes claimPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4); }
+      50% { transform: scale(1.03); box-shadow: 0 0 12px rgba(236, 72, 153, 0.6); }
+    }
+    .badge-claimed {
+      font-size: 9px;
+      font-weight: 700;
+      color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 2px 6px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+
+    .equipped-title-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-top: 4px;
+    }
+    .equipped-label-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      flex: 1;
+    }
+    .equipped-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .active-title-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fef08a;
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .active-title-chip.empty {
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      font-weight: 500;
+      font-size: 10px;
+    }
+    .btn-unequip {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-secondary);
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-unequip:hover {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: rgba(244, 63, 94, 0.4);
+      color: #fff;
+    }
+
+    .unclaimed-rewards-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(236, 72, 153, 0.18) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
+      animation: rewardBannerGlow 2.5s ease-in-out infinite;
+      margin-bottom: 2px;
+    }
+    @keyframes rewardBannerGlow {
+      0%, 100% { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+      50% { border-color: rgba(236, 72, 153, 0.7); box-shadow: 0 0 16px rgba(236, 72, 153, 0.35); }
+    }
+    .unclaimed-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      flex: 1;
+    }
+    .unclaimed-gift-pulse {
+      font-size: 18px;
+      animation: giftBounce 1.5s ease-in-out infinite;
+    }
+    @keyframes giftBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-2px) rotate(8deg); }
+    }
+    .unclaimed-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .unclaimed-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #fef08a;
+    }
+    .unclaimed-qi-gain {
+      font-size: 9px;
+      color: #cbd5e1;
+    }
+    .btn-claim-all {
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-claim-all:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .celebration-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .celebration-modal-dialog {
+      position: relative;
+      background: #0f0f14;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 24px 20px 20px;
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(99, 102, 241, 0.3);
+      animation: modalScaleUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      overflow: hidden;
+    }
+    @keyframes modalScaleUp {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .celebration-rays {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, rgba(236, 72, 153, 0.15) 40%, transparent 70%);
+      pointer-events: none;
+      animation: raysRotate 12s linear infinite;
+    }
+    @keyframes raysRotate {
+      from { transform: translateX(-50%) rotate(0deg); }
+      to { transform: translateX(-50%) rotate(360deg); }
+    }
+    .btn-close-modal {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      z-index: 2;
+    }
+    .btn-close-modal:hover {
+      color: #fff;
+    }
+    .celebration-badge-wrapper {
+      width: 82px;
+      height: 82px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+    .celebration-badge-wrapper.rarity-common {
+      background: radial-gradient(circle, rgba(180, 83, 9, 0.35) 0%, rgba(9, 9, 12, 0.8) 100%);
+      box-shadow: 0 0 20px rgba(180, 83, 9, 0.5);
+      border: 2px solid #d97706;
+    }
+    .celebration-badge-wrapper.rarity-rare {
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(9, 9, 12, 0.8) 100%);
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.55);
+      border: 2px solid #10b981;
+    }
+    .celebration-badge-wrapper.rarity-epic {
+      background: radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, rgba(9, 9, 12, 0.8) 100%);
+      box-shadow: 0 0 28px rgba(168, 85, 247, 0.6);
+      border: 2px solid #a855f7;
+    }
+    .celebration-badge-wrapper.rarity-legendary {
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.45) 0%, rgba(9, 9, 12, 0.8) 100%);
+      box-shadow: 0 0 35px rgba(251, 191, 36, 0.75);
+      border: 2px solid #fde047;
+      animation: apexPulse 2s ease-in-out infinite;
+    }
+    @keyframes apexPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(251, 191, 36, 0.6); }
+      50% { transform: scale(1.06); box-shadow: 0 0 40px rgba(236, 72, 153, 0.8); }
+    }
+    .celebration-badge-img {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+    }
+    .celebration-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fde047;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .celebration-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .celebration-tier-tag {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .celebration-desc {
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.4;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .celebration-reward-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .celebration-reward-val {
+      font-size: 18px;
+      font-weight: 900;
+      color: #fde047;
+    }
+    .celebration-reward-label {
+      font-size: 9px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-celebrate-claim {
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      color: #fff;
+      border: none;
+      padding: 9px 24px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.5);
+      transition: all 0.2s;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-celebrate-claim:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Respeto estricto a prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1401,7 +2689,7 @@
     <div class="header-top">
       <div class="brand-cluster">
         <div class="brand">
-          <div id="brandCrest" class="brand-crest">
+          <div id="brandCrest" class="brand-crest" role="button" tabindex="0" data-i18n-title="app_title">
             <div class="brand-crest-inner">
               <span class="crest-n">N</span>
             </div>
@@ -1409,19 +2697,23 @@
           <div class="brand-title-group">
             <span class="brand-title" data-i18n="app_title"></span>
             <div id="headerEquippedTitle" class="achievement-under-n empty" role="button" tabindex="0" data-i18n-title="header_title_click_hint">
-              <svg class="achievement-icon" width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-              </svg>
+              <span class="header-badge-inline"></span>
               <span id="headerEquippedTitleText"></span>
             </div>
           </div>
         </div>
       </div>
 
-      <button id="syncBadge" class="sync-pill" type="button" data-i18n-title="sync_tooltip">
-        <span class="status-dot"></span>
-        <span id="syncText" data-i18n="sync_local"></span>
-      </button>
+      <div class="header-right-cluster">
+        <button id="syncBadge" class="sync-pill" type="button" data-i18n-title="sync_tooltip">
+          <span class="status-dot"></span>
+          <span id="syncText" data-i18n="sync_local"></span>
+        </button>
+        <div id="btnUserProfile" class="profile-avatar-btn" role="button" tabindex="0" data-i18n-title="account_profile_btn" aria-label="Perfil y Cuenta">
+          <div class="avatar-portrait" id="userAvatarPortrait">👤</div>
+          <div id="avatarMiniSlots" class="avatar-mini-slots" aria-label="Objetos equipados"></div>
+        </div>
+      </div>
     </div>
 
     <div id="headerCultivationBar" class="cultivation-bar" role="button" tabindex="0" aria-label="Cultivo">
@@ -1441,7 +2733,7 @@
   <!-- TARJETA DE CUELLO DE BOTELLA / SUBIR DE NIVEL -->
   <div id="bottleneckCard" class="bottleneck-card" style="display:none;">
     <div class="bottleneck-card-header">
-      <div class="bottleneck-icon-pulse">⚡</div>
+      <div id="bottleneckIcon" class="bottleneck-icon-pulse">⚡</div>
       <div class="bottleneck-info">
         <span id="bottleneckTitle" class="bottleneck-title"></span>
         <span id="bottleneckDesc" class="bottleneck-desc"></span>
@@ -1463,6 +2755,7 @@
     <nav class="segmented-nav">
       <button type="button" class="tab-btn active" data-target="view-library" data-i18n="tab_library"></button>
       <button type="button" class="tab-btn" data-target="view-cultivation" data-i18n="tab_cultivation"></button>
+      <button type="button" class="tab-btn" data-target="view-inventory" data-i18n="tab_inventory"></button>
       <button type="button" class="tab-btn" data-target="view-whatsapp" data-i18n="tab_whatsapp"></button>
       <button type="button" class="tab-btn" data-target="view-settings" data-i18n="tab_settings"></button>
     </nav>
@@ -1473,12 +2766,22 @@
 
     <!-- VISTA 1: BIBLIOTECA -->
     <section id="view-library" class="view active">
-      <div id="unconfirmedBanner" class="unconfirmed-banner">
-        <div class="unconfirmed-header" data-i18n="unconfirmed_prompt"></div>
+      <div id="unconfirmedBanner" class="unconfirmed-banner" role="region" aria-label="Aviso de novela detectada">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="unconfirmed-header" data-i18n="unconfirmed_prompt"></div>
+          <button type="button" id="btnDismissUnconfirmed" class="btn-banner-close" aria-label="Cerrar aviso" title="Cerrar (Esc)">&times;</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; margin: 3px 0;">
+          <span id="unconfirmedDomain" class="banner-domain-chip" style="font-size:10px; background:rgba(255,255,255,0.08); padding:2px 7px; border-radius:4px; color:var(--text-secondary); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+        </div>
         <div class="manual-row">
           <input type="text" id="unconfirmedName" class="input-field" data-i18n-placeholder="input_novel_name" style="flex:1;">
           <input type="text" id="unconfirmedChap" class="input-field" data-i18n-placeholder="input_chapter_short" style="width:65px;">
-          <button type="button" id="btnSaveUnconfirmed" class="btn-primary" data-i18n="btn_save"></button>
+        </div>
+        <div id="unconfirmedErrorMsg" class="feedback-msg err" style="display:none; text-align:left; min-height:unset;"></div>
+        <div style="display:flex; gap:6px; margin-top:4px;">
+          <button type="button" id="btnSaveUnconfirmed" class="btn-primary" style="flex:1;" data-i18n="btn_add_novel">+ Añadir</button>
+          <button type="button" id="btnBlacklistUnconfirmed" class="btn-danger-outline" style="font-size:11px; padding:6px 10px;" data-i18n="btn_blacklist_domain">🚫 BlackList</button>
         </div>
       </div>
 
@@ -1503,17 +2806,19 @@
       <div id="manualDrawer" class="manual-drawer">
         <input type="hidden" id="editingSeriesId" value="">
         <input type="text" id="manualName" class="input-field" data-i18n-placeholder="input_novel_name">
-        <div class="manual-row">
-          <input type="text" id="manualChapter" class="input-field" data-i18n-placeholder="input_chapter_example" style="width: 110px;">
-          <select id="manualStatus" class="input-field" style="flex: 1;">
-            <option value="" data-i18n="status_auto"></option>
-            <option value="reading" data-i18n="status_reading"></option>
-            <option value="paused" data-i18n="status_paused"></option>
-            <option value="dropped" data-i18n="status_dropped"></option>
-            <option value="completed" data-i18n="status_completed"></option>
-          </select>
+        <div id="manualNameError" class="feedback-msg err" style="display:none; text-align:left; min-height:unset; margin-top:2px;"></div>
+        <div class="manual-row" style="margin-top:4px; align-items:center;">
+          <input type="text" id="manualChapter" class="input-field" data-i18n-placeholder="input_chapter_example" style="width: 80px;">
+          <input type="hidden" id="manualStatus" value="">
+          <div id="manualStatusChips" class="status-chips-segmented" style="display:flex; flex:1; gap:4px; overflow-x:auto;">
+            <button type="button" class="status-chip active" data-status="" data-i18n="status_chip_auto">Auto</button>
+            <button type="button" class="status-chip" data-status="reading" data-i18n="status_chip_reading">Leyendo</button>
+            <button type="button" class="status-chip" data-status="paused" data-i18n="status_chip_paused">Pausa</button>
+            <button type="button" class="status-chip" data-status="dropped" data-i18n="status_chip_dropped">Drop</button>
+            <button type="button" class="status-chip" data-status="completed" data-i18n="status_chip_completed">Fin</button>
+          </div>
         </div>
-        <button type="button" id="btnConfirmManual" class="btn-primary" data-i18n="btn_save_reading"></button>
+        <button type="button" id="btnConfirmManual" class="btn-primary" data-i18n="btn_save_reading" style="margin-top:4px;"></button>
       </div>
 
       <div id="novelList" class="novel-list"></div>
@@ -1522,6 +2827,18 @@
     <!-- VISTA 2: CULTIVO -->
     <section id="view-cultivation" class="view">
       <!-- Selector Modular de Temas / Paquetes de Logros -->
+      <!-- Banner de Recompensas de Logros Pendientes -->
+      <div id="unclaimedRewardsBanner" class="unclaimed-rewards-banner" style="display:none;">
+        <div class="unclaimed-info">
+          <div class="unclaimed-gift-pulse">🎁</div>
+          <div class="unclaimed-texts">
+            <span id="unclaimedBannerTitle" class="unclaimed-title"></span>
+            <span id="unclaimedBannerQi" class="unclaimed-qi-gain"></span>
+          </div>
+        </div>
+        <button type="button" id="btnClaimAllRewards" class="btn-claim-all" data-i18n="ach_reward_banner_btn"></button>
+      </div>
+
       <div class="theme-selector-bar">
         <button type="button" class="theme-chip active" data-theme="cultivation">
           <span>⛩️</span> <span data-i18n="theme_cultivation_name"></span>
@@ -1563,15 +2880,75 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label data-i18n="cult_equipped_label"></label>
-          <select id="equippedTitleSelect" class="input-field"></select>
+        <div class="equipped-title-banner" id="equippedTitleBanner">
+          <div class="equipped-label-group">
+            <span class="equipped-label" data-i18n="cult_equipped_current"></span>
+            <div id="equippedTitleActiveChip" class="active-title-chip empty">
+              <span id="equippedChipSymbol">🏆</span>
+              <span id="equippedChipText"></span>
+            </div>
+          </div>
+          <button type="button" id="btnUnequipTitle" class="btn-unequip" style="display:none;" data-i18n="ach_unequip_btn"></button>
         </div>
       </div>
 
       <div class="glass-card">
         <div id="titlesHeading" class="card-heading"></div>
         <div id="titlesList" class="titles-list"></div>
+      </div>
+    </section>
+
+    <!-- VISTA INVENTARIO (FANTASY LITRPG ARTIFACTS & MODIFIERS) -->
+    <section id="view-inventory" class="view">
+      <!-- 1. Ranuras de Objetos Equipados -->
+      <div class="glass-card void-card">
+        <div class="card-heading-cluster">
+          <div class="card-heading" data-i18n="inventory_title">Inventario del Sistema</div>
+          <span class="system-tag-accent" data-i18n="inventory_equipped_slots">Ranuras: 3 Máx</span>
+        </div>
+        <p class="system-subtext" data-i18n="inventory_desc">Equipa artefactos ancestrales obtenidos mediante tus logros de cultivo para multiplicar tu ganancia de Qi y experiencia de lectura.</p>
+        
+        <div id="equippedSlotsContainer" class="equipped-slots-grid">
+          <!-- Rendered dynamically: 3 slots -->
+        </div>
+      </div>
+
+      <!-- 2. Desglose del Modificador de Qi -->
+      <div class="glass-card void-card cultivation-stats-fantasy">
+        <div class="card-heading-cluster">
+          <div class="card-heading" data-i18n="inventory_bonuses_title">Desglose de Qi Activo</div>
+          <span class="qi-multiplier-pill" id="totalQiMultiplierPill">x1.00</span>
+        </div>
+
+        <div class="qi-formula-box">
+          <div class="formula-term">
+            <span class="term-lbl" data-i18n="inventory_base_qi">Qi Base</span>
+            <span class="term-val" id="formulaBaseQi">0</span>
+          </div>
+          <span class="formula-operator">&times;</span>
+          <div class="formula-term">
+            <span class="term-lbl" data-i18n="inventory_multiplier_label">Multiplicador</span>
+            <span class="term-val term-val-mult" id="formulaMultiplier">1.0x</span>
+          </div>
+          <span class="formula-operator">+</span>
+          <div class="formula-term">
+            <span class="term-lbl" data-i18n="inventory_bonus_qi">Qi Logros</span>
+            <span class="term-val term-val-bonus" id="formulaBonusQi">0</span>
+          </div>
+          <span class="formula-operator">=</span>
+          <div class="formula-term formula-term-total">
+            <span class="term-lbl" data-i18n="inventory_final_qi">Qi Total</span>
+            <span class="term-val term-val-total" id="formulaTotalQi">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Tesoros y Artefactos Desbloqueados -->
+      <div class="glass-card void-card">
+        <div class="card-heading" id="inventoryItemsHeading" data-i18n="inventory_title">Artefactos del Cultivador</div>
+        <div id="inventoryItemsList" class="inventory-items-grid">
+          <!-- Rendered dynamically: item cards or empty state -->
+        </div>
       </div>
     </section>
 
@@ -1583,13 +2960,16 @@
           <span id="waStatusBadge" class="wa-status-badge unconfigured"></span>
         </div>
 
-        <div class="switch-row">
-          <span class="switch-label" data-i18n="wa_toggle_label"></span>
-          <label class="ios-switch">
+        <label class="switch-row switch-interactive" for="enableWhatsapp">
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <span class="switch-label" data-i18n="wa_toggle_label"></span>
+            <span id="waToggleIndicator" style="font-size:9.5px; font-weight:700; color:#94a3b8;">OFF</span>
+          </div>
+          <div class="ios-switch">
             <input type="checkbox" id="enableWhatsapp">
             <span class="slider"></span>
-          </label>
-        </div>
+          </div>
+        </label>
 
         <div class="step-box">
           <div class="step-title" data-i18n="wa_step1_title"></div>
@@ -1627,10 +3007,15 @@
         <div class="card-heading" data-i18n="settings_lang_title"></div>
         <div class="form-group">
           <label data-i18n="settings_lang_label"></label>
-          <select id="languageSelect" class="input-field">
-            <option value="es">Español</option>
-            <option value="en">English</option>
-          </select>
+          <input type="hidden" id="languageSelect" value="es">
+          <div id="languageSegmentedControl" class="segmented-control-lang" style="height:40px; display:flex; gap:6px; background:rgba(0,0,0,0.3); padding:3px; border-radius:10px; border:1px solid var(--border-subtle); box-sizing:border-box;">
+            <button type="button" class="lang-segment-btn active" data-lang="es" style="flex:1; border:none; background:transparent; color:#fff; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s;">
+              <span>🇪🇸</span> <span>Español</span>
+            </button>
+            <button type="button" class="lang-segment-btn" data-lang="en" style="flex:1; border:none; background:transparent; color:var(--text-secondary); border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s;">
+              <span>🇬🇧</span> <span>English</span>
+            </button>
+          </div>
         </div>
         <div class="manual-row">
           <div class="form-group" style="flex:1;">
@@ -1657,6 +3042,37 @@
             <span class="slider"></span>
           </label>
         </div>
+        <div class="switch-row" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border-subtle);">
+          <span class="switch-label" data-i18n="settings_show_tier_icon_label" style="font-size:11.5px; font-weight:600;">Mostrar tier en el icono</span>
+          <label class="ios-switch">
+            <input type="checkbox" id="showTierOnIcon">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 1c. Lista Negra de Dominios -->
+      <div class="glass-card" id="blacklistCard">
+        <div class="card-heading" data-i18n="blacklist_title"></div>
+        <p style="font-size:10.5px; color:var(--text-secondary); line-height:1.35;" data-i18n="blacklist_desc"></p>
+
+        <button type="button" id="btnQuickBlockCurrentSite" class="btn-secondary" style="width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <span id="quickBlockText" data-i18n="blacklist_quick_block_none"></span>
+        </button>
+
+        <div class="manual-row" style="margin-top:8px;">
+          <input type="text" id="blacklistDomainInput" class="input-field" data-i18n-placeholder="blacklist_input_placeholder" style="flex:1;">
+          <button type="button" id="btnAddBlacklistDomain" class="btn-primary" data-i18n="blacklist_btn_add"></button>
+        </div>
+        <div id="blacklistInputError" class="feedback-msg err" style="display:none; text-align:left; min-height:unset; margin-top:3px;"></div>
+
+        <div id="blacklistFilterContainer" style="display:none; margin-top:8px;">
+          <input type="text" id="blacklistSearchInput" class="input-field" data-i18n-placeholder="blacklist_search_placeholder">
+        </div>
+
+        <div id="blacklistedDomainsList" class="blacklist-list" style="margin-top:8px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+
+        <button type="button" id="btnClearBlacklist" class="btn-danger-outline" style="margin-top:8px; width:100%; display:none;" data-i18n="blacklist_btn_clear"></button>
       </div>
 
       <!-- 2. Reportar un Error + Consola de Logs -->
@@ -1742,6 +3158,13 @@
         </div>
         <div id="backupMsg" class="feedback-msg"></div>
       </div>
+
+      <!-- 5. Política de Privacidad -->
+      <div class="glass-card" style="text-align:center; padding:12px;">
+        <a href="privacy.html" target="_blank" id="linkPrivacyPolicy" style="font-size:11.5px; color:var(--text-secondary); text-decoration:underline; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+          <span>🔒</span> <span data-i18n="settings_privacy_policy">Política de Privacidad</span>
+        </a>
+      </div>
     </section>
 
   </main>
@@ -1758,7 +3181,148 @@
     </div>
   </footer>
 
+    <!-- MODAL DE CELEBRACIÓN DE DESBLOQUEO DE LOGRO -->
+  <div id="achievementCelebrationModal" class="celebration-modal-overlay" style="display:none;">
+    <div class="celebration-modal-dialog">
+      <button type="button" class="btn-close-modal" id="btnCloseCelebrationModal" aria-label="Close">&times;</button>
+      <div class="celebration-rays"></div>
+      <div id="celebrationBadgeWrapper" class="celebration-badge-wrapper rarity-common">
+        <img id="celebrationBadgeImg" src="assets/badges/badge_common.svg" class="celebration-badge-img" alt="">
+      </div>
+      <div class="celebration-kicker" data-i18n="ach_modal_congrats">¡Logro Desbloqueado!</div>
+      <div id="celebrationTitleName" class="celebration-title"></div>
+      <div id="celebrationTierTag" class="celebration-tier-tag"></div>
+      <div id="celebrationTitleDesc" class="celebration-desc"></div>
+      <div class="celebration-reward-box">
+        <div class="celebration-reward-val" id="celebrationRewardVal">+50 Qi</div>
+        <div class="celebration-reward-label">Recompensa Celestial</div>
+      </div>
+      <button type="button" id="btnClaimCelebrationReward" class="btn-celebrate-claim"></button>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE ASCENSO / RUPTURA DE CULTIVO -->
+  <div id="breakthroughConfirmModal" class="celebration-modal-overlay" style="display:none;">
+    <div class="celebration-modal-dialog" style="max-width:300px; padding:20px 18px 18px;">
+      <button type="button" class="btn-close-modal" id="btnCloseBreakthroughModal" aria-label="Cerrar">&times;</button>
+      <div id="btModalIcon" style="font-size:32px; margin-bottom:8px;">⚡</div>
+      <div id="btModalTitle" class="celebration-kicker" data-i18n="bt_modal_title">¡Ruptura de Cuello de Botella!</div>
+      <div id="btModalTargetText" style="font-size:13px; font-weight:700; color:#fff; margin:6px 0 4px;"></div>
+      <div id="btModalSurplusText" style="font-size:11px; color:#fde047; margin-bottom:12px;"></div>
+      <div style="display:flex; gap:8px; width:100%; margin-top:6px;">
+        <button type="button" id="btnCancelBreakthroughAction" class="btn-secondary" style="flex:1;" data-i18n="bt_modal_btn_cancel">Cancelar</button>
+        <button type="button" id="btnConfirmBreakthroughAction" class="btn-primary" style="flex:1;" data-i18n="bt_modal_btn_confirm">¡Ascender ahora!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE VACIAR LISTA NEGRA -->
+  <div id="clearBlacklistConfirmModal" class="celebration-modal-overlay" style="display:none;">
+    <div class="celebration-modal-dialog" style="max-width:290px; padding:20px 16px 16px;">
+      <button type="button" class="btn-close-modal" id="btnCloseClearBlModal" aria-label="Cerrar">&times;</button>
+      <div style="font-size:28px; margin-bottom:6px;">🗑️</div>
+      <div class="celebration-title" style="font-size:14px;" data-i18n="blacklist_clear_confirm_title">¿Vaciar lista negra?</div>
+      <div class="celebration-desc" style="font-size:11px; margin-bottom:14px;" data-i18n="blacklist_clear_confirm_desc">Se desbloquearán todos los dominios guardados.</div>
+      <div style="display:flex; gap:8px; width:100%;">
+        <button type="button" id="btnCancelClearBl" class="btn-secondary" style="flex:1;" data-i18n="btn_cancel">Cancelar</button>
+        <button type="button" id="btnConfirmClearBl" class="btn-danger-outline" style="flex:1;" data-i18n="blacklist_clear_confirm_btn">Sí, vaciar lista</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CUENTA / FIREBASE AUTHENTICATION REAL (PHASE 3) -->
+  <div id="accountModal" class="celebration-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
+    <div class="celebration-modal-dialog account-modal-dialog">
+      <button type="button" class="btn-close-modal" id="btnCloseAccountModal" aria-label="Cerrar">&times;</button>
+      
+      <!-- ESTADO: INICIADO SESIÓN -->
+      <div id="accountModalLoggedIn" style="display:none; flex-direction:column; gap:12px; align-items:center; width:100%;">
+        <div class="account-profile-avatar-large">
+          <div class="account-portrait-ring">
+            <span id="accountLargeAvatar" style="font-size:32px;">🧙‍♂️</span>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div id="accountModalUserEmail" style="font-size:13px; font-weight:700; color:#fff; word-break:break-all;"></div>
+          <div style="font-size:11px; color:#a5b4fc; margin-top:2px;">
+            <span class="status-dot online" style="display:inline-block; vertical-align:middle; margin-right:4px;"></span>
+            <span data-i18n="account_logged_in_as">Cuenta sincronizada con la nube</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:6px;">
+          <button type="button" id="btnAccountModalSync" class="btn-primary" style="width:100%;" data-i18n="account_btn_sync_now">Sincronizar ahora</button>
+          <button type="button" id="btnAccountModalLogout" class="btn-danger-outline" style="width:100%;" data-i18n="account_btn_logout">Cerrar sesión</button>
+        </div>
+      </div>
+
+      <!-- ESTADO: NO INICIADO SESIÓN (LOGIN / REGISTRO / RECUPERACIÓN) -->
+      <div id="accountModalLoggedOut" style="display:flex; flex-direction:column; gap:10px; width:100%;">
+        <div class="account-modal-header">
+          <div class="celebration-kicker" data-i18n="account_title">Sistema de Cuenta</div>
+          <div id="accountModalTitle" class="account-modal-heading" data-i18n="account_login_title">Acceso MyNovelSystem</div>
+          <p id="accountModalSubtitle" class="system-subtext" style="font-size:11px; text-align:center;" data-i18n="account_guest_desc">Inicia sesión o regístrate para sincronizar tu progreso y artefactos.</p>
+        </div>
+
+        <!-- FORMULARIO 1: INICIAR SESIÓN -->
+        <form id="formAccountLogin" class="account-form-view" style="display:flex; flex-direction:column; gap:8px;">
+          <div class="form-group" style="text-align:left;">
+            <label style="font-size:10.5px; color:#94a3b8;" data-i18n="cloud_email_label">Correo electrónico</label>
+            <input type="email" id="modalAuthEmail" class="input-field" placeholder="tu@email.com" autocomplete="email" required>
+          </div>
+          <div class="form-group" style="text-align:left;">
+            <label style="font-size:10.5px; color:#94a3b8;" data-i18n="cloud_pass_label">Contraseña</label>
+            <input type="password" id="modalAuthPass" class="input-field" placeholder="••••••••" autocomplete="current-password" required>
+          </div>
+          <button type="submit" id="btnModalSubmitLogin" class="btn-primary" style="margin-top:4px;" data-i18n="account_btn_login">Iniciar Sesión</button>
+          <div class="account-form-links">
+            <button type="button" id="linkToForgot" class="link-btn" data-i18n="account_forgot_link">¿Olvidaste tu contraseña?</button>
+            <button type="button" id="linkToRegister" class="link-btn" data-i18n="account_to_register">¿No tienes cuenta? Regístrate</button>
+          </div>
+        </form>
+
+        <!-- FORMULARIO 2: CREAR CUENTA (REGISTRO) -->
+        <form id="formAccountRegister" class="account-form-view" style="display:none; flex-direction:column; gap:8px;">
+          <div class="form-group" style="text-align:left;">
+            <label style="font-size:10.5px; color:#94a3b8;" data-i18n="cloud_email_label">Correo electrónico</label>
+            <input type="email" id="modalRegEmail" class="input-field" placeholder="tu@email.com" autocomplete="email" required>
+          </div>
+          <div class="form-group" style="text-align:left;">
+            <label style="font-size:10.5px; color:#94a3b8;" data-i18n="cloud_pass_label">Contraseña (mínimo 6 caracteres)</label>
+            <input type="password" id="modalRegPass" class="input-field" placeholder="••••••••" autocomplete="new-password" required>
+          </div>
+          <div class="form-group" style="text-align:left;">
+            <label style="font-size:10.5px; color:#94a3b8;" data-i18n="account_confirm_pass_label">Confirmar contraseña</label>
+            <input type="password" id="modalRegConfirmPass" class="input-field" placeholder="••••••••" autocomplete="new-password" required>
+          </div>
+          <button type="submit" id="btnModalSubmitRegister" class="btn-primary" style="margin-top:4px;" data-i18n="account_btn_register">Crear Cuenta</button>
+          <div class="account-form-links">
+            <button type="button" id="linkToLoginFromReg" class="link-btn" data-i18n="account_to_login">¿Ya tienes cuenta? Inicia sesión</button>
+          </div>
+        </form>
+
+        <!-- FORMULARIO 3: RECUPERAR CONTRASEÑA -->
+        <form id="formAccountForgot" class="account-form-view" style="display:none; flex-direction:column; gap:8px;">
+          <p style="font-size:11px; color:#cbd5e1; line-height:1.4; text-align:left;">Introduce tu correo y te enviaremos un enlace de Firebase para restablecer tu contraseña.</p>
+          <div class="form-group" style="text-align:left;">
+            <label style="font-size:10.5px; color:#94a3b8;" data-i18n="cloud_email_label">Correo electrónico</label>
+            <input type="email" id="modalForgotEmail" class="input-field" placeholder="tu@email.com" autocomplete="email" required>
+          </div>
+          <button type="submit" id="btnModalSubmitForgot" class="btn-primary" style="margin-top:4px;" data-i18n="account_btn_reset_send">Enviar enlace de recuperación</button>
+          <div class="account-form-links">
+            <button type="button" id="linkToLoginFromForgot" class="link-btn" data-i18n="account_to_login">Volver al inicio de sesión</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="accountModalStatusMsg" class="feedback-msg" role="alert" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR GLOBAL DE TOASTS -->
+  <div id="toastContainer" class="toast-container" role="status" aria-live="polite"></div>
+
   <script src="i18n.js"></script>
+  <script src="achievements_data.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidad — MyNovelSystem</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 32px 20px;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      font-size: 26px;
+      margin-top: 0;
+      color: #fff;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 12px;
+    }
+    h2 {
+      font-size: 18px;
+      color: #818cf8;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+    p, li {
+      font-size: 14.5px;
+      color: var(--text);
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .badge-meta {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .callout {
+      background: rgba(255, 255, 255, 0.04);
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    code {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Política de Privacidad — MyNovelSystem</h1>
+    <div class="badge-meta">Última actualización: [FECHA] · Versión: 4.0.0</div>
+
+    <p>Esta Política de Privacidad describe de manera transparente, veraz y exhaustiva el tratamiento de datos personales y técnicos que realiza la extensión de navegador <strong>MyNovelSystem</strong>, conforme a los principios de minimización de datos del Reglamento General de Protección de Datos (RGPD / GDPR) y las directrices de la Chrome Web Store.</p>
+
+    <h2>1. Responsable del Tratamiento y Contacto</h2>
+    <p>El responsable del desarrollo y mantenimiento de la extensión es el desarrollador de MyNovelSystem. Para cualquier duda, consulta o ejercicio de derechos de privacidad, puede contactar a través del correo electrónico: <strong>[EMAIL_DE_CONTACTO]</strong>.</p>
+
+    <h2>2. Ejecución en la Web y Tratamiento de Contenido (Permiso &lt;all_urls&gt;)</h2>
+    <p>La extensión requiere ejecutarse en las páginas web visitadas para poder detectar automáticamente cuándo el usuario está leyendo un capítulo de una novela o cómic web.</p>
+    <ul>
+      <li><strong>Páginas que NO son novelas:</strong> En sitios que no corresponden a plataformas de lectura o en páginas donde no se detectan patrones de capítulos, la extensión <strong>NO almacena ningún dato, NO recopila información personal, NO rastrea la navegación y NO envía ninguna petición a servidores externos</strong>. El análisis heurístico se realiza exclusivamente en la memoria volátil del navegador y se descarta de inmediato.</li>
+      <li><strong>Lista Negra y Dominios Excluidos:</strong> La extensión bloquea por diseño y por defecto la ejecución de cualquier observador en buscadores (Google, Bing, Yahoo), redes sociales (X, Facebook, Instagram, Reddit), servicios de streaming (YouTube, Twitch, Netflix), plataformas de desarrollo (GitHub, StackOverflow), almacenamiento y productividad. Asimismo, el usuario puede añadir cualquier dominio a su lista negra local para detener toda inspección con 0 consumo y 0 interferencia.</li>
+    </ul>
+
+    <h2>3. Tratamiento de Credenciales y Autenticación</h2>
+    <p>La extensión <strong>NUNCA almacena ni registra contraseñas</strong> de los usuarios en su código ni en el almacenamiento local.</p>
+    <ul>
+      <li>Al iniciar sesión o registrarse para la sincronización en la nube, las credenciales se transmiten directamente y de forma segura a través de HTTPS a <strong>Google Firebase Authentication (Identity Toolkit)</strong>.</li>
+      <li>La extensión almacena en <code>chrome.storage.local</code> únicamente el identificador único de usuario (<code>uid</code>), el correo electrónico y los tokens de sesión delegados (<code>idToken</code> y <code>refreshToken</code>) necesarios para autorizar las solicitudes a la base de datos de usuario.</li>
+    </ul>
+
+    <h2>4. Datos Almacenados Localmente (en su Dispositivo)</h2>
+    <p>La extensión guarda en el almacenamiento local de su navegador (<code>chrome.storage.local</code>):</p>
+    <ul>
+      <li><strong>Biblioteca de lectura:</strong> Título de la obra, último capítulo leído, porcentaje de scroll vertical, fecha de actualización, URL del capítulo y estado manual (leyendo, pausada, completada, etc.).</li>
+      <li><strong>Progreso de cultivo y logros:</strong> Capítulos leídos acumulados, Qi obtenido, logros desbloqueados, recompensas reclamadas y logro equipado.</li>
+      <li><strong>Preferencias del usuario:</strong> Idioma activo (Español o Inglés), umbrales de días para estados inactivos, modo de rendimiento y lista de dominios bloqueados.</li>
+      <li><strong>Configuración de WhatsApp (CallMeBot):</strong> Teléfono y API Key de CallMeBot. <strong>Estos datos se conservan EXCLUSIVAMENTE en el almacenamiento local del dispositivo</strong> y nunca se envían ni se sincronizan con Firebase.</li>
+    </ul>
+
+    <h2>5. Datos Enviados a Servicios de Terceros</h2>
+    <p>La extensión realiza comunicaciones externas únicamente con los siguientes dos servicios y bajo las siguientes condiciones:</p>
+
+    <h3>A. Google Firebase (Servicio de Nube — Opcional)</h3>
+    <p>Solo si el usuario decide voluntariamente registrarse o iniciar sesión con una cuenta para la sincronización entre dispositivos:</p>
+    <ul>
+      <li><strong>Datos enviados:</strong> Dirección de correo electrónico del usuario, copia de la biblioteca de novelas (título, capítulo, enlace, progreso), estadísticas de lectura (Qi, logros desbloqueados) y lista negra de dominios.</li>
+      <li><strong>Servidor de destino:</strong> Firebase Realtime Database (<code>https://novel-tracker-1d134-default-rtdb.firebaseio.com</code>) y Google Identity Toolkit sobre HTTPS cifrado.</li>
+    </ul>
+
+    <h3>B. CallMeBot (Avisos de WhatsApp — Opcional)</h3>
+    <p>Solo si el usuario activa conscientemente las notificaciones de WhatsApp en los ajustes e introduce su teléfono y API Key:</p>
+    <ul>
+      <li><strong>Datos enviados:</strong> Número de teléfono (saneado a dígitos exclusivamente), API Key personal de CallMeBot, título de la novela pausada y URL de reanudación de lectura.</li>
+      <li><strong>Servidor de destino:</strong> <code>https://api.callmebot.com/whatsapp.php</code> mediante petición GET sobre HTTPS cifrado al cumplirse el temporizador de pausa o al pulsar "Probar".</li>
+    </ul>
+
+    <h2>6. Finalidad del Tratamiento y Conservación</h2>
+    <ul>
+      <li><strong>Finalidad:</strong> Permitir al usuario continuar la lectura exactamente donde la dejó, registrar sus estadísticas personales de progreso lúdico y recibir recordatorios opcionales en su propio WhatsApp.</li>
+      <li><strong>Conservación:</strong> Los datos locales persisten hasta que el usuario borra la extensión o limpia los datos del navegador. Los datos en la nube persisten mientras la cuenta permanezca activa.</li>
+    </ul>
+
+    <h2>7. Derechos del Usuario (RGPD) y Eliminación de Datos</h2>
+    <p>Como usuario, le asisten los derechos de acceso, rectificación, portabilidad y supresión de sus datos:</p>
+    <ul>
+      <li><strong>Exportación y portabilidad:</strong> Puede exportar en cualquier momento toda su biblioteca y estadísticas en formato JSON desde el apartado "Copia de Seguridad" de los ajustes.</li>
+      <li><strong>Eliminación local:</strong> Al desinstalar la extensión o limpiar los datos del navegador, toda la información local se elimina permanentemente.</li>
+      <li><strong>Eliminación en la nube:</strong> Puede solicitar el borrado íntegro de su cuenta y sus datos en Firebase enviando un mensaje a <code>[EMAIL_DE_CONTACTO]</code> indicando el correo de su cuenta.</li>
+    </ul>
+  </div>
+</body>
+</html>

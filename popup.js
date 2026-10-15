@@ -4,100 +4,14 @@ const FIREBASE_DB_URL = "https://novel-tracker-1d134-default-rtdb.firebaseio.com
 const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|ch\.|cap\.|ep\.|c\.)\s*#?\s*\d+.*$/i;
 const TRAILING_MEDIA_SUFFIX_REGEX = /\s+\b(?:manhwa|manhua|manga|webtoon|novela\s*ligera|light\s*novel|web\s*novel|novela|novel|comic|raw|sub\s*espa[ñn]ol|en\s*espa[ñn]ol|online|gratis|free)\b\s*$/i;
 
-const THEMES_CONFIG = {
-  cultivation: {
-    id: "cultivation",
-    nameKey: "theme_cultivation_name",
-    icon: "⛩️",
-    isPremium: false,
-    realms: [
-      { id: "qi_condensation", minQi: 0, nextQi: 100, hasStages: true, colors: ["#0ea5e9", "#6366f1", "#10b981"], gradient: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 55%, #10b981 100%)" },
-      { id: "foundation_establishment", minQi: 100, nextQi: 400, hasStages: true, colors: ["#10b981", "#059669", "#fbbf24"], gradient: "linear-gradient(135deg, #10b981 0%, #059669 55%, #fbbf24 100%)" },
-      { id: "golden_core", minQi: 400, nextQi: 1000, hasStages: true, colors: ["#f59e0b", "#d97706", "#fde047"], gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #fde047 100%)" },
-      { id: "nascent_soul", minQi: 1000, nextQi: 2500, hasStages: true, colors: ["#8b5cf6", "#ec4899", "#38bdf8"], gradient: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 55%, #38bdf8 100%)" },
-      { id: "spirit_transformation", minQi: 2500, nextQi: 5000, hasStages: true, colors: ["#f43f5e", "#9333ea", "#fbbf24"], gradient: "linear-gradient(135deg, #f43f5e 0%, #9333ea 55%, #fbbf24 100%)" },
-      { id: "void_refinement", minQi: 5000, nextQi: 9000, hasStages: true, colors: ["#3b82f6", "#1d4ed8", "#a855f7"], gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 55%, #a855f7 100%)" },
-      { id: "body_integration", minQi: 9000, nextQi: 15000, hasStages: true, colors: ["#ea580c", "#dc2626", "#facc15"], gradient: "linear-gradient(135deg, #ea580c 0%, #dc2626 55%, #facc15 100%)" },
-      { id: "mahayana", minQi: 15000, nextQi: 25000, hasStages: true, colors: ["#06b6d4", "#6366f1", "#f472b6"], gradient: "linear-gradient(135deg, #06b6d4 0%, #6366f1 55%, #f472b6 100%)" },
-      { id: "heavenly_tribulation", minQi: 25000, nextQi: 40000, hasStages: true, colors: ["#7c3aed", "#db2777", "#fde047"], gradient: "linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #fde047 100%)" },
-      { id: "immortal_ascension", minQi: 40000, nextQi: null, hasStages: false, colors: ["#fbbf24", "#ec4899", "#06b6d4"], gradient: "linear-gradient(135deg, #fbbf24 0%, #ec4899 50%, #06b6d4 100%)" }
-    ],
-    titles: [
-      { id: "outer_disciple", tier: 1, symbol: "📜", color: "#0284c7", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
-      { id: "scroll_initiate", tier: 1, symbol: "📖", color: "#0284c7", minRealmIndex: 0, minStage: 2, reqNovelsStarted: 5 },
-      { id: "diligent_reader", tier: 1, symbol: "🕯️", color: "#0284c7", minRealmIndex: 0, minStage: 3, reqSingleDay: 15 },
-      { id: "body_refiner", tier: 1, symbol: "🥋", color: "#ea580c", minRealmIndex: 0, minStage: 5, reqChapters: 60, reqStreak: 5 },
-      { id: "meridian_opener", tier: 2, symbol: "💫", color: "#0891b2", minRealmIndex: 1, minStage: 1, reqSingleDay: 25 },
-      { id: "secluded_cultivator", tier: 2, symbol: "🪷", color: "#059669", minRealmIndex: 1, minStage: 2, reqStreak: 14 },
-      { id: "thousand_scrolls", tier: 2, symbol: "📚", color: "#d97706", minRealmIndex: 1, minStage: 4, reqNovelsStarted: 25 },
-      { id: "spirit_temperer", tier: 2, symbol: "🔮", color: "#6d28d9", minRealmIndex: 1, minStage: 6, req30Days: 150, reqStreak: 20 },
-      { id: "pill_refiner", tier: 2, symbol: "🧪", color: "#10b981", minRealmIndex: 1, minStage: 7, reqNovelsCompleted: 3 },
-      { id: "chapter_devourer", tier: 3, symbol: "⚡", color: "#e11d48", minRealmIndex: 2, minStage: 1, req30Days: 250 },
-      { id: "tribulation_overcomer", tier: 3, symbol: "⚔️", color: "#ca8a04", minRealmIndex: 2, minStage: 4, reqNovelsCompleted: 7 },
-      { id: "domain_ruler", tier: 3, symbol: "🌌", color: "#9333ea", minRealmIndex: 2, minStage: 7, reqStreak: 35 },
-      { id: "bottleneck_breaker", tier: 4, symbol: "💥", color: "#0d9488", minRealmIndex: 3, minStage: 1, reqChapters: 400, reqQi: 1000 },
-      { id: "ancient_scholar", tier: 4, symbol: "🏛️", color: "#3b82f6", minRealmIndex: 3, minStage: 5, reqChapters: 750, reqNovelsCompleted: 10 },
-      { id: "dao_heart", tier: 5, symbol: "💖", color: "#7c3aed", minRealmIndex: 4, minStage: 1, reqStreak: 60 },
-      { id: "golden_immortal", tier: 6, symbol: "👑", color: "#b45309", minRealmIndex: 5, minStage: 1, reqChapters: 1500, reqNovelsCompleted: 15 },
-      { id: "heaven_defier", tier: 7, symbol: "🐉", color: "#be185d", minRealmIndex: 6, minStage: 1, reqChapters: 2500, reqStreak: 90 },
-      { id: "cosmic_sovereign", tier: 8, symbol: "🪐", color: "#f59e0b", minRealmIndex: 7, minStage: 1, reqChapters: 3500, reqNovelsCompleted: 25 },
-      { id: "tribulation_emperor", tier: 9, symbol: "⚡", color: "#db2777", minRealmIndex: 8, minStage: 1, reqChapters: 4200, reqStreak: 100 },
-      { id: "primordial_immortal", tier: 9, symbol: "☯️", color: "#ec4899", minRealmIndex: 9, minStage: 1, reqQi: 40000 }
-    ]
-  },
-  hunter: {
-    id: "hunter",
-    nameKey: "theme_hunter_name",
-    icon: "🗡️",
-    isPremium: true,
-    realms: [
-      { id: "hunter_rank_e", minQi: 0, nextQi: 100, hasStages: true, colors: ["#64748b", "#475569", "#94a3b8"], gradient: "linear-gradient(135deg, #64748b 0%, #475569 100%)" },
-      { id: "hunter_rank_d", minQi: 100, nextQi: 400, hasStages: true, colors: ["#10b981", "#059669", "#34d399"], gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)" },
-      { id: "hunter_rank_c", minQi: 400, nextQi: 1000, hasStages: true, colors: ["#3b82f6", "#2563eb", "#60a5fa"], gradient: "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)" },
-      { id: "hunter_rank_b", minQi: 1000, nextQi: 2500, hasStages: true, colors: ["#8b5cf6", "#7c3aed", "#a78bfa"], gradient: "linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%)" },
-      { id: "hunter_rank_a", minQi: 2500, nextQi: 6000, hasStages: true, colors: ["#f59e0b", "#d97706", "#fbbf24"], gradient: "linear-gradient(135deg, #b45309 0%, #f59e0b 100%)" },
-      { id: "hunter_rank_s", minQi: 6000, nextQi: 15000, hasStages: true, colors: ["#ef4444", "#dc2626", "#f87171"], gradient: "linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)" },
-      { id: "hunter_national", minQi: 15000, nextQi: null, hasStages: false, colors: ["#fbbf24", "#7c3aed", "#f43f5e"], gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)" }
-    ],
-    titles: [
-      { id: "hunter_awakening", tier: 1, symbol: "🗡️", color: "#64748b", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
-      { id: "dungeon_scout", tier: 2, symbol: "🚪", color: "#059669", minRealmIndex: 1, minStage: 1, reqChapters: 120, reqStreak: 10 },
-      { id: "shadow_monarch", tier: 3, symbol: "👥", color: "#7c3aed", minRealmIndex: 2, minStage: 1, reqChapters: 500, req30Days: 200 },
-      { id: "national_hunter", tier: 6, symbol: "🛡️", color: "#f59e0b", minRealmIndex: 5, minStage: 1, reqChapters: 2000, reqNovelsCompleted: 15 }
-    ]
-  },
-  legendary_novels: {
-    id: "legendary_novels",
-    nameKey: "theme_novels_name",
-    icon: "📖",
-    isPremium: true,
-    realms: [
-      { id: "novice_reader", minQi: 0, nextQi: 200, hasStages: true, colors: ["#0284c7", "#0369a1", "#38bdf8"], gradient: "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)" },
-      { id: "lore_seeker", minQi: 200, nextQi: 800, hasStages: true, colors: ["#6366f1", "#4f46e5", "#818cf8"], gradient: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" },
-      { id: "omniscient_observer", minQi: 800, nextQi: 3000, hasStages: true, colors: ["#9333ea", "#7e22ce", "#c084fc"], gradient: "linear-gradient(135deg, #7e22ce 0%, #9333ea 100%)" },
-      { id: "mythic_chronicler", minQi: 3000, nextQi: null, hasStages: false, colors: ["#f59e0b", "#ec4899", "#06b6d4"], gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #06b6d4 100%)" }
-    ],
-    titles: [
-      { id: "fool_pathway", tier: 2, symbol: "🃏", color: "#6366f1", minRealmIndex: 1, minStage: 1, reqChapters: 150 },
-      { id: "constellation_reader", tier: 3, symbol: "⭐", color: "#9333ea", minRealmIndex: 2, minStage: 1, reqChapters: 600, reqNovelsStarted: 20 },
-      { id: "nano_symbiosis", tier: 3, symbol: "⚙️", color: "#06b6d4", minRealmIndex: 2, minStage: 1, reqSingleDay: 30 },
-      { id: "primordial_author", tier: 4, symbol: "🖋️", color: "#f59e0b", minRealmIndex: 3, minStage: 1, reqChapters: 3000, reqNovelsCompleted: 20 }
-    ]
-  }
-};
-
-const CULTIVATION_REALMS = THEMES_CONFIG.cultivation.realms;
-
-const ALL_TITLES = [];
-const TITLE_CONFIG = {};
-Object.values(THEMES_CONFIG).forEach((tCfg) => {
-  tCfg.titles.forEach((tItem) => {
-    const fullItem = { ...tItem, themeId: tCfg.id };
-    ALL_TITLES.push(fullItem);
-    TITLE_CONFIG[tItem.id] = fullItem;
-  });
-});
-const CULTIVATION_TITLES = THEMES_CONFIG.cultivation.titles.map((t) => t.id);
+// Themes & Achievements data loaded from achievements_data.js (with global fallback)
+var THEMES_CONFIG = window.THEMES_CONFIG || (typeof globalThis !== "undefined" ? globalThis.THEMES_CONFIG : null);
+var CULTIVATION_REALMS = window.CULTIVATION_REALMS || (THEMES_CONFIG ? THEMES_CONFIG.cultivation.realms : []);
+var ALL_TITLES = window.ALL_TITLES || [];
+var TITLE_CONFIG = window.TITLE_CONFIG || {};
+var TITLE_BADGE_COLORS = window.TITLE_BADGE_COLORS || {};
+var TITLE_BADGE_SYMBOLS = window.TITLE_BADGE_SYMBOLS || {};
+var CULTIVATION_TITLES = window.CULTIVATION_TITLES || [];
 
 let currentThemeFilter = "cultivation";
 
@@ -105,6 +19,86 @@ let currentSearch = "";
 let currentStatusFilter = "all";
 let activeUnconfirmedTabId = null;
 let activeUnconfirmedData = null;
+let currentBlacklistSearch = "";
+
+function isValidHttpUrl(urlStr) {
+  if (!urlStr || typeof urlStr !== "string") return false;
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function normalizeDomain(input) {
+  if (!input || typeof input !== "string") return "";
+  let clean = input.trim().toLowerCase();
+  clean = clean.replace(/^[a-z0-9+.-]+:\/\//i, "");
+  if (clean.includes("@")) {
+    clean = clean.split("@").pop();
+  }
+  clean = clean.split(/[/?#]/)[0];
+  clean = clean.split(":")[0];
+  clean = clean.replace(/^www\./i, "");
+  clean = clean.replace(/^\*+\.?/i, "");
+  clean = clean.replace(/\.+$/, "").replace(/^\.+/, "");
+  return clean.trim();
+}
+
+function showToast(message, type = "info", duration = 3000, action = null) {
+  const container = document.getElementById("toastContainer");
+  if (!container) return null;
+
+  const item = document.createElement("div");
+  item.className = `toast-item ${type}`;
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = message;
+  textSpan.style.flex = "1";
+  item.appendChild(textSpan);
+
+  let timer = null;
+  const dismiss = () => {
+    if (timer) clearTimeout(timer);
+    if (item.parentNode === container) {
+      item.style.transition = "opacity 0.2s, transform 0.2s";
+      item.style.opacity = "0";
+      item.style.transform = "translateY(6px)";
+      setTimeout(() => item.remove(), 200);
+    }
+  };
+
+  if (action && action.label && typeof action.onClick === "function") {
+    const actionBtn = document.createElement("button");
+    actionBtn.type = "button";
+    actionBtn.className = "toast-undo-btn";
+    actionBtn.textContent = action.label;
+    actionBtn.addEventListener("click", () => {
+      dismiss();
+      action.onClick();
+    });
+    item.appendChild(actionBtn);
+  }
+
+  container.appendChild(item);
+
+  if (duration > 0) {
+    timer = setTimeout(dismiss, duration);
+  }
+
+  return { dismiss };
+}
+
+function setManualStatus(status) {
+  const hidden = document.getElementById("manualStatus");
+  if (hidden) hidden.value = status || "";
+  const chips = document.querySelectorAll("#manualStatusChips .status-chip");
+  chips.forEach((c) => {
+    const isTarget = (c.getAttribute("data-status") || "") === (status || "");
+    c.classList.toggle("active", isTarget);
+  });
+}
 
 function fnv1aHex(str) {
   let hash = 0x811c9dc5;
@@ -160,15 +154,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   await checkAuthState();
   await checkUnconfirmedTab();
   await renderCultivationUI();
+  await renderInventoryUI();
   await renderNovels();
   await renderDiagnosticLogs();
+  await renderBlacklistUI();
 
   chrome.storage.onChanged.addListener((changes) => {
     if (changes.savedNovels) renderNovels();
-    if (changes.stats) renderCultivationUI();
+    if (changes.stats) {
+      renderCultivationUI();
+      renderInventoryUI();
+    }
     if (changes.auth) checkAuthState();
     if (changes.settings) loadSettings();
     if (changes.diagnosticLogs) renderDiagnosticLogs();
+    if (changes.domainBlacklist) renderBlacklistUI();
   });
 
   try {
@@ -190,6 +190,12 @@ function initNavigation() {
       btn.classList.add("active");
       const targetView = document.getElementById(targetId);
       if (targetView) targetView.classList.add("active");
+
+      if (targetId === "view-inventory") {
+        renderInventoryUI();
+      } else if (targetId === "view-cultivation") {
+        renderCultivationUI();
+      }
     });
   });
 
@@ -210,18 +216,113 @@ function initNavigation() {
     }
   });
 
-  const eqTitle = document.getElementById("headerEquippedTitle");
-  const focusEquipped = () => {
+  const focusEquippedTitle = async () => {
     openCultivation();
-    setTimeout(() => {
-      document.getElementById("equippedTitleSelect")?.focus();
-    }, 80);
+
+    const { stats: rawStats } = await chrome.storage.local.get(["stats"]);
+    const stats = rawStats || {};
+    const equippedId = stats.equippedTitle;
+    const isUnlocked = Boolean(equippedId && (stats.unlockedTitles || []).includes(equippedId));
+
+    if (isUnlocked && equippedId) {
+      const cfg = TITLE_CONFIG[equippedId];
+      const targetTheme = cfg?.themeId || "cultivation";
+
+      if (currentThemeFilter !== targetTheme && THEMES_CONFIG[targetTheme]) {
+        currentThemeFilter = targetTheme;
+        const { settings: rawSettings } = await chrome.storage.local.get(["settings"]);
+        const settings = { ...(rawSettings || {}), activeThemeId: targetTheme };
+        await chrome.storage.local.set({ settings });
+        try {
+          chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
+        } catch {}
+        await renderCultivationUI();
+      } else if (!document.querySelector(`.title-item[data-title-id="${equippedId}"]`)) {
+        await renderCultivationUI();
+      }
+
+      // Ajuste 4: Tras cambiar de pestaña, ejecuta scrollIntoView con requestAnimationFrame y comprueba que la tarjeta exista y sea visible
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const card = document.querySelector(`.title-item[data-title-id="${equippedId}"]`);
+          if (card && (card.offsetParent !== null || card.offsetWidth > 0 || card.offsetHeight > 0)) {
+            const isReducedMotion = Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+            card.scrollIntoView({ behavior: isReducedMotion ? "auto" : "smooth", block: "center" });
+            card.classList.remove("highlight-flash");
+            void card.offsetWidth;
+            card.classList.add("highlight-flash");
+            setTimeout(() => {
+              card.classList.remove("highlight-flash");
+            }, 1800);
+            card.focus?.();
+          }
+        });
+      });
+    } else {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const titlesList = document.getElementById("titlesList");
+          if (titlesList && (titlesList.offsetParent !== null || titlesList.offsetWidth > 0)) {
+            const isReducedMotion = Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+            titlesList.scrollIntoView({ behavior: isReducedMotion ? "auto" : "smooth", block: "start" });
+          }
+        });
+      });
+    }
   };
-  eqTitle?.addEventListener("click", focusEquipped);
+
+  const eqTitle = document.getElementById("headerEquippedTitle");
+  eqTitle?.addEventListener("click", focusEquippedTitle);
   eqTitle?.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      focusEquipped();
+      focusEquippedTitle();
+    }
+  });
+
+  const brandCrestEl = document.getElementById("brandCrest");
+  brandCrestEl?.addEventListener("click", focusEquippedTitle);
+  brandCrestEl?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      focusEquippedTitle();
+    }
+  });
+
+  // Global Escape Key Listener for Modals, Drawers and Banner
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const btModal = document.getElementById("breakthroughConfirmModal");
+      if (btModal && btModal.style.display !== "none") {
+        btModal.style.display = "none";
+        return;
+      }
+      const clModal = document.getElementById("clearBlacklistConfirmModal");
+      if (clModal && clModal.style.display !== "none") {
+        clModal.style.display = "none";
+        return;
+      }
+      const celModal = document.getElementById("achievementCelebrationModal");
+      if (celModal && celModal.style.display !== "none") {
+        closeCelebrationModal();
+        return;
+      }
+      const drawer = document.getElementById("manualDrawer");
+      if (drawer && drawer.classList.contains("open")) {
+        drawer.classList.remove("open");
+        return;
+      }
+      const banner = document.getElementById("unconfirmedBanner");
+      if (banner && banner.classList.contains("visible")) {
+        banner.classList.remove("visible");
+        if (activeUnconfirmedTabId) {
+          chrome.runtime.sendMessage({
+            type: "DISCARD_UNCONFIRMED_TAB",
+            tabId: activeUnconfirmedTabId
+          }).catch(() => {});
+        }
+        return;
+      }
     }
   });
 }
@@ -308,7 +409,8 @@ async function renderDiagnosticLogs() {
 function calculateQi(stats) {
   const chapters = Math.max(0, Number(stats?.chaptersRead) || 0);
   const completed = Math.max(0, Number(stats?.novelsCompleted) || 0);
-  return chapters + 50 * completed;
+  const bonus = (typeof calculateBonusQi === "function") ? calculateBonusQi(stats) : (Number(stats?.bonusQi) || 0);
+  return chapters + 50 * completed + bonus;
 }
 
 function computeNaturalRealmAndStage(qi, realms = CULTIVATION_REALMS) {
@@ -366,6 +468,10 @@ function pruneAndSumDailyChapters(dailyChapters, nowTs = Date.now()) {
 }
 
 function getCultivationState(stats, themeId = "cultivation") {
+  if (typeof globalThis.getCultivationState === "function" && globalThis.getCultivationState !== getCultivationState) {
+    return globalThis.getCultivationState(stats, themeId);
+  }
+
   const theme = THEMES_CONFIG[themeId] || THEMES_CONFIG.cultivation;
   const realms = theme.realms;
   const totalQi = calculateQi(stats);
@@ -397,34 +503,43 @@ function getCultivationState(stats, themeId = "cultivation") {
   }
 
   const currentRealm = realms[cultivatedRealmIndex] || realms[0];
-  const isPeakRealm = (currentRealm.nextQi === null);
+  const isPeakRealm = !currentRealm.hasStages || currentRealm.nextQi === null;
 
+  let currentCapQi = null;
   let currentStageCapQi = null;
   let prevStageCapQi = currentRealm.minQi;
-  let isBottleneckReady = false;
-  let isMajorBottleneck = false;
+  let stageProgress = 0;
+  let stageSpan = 0;
+  let isBottleneck = false;
+  let isRealmBottleneck = false;
   let overflowQi = 0;
   let pct = 100;
 
-  if (!isPeakRealm && currentRealm.hasStages && cultivatedStage !== null) {
-    const span = currentRealm.nextQi - currentRealm.minQi;
-    const stageStep = span / 9;
-    currentStageCapQi = Math.round(currentRealm.minQi + cultivatedStage * stageStep);
-    prevStageCapQi = Math.round(currentRealm.minQi + (cultivatedStage - 1) * stageStep);
+  if (!isPeakRealm && cultivatedStage !== null) {
+    const realmSpan = currentRealm.nextQi - currentRealm.minQi;
+    stageSpan = realmSpan / 9;
+    const stageMin = currentRealm.minQi + stageSpan * (cultivatedStage - 1);
+    prevStageCapQi = Math.round(stageMin);
+    currentCapQi = Math.round(currentRealm.minQi + stageSpan * cultivatedStage);
+    currentStageCapQi = currentCapQi;
+    stageProgress = Math.max(0, totalQi - stageMin);
 
-    if (totalQi >= currentStageCapQi) {
-      isBottleneckReady = true;
-      isMajorBottleneck = (cultivatedStage >= 9);
-      overflowQi = totalQi - currentStageCapQi;
+    if (totalQi >= currentCapQi) {
+      isBottleneck = true;
+      if (cultivatedStage === 9) {
+        isRealmBottleneck = true;
+      }
+      overflowQi = totalQi - currentCapQi;
       pct = 100;
     } else {
-      isBottleneckReady = false;
-      isMajorBottleneck = false;
       overflowQi = 0;
       const progressInStage = Math.max(0, totalQi - prevStageCapQi);
-      const stageSpan = Math.max(1, currentStageCapQi - prevStageCapQi);
-      pct = Math.min(99, Math.max(0, Math.round((progressInStage / stageSpan) * 100)));
+      const spanInStage = Math.max(1, currentStageCapQi - prevStageCapQi);
+      pct = Math.min(99, Math.max(0, Math.round((progressInStage / spanInStage) * 100)));
     }
+  } else if (isPeakRealm) {
+    currentCapQi = currentRealm.minQi;
+    currentStageCapQi = currentRealm.minQi;
   }
 
   const nextRealm = (!isPeakRealm && cultivatedRealmIndex < realms.length - 1)
@@ -432,22 +547,29 @@ function getCultivationState(stats, themeId = "cultivation") {
     : null;
 
   return {
-    themeId,
+    themeId: theme.id,
     realmIndex: cultivatedRealmIndex,
     realmId: currentRealm.id,
+    realmObj: currentRealm,
     realmNameKey: `realm_${currentRealm.id}`,
     stage: cultivatedStage,
     colors: currentRealm.colors,
     gradient: currentRealm.gradient,
     totalQi,
+    currentCapQi,
     currentStageCapQi,
     prevStageCapQi,
-    isBottleneckReady,
-    isMajorBottleneck,
+    isBottleneck,
+    isBottleneckReady: isBottleneck,
+    isRealmBottleneck,
+    isMajorBottleneck: isRealmBottleneck,
     overflowQi,
     pct,
     nextRealmId: nextRealm ? nextRealm.id : null,
-    isPeakRealm
+    isPeakRealm,
+    nextRealm,
+    stageProgress,
+    stageSpan
   };
 }
 
@@ -499,6 +621,202 @@ function evaluateUnlockedTitles(stats, currentThemeId = "cultivation") {
   return stats;
 }
 
+
+function getAchievementProgress(title, stats, cultState) {
+  const currentTheme = THEMES_CONFIG[title.themeId || "cultivation"] || THEMES_CONFIG.cultivation;
+  const themeState = getCultivationState(stats, currentTheme.id);
+  const themeRealmIndex = themeState.realmIndex;
+  const themeStage = themeState.stage;
+
+  const reqList = [];
+
+  if (title.reqChapters) {
+    const target = title.reqChapters;
+    const current = Math.min(Number(stats.chaptersRead) || 0, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_chapters"), pct });
+  }
+  if (title.reqNovelsStarted) {
+    const target = title.reqNovelsStarted;
+    const current = Math.min(Number(stats.novelsStarted) || 0, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_novels"), pct });
+  }
+  if (title.reqNovelsCompleted) {
+    const target = title.reqNovelsCompleted;
+    const current = Math.min(Number(stats.novelsCompleted) || 0, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_novels"), pct });
+  }
+  if (title.reqStreak) {
+    const maxStreak = Math.max(Number(stats.streakDays) || 0, Number(stats.bestStreak) || 0);
+    const target = title.reqStreak;
+    const current = Math.min(maxStreak, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_days"), pct });
+  }
+  if (title.reqSingleDay) {
+    const { maxSingleDay } = pruneAndSumDailyChapters(stats.dailyChapters);
+    const target = title.reqSingleDay;
+    const current = Math.min(maxSingleDay, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_daily_cap"), pct });
+  }
+  if (title.req30Days) {
+    const { last30DaysSum } = pruneAndSumDailyChapters(stats.dailyChapters);
+    const target = title.req30Days;
+    const current = Math.min(last30DaysSum, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_30days"), pct });
+  }
+  if (title.reqQi) {
+    const totalQi = calculateQi(stats);
+    const target = title.reqQi;
+    const current = Math.min(totalQi, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: t("ach_unit_qi"), pct });
+  }
+  if (reqList.length === 0) {
+    const target = title.minRealmIndex;
+    const current = Math.min(themeRealmIndex, target);
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 100;
+    reqList.push({ current, target, unit: "Reino", pct });
+  }
+
+  const minPct = Math.min(...reqList.map((r) => r.pct));
+  const text = reqList
+    .map((r) => {
+      const curFmt = r.current >= 1000 ? r.current.toLocaleString() : String(r.current);
+      const tarFmt = r.target >= 1000 ? r.target.toLocaleString() : String(r.target);
+      return `${curFmt} / ${tarFmt} ${r.unit}`;
+    })
+    .join(" · ") + ` (${minPct}%)`;
+
+  const primary = reqList[0];
+  return {
+    current: primary.current,
+    target: primary.target,
+    pct: minPct,
+    text,
+    allRequirements: reqList
+  };
+}
+
+function renderBadge(titleOrId, options = {}) {
+  const size = options.size || "md";
+
+  let cfg = null;
+  let id = null;
+  if (typeof titleOrId === "string" && titleOrId) {
+    id = titleOrId;
+    cfg = TITLE_CONFIG[id] || null;
+  } else if (titleOrId && typeof titleOrId === "object") {
+    id = titleOrId.id || null;
+    cfg = (id && TITLE_CONFIG[id]) ? { ...TITLE_CONFIG[id], ...titleOrId } : titleOrId;
+  }
+
+  // Estado vacío: elegante marco apagado con silueta que invita a equipar un título
+  if (!cfg || !id) {
+    const hintText = (typeof t === "function" ? t("header_no_title_hint") : "") || "Equipar título";
+    return `
+      <div class="novel-badge badge-size-${escapeHtml(size)} badge-empty" data-size="${escapeHtml(size)}" data-rarity="none" role="img" aria-label="${escapeHtml(hintText)}">
+        <div class="badge-halo">
+          <div class="badge-frame-layer">
+            <svg class="badge-silhouette-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <polygon points="30,6 70,6 94,30 94,70 70,94 30,94 6,70 6,30" stroke="rgba(255,255,255,0.22)" stroke-width="2.5" stroke-dasharray="5 3.5" fill="rgba(255,255,255,0.03)" />
+              <polygon points="32,12 68,12 88,32 88,68 68,88 32,88 12,68 12,32" stroke="rgba(255,255,255,0.08)" stroke-width="1.2" fill="none" />
+              <circle cx="50" cy="44" r="14" stroke="rgba(255,255,255,0.22)" stroke-width="2" fill="none" />
+              <path d="M30 78 C30 65 40 58 50 58 C60 58 70 65 70 78" stroke="rgba(255,255,255,0.22)" stroke-width="2" stroke-linecap="round" fill="none" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    `.trim();
+  }
+
+  // Ajuste 3: La rareza debe leerse de TITLE_CONFIG[id].rarity, no deducirse del rango de tier
+  const rarity = (TITLE_CONFIG[id] && TITLE_CONFIG[id].rarity) || cfg.rarity || "common";
+  const badgeSrc = cfg.badge || (TITLE_CONFIG[id] && TITLE_CONFIG[id].badge) || `assets/badges/${id}.svg`;
+  const fallbackSrc = `assets/badges/badge_${rarity}.svg`;
+  const titleName = (typeof t === "function" ? t(`title_${id}_name`) : "") || cfg.name || id;
+  const loadingMode = size === "md" ? "lazy" : "eager";
+  const imgIdAttr = size === "lg" ? ' id="celebrationBadgeImg"' : "";
+
+  return `
+    <div class="novel-badge badge-size-${escapeHtml(size)} rarity-${escapeHtml(rarity)}" data-title-id="${escapeHtml(id)}" data-rarity="${escapeHtml(rarity)}" data-size="${escapeHtml(size)}" role="img" aria-label="${escapeHtml(titleName)}">
+      <div class="badge-halo">
+        <div class="badge-frame-layer">
+          <img${imgIdAttr} class="badge-img" src="${escapeHtml(badgeSrc)}" alt="${escapeHtml(titleName)}" data-fallback="${escapeHtml(fallbackSrc)}" loading="${loadingMode}">
+        </div>
+      </div>
+    </div>
+  `.trim();
+}
+
+function openCelebrationModal(titleId) {
+  const cfg = TITLE_CONFIG[titleId];
+  if (!cfg) return;
+
+  const modal = document.getElementById("achievementCelebrationModal");
+  if (!modal) return;
+
+  const badgeWrapper = document.getElementById("celebrationBadgeWrapper");
+  const titleName = document.getElementById("celebrationTitleName");
+  const tierTag = document.getElementById("celebrationTierTag");
+  const titleDesc = document.getElementById("celebrationTitleDesc");
+  const rewardVal = document.getElementById("celebrationRewardVal");
+  const claimBtn = document.getElementById("btnClaimCelebrationReward");
+
+  // Ajuste 3: La rareza debe leerse de TITLE_CONFIG[id].rarity, no deducirse del rango de tier
+  const rarity = (TITLE_CONFIG[titleId] && TITLE_CONFIG[titleId].rarity) || cfg.rarity || "common";
+  const fallbackSrc = `assets/badges/badge_${rarity}.svg`;
+
+  if (badgeWrapper) {
+    // Reutilizar componente renderBadge(titleId, { size: "lg" }) para el modal de celebración
+    badgeWrapper.innerHTML = renderBadge(titleId, { size: "lg" });
+    badgeWrapper.className = `celebration-badge-wrapper rarity-${rarity}`;
+
+    // Ajuste 1: El fallback de imagen debe usar addEventListener('error'), no atributos onerror inline (CSP de MV3)
+    const badgeImg = badgeWrapper.querySelector("img");
+    if (badgeImg) {
+      badgeImg.addEventListener(
+        "error",
+        () => {
+          if (!badgeImg.dataset.hasFailed) {
+            badgeImg.dataset.hasFailed = "true";
+            badgeImg.src = fallbackSrc;
+          }
+        },
+        { once: true }
+      );
+    }
+  }
+  if (titleName) {
+    titleName.textContent = t(`title_${cfg.id}_name`);
+  }
+  if (tierTag) {
+    tierTag.textContent = `${t(`cult_tier_${cfg.tier || 1}`)} • ${t(`ach_rarity_${rarity}`)}`;
+    tierTag.className = `celebration-tier-tag tier-tag-${cfg.tier || 1}`;
+  }
+  if (titleDesc) {
+    titleDesc.textContent = t(`title_${cfg.id}_desc`);
+  }
+  if (rewardVal) {
+    rewardVal.textContent = `+${cfg.rewardQi || 50} Qi`;
+  }
+  if (claimBtn) {
+    claimBtn.textContent = t("ach_modal_claim_btn", { qi: cfg.rewardQi || 50 });
+    claimBtn.setAttribute("data-ach-id", cfg.id);
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeCelebrationModal() {
+  const modal = document.getElementById("achievementCelebrationModal");
+  if (modal) modal.style.display = "none";
+}
+
 async function renderCultivationUI() {
   const { stats: rawStats, settings: rawSettings } = await chrome.storage.local.get(["stats", "settings"]);
   const stats = rawStats || {
@@ -542,23 +860,49 @@ async function renderCultivationUI() {
   // Bottleneck banner / action card
   const bottleneckCard = document.getElementById("bottleneckCard");
   if (bottleneckCard) {
-    if (cultState.isBottleneckReady) {
+    if (cultState.isBottleneckReady && !cultState.isPeakRealm) {
       bottleneckCard.style.display = "flex";
+      const iconEl = document.getElementById("bottleneckIcon");
       const titleEl = document.getElementById("bottleneckTitle");
       const descEl = document.getElementById("bottleneckDesc");
       const btnTextEl = document.getElementById("btnBreakthroughText");
       const surplusEl = document.getElementById("bottleneckSurplus");
 
+      const currentRealmName = t(`realm_${cultState.realmId}`);
+
       if (cultState.isMajorBottleneck && cultState.nextRealmId) {
+        bottleneckCard.classList.add("major-realm-card");
+        if (iconEl) iconEl.textContent = "🌌";
         const nextRealmName = t(`realm_${cultState.nextRealmId}`);
-        if (titleEl) titleEl.textContent = t("bottleneck_realm_title", { realm: nextRealmName });
-        if (descEl) descEl.textContent = t("bottleneck_realm_desc", { realm: nextRealmName });
-        if (btnTextEl) btnTextEl.textContent = t("bottleneck_btn_realm");
+        if (titleEl) titleEl.textContent = t("bottleneck_realm_title");
+        if (descEl) {
+          descEl.textContent = t("bottleneck_realm_desc", {
+            realmName: currentRealmName,
+            nextRealmName: nextRealmName
+          });
+        }
+        if (btnTextEl) {
+          btnTextEl.textContent = t("bottleneck_btn_realm", { nextRealm: nextRealmName });
+        }
       } else {
-        const nextStage = Math.min(9, (cultState.stage || 1) + 1);
+        bottleneckCard.classList.remove("major-realm-card");
+        if (iconEl) iconEl.textContent = "⚡";
+        const realmSpan = cultState.realmObj ? (cultState.realmObj.nextQi - cultState.realmObj.minQi) : 100;
+        const progressInRealm = Math.max(0, cultState.totalQi - (cultState.realmObj?.minQi || 0));
+        const earnedStage = Math.min(9, Math.floor((progressInRealm * 9) / realmSpan) + 1);
+        const nextStage = Math.min(9, Math.max((cultState.stage || 1) + 1, earnedStage));
+
         if (titleEl) titleEl.textContent = t("bottleneck_stage_title", { stage: nextStage });
-        if (descEl) descEl.textContent = t("bottleneck_stage_desc", { stage: nextStage });
-        if (btnTextEl) btnTextEl.textContent = t("bottleneck_btn_stage");
+        if (descEl) {
+          descEl.textContent = t("bottleneck_stage_desc", {
+            totalQi: cultState.totalQi,
+            capQi: cultState.currentStageCapQi,
+            nextStage
+          });
+        }
+        if (btnTextEl) {
+          btnTextEl.textContent = t("bottleneck_btn_stage", { stage: nextStage });
+        }
       }
 
       if (surplusEl) {
@@ -572,24 +916,117 @@ async function renderCultivationUI() {
       }
     } else {
       bottleneckCard.style.display = "none";
+      bottleneckCard.classList.remove("major-realm-card");
     }
   }
 
   const equippedPlaque = document.getElementById("headerEquippedTitle");
-  const equippedTextEl = document.getElementById("headerEquippedTitleText");
+  const brandCrestEl = document.getElementById("brandCrest");
   const hasValidEquipped = Boolean(stats.equippedTitle && (stats.unlockedTitles || []).includes(stats.equippedTitle));
 
   if (hasValidEquipped) {
-    equippedPlaque?.classList.remove("empty");
-    const cfg = TITLE_CONFIG[stats.equippedTitle] || { tier: 1, symbol: "🏆" };
-    if (equippedTextEl) {
-      equippedTextEl.innerHTML = `<span style="margin-right:4px;">${cfg.symbol}</span> ${escapeHtml(t(`title_${stats.equippedTitle}_name`))}`;
+    const titleId = stats.equippedTitle;
+    const cfg = TITLE_CONFIG[titleId] || { tier: 1, symbol: "🏆" };
+    // Ajuste 3: La rareza debe leerse de TITLE_CONFIG[id].rarity, no deducirse del rango de tier
+    const rarity = (TITLE_CONFIG[titleId] && TITLE_CONFIG[titleId].rarity) || cfg.rarity || "common";
+    const titleName = t(`title_${titleId}_name`);
+    const tierLabel = t(`cult_tier_${cfg.tier || 1}`);
+    const rarityLabel = t(`ach_rarity_${rarity}`);
+    const tooltip = `${titleName} • ${tierLabel} (${rarityLabel}) — ${t("header_title_click_hint")}`;
+
+    equippedPlaque?.classList.remove("empty", "rarity-common", "rarity-rare", "rarity-epic", "rarity-legendary");
+    equippedPlaque?.classList.add(`rarity-${rarity}`);
+    equippedPlaque?.setAttribute("title", tooltip);
+
+    if (equippedPlaque) {
+      equippedPlaque.innerHTML = `
+        <span class="header-badge-inline">${renderBadge(titleId, { size: "sm" })}</span>
+        <span class="header-tier-tag rarity-${rarity}">T${cfg.tier || 1}</span>
+        <span id="headerEquippedTitleText" class="header-title-text">${escapeHtml(titleName)}</span>
+      `;
+    }
+
+    if (brandCrestEl) {
+      brandCrestEl.innerHTML = renderBadge(titleId, { size: "sm" });
+      brandCrestEl.className = `brand-crest has-equipped rarity-${rarity}`;
+      brandCrestEl.setAttribute("title", tooltip);
     }
   } else {
+    equippedPlaque?.classList.remove("rarity-common", "rarity-rare", "rarity-epic", "rarity-legendary");
     equippedPlaque?.classList.add("empty");
-    if (equippedTextEl) {
-      equippedTextEl.textContent = t("header_no_title_hint");
+    const emptyTooltip = `${t("header_no_title_hint")} — ${t("header_title_click_hint")}`;
+    equippedPlaque?.setAttribute("title", emptyTooltip);
+
+    if (equippedPlaque) {
+      equippedPlaque.innerHTML = `
+        <span class="header-badge-inline">${renderBadge(null, { size: "sm" })}</span>
+        <span id="headerEquippedTitleText" class="header-title-text">${escapeHtml(t("header_no_title_hint"))}</span>
+      `;
     }
+
+    if (brandCrestEl) {
+      brandCrestEl.className = "brand-crest";
+      brandCrestEl.innerHTML = `<div class="brand-crest-inner"><span class="crest-n">N</span></div>`;
+      brandCrestEl.setAttribute("title", t("app_title") || "MyNovelSystem");
+      if (cultState.gradient) {
+        brandCrestEl.style.background = cultState.gradient;
+      }
+    }
+  }
+
+  // Update Active Equipped Title Chip and Unequip Button in Cultivation view
+  const equippedChip = document.getElementById("equippedTitleActiveChip");
+  const equippedChipSymbol = document.getElementById("equippedChipSymbol");
+  const equippedChipText = document.getElementById("equippedChipText");
+  const btnUnequip = document.getElementById("btnUnequipTitle");
+
+  if (hasValidEquipped) {
+    const titleId = stats.equippedTitle;
+    const cfg = TITLE_CONFIG[titleId] || { tier: 1, symbol: "🏆" };
+    const rarity = (TITLE_CONFIG[titleId] && TITLE_CONFIG[titleId].rarity) || cfg.rarity || "common";
+    if (equippedChip) {
+      equippedChip.classList.remove("empty", "rarity-common", "rarity-rare", "rarity-epic", "rarity-legendary");
+      equippedChip.classList.add(`rarity-${rarity}`);
+    }
+    if (equippedChipSymbol) {
+      equippedChipSymbol.textContent = cfg.symbol || "🏆";
+    }
+    if (equippedChipText) {
+      equippedChipText.textContent = t(`title_${titleId}_name`);
+    }
+    if (btnUnequip) {
+      btnUnequip.style.display = "inline-block";
+    }
+  } else {
+    if (equippedChip) {
+      equippedChip.className = "equipped-title-active-chip empty";
+    }
+    if (equippedChipSymbol) {
+      equippedChipSymbol.textContent = "";
+    }
+    if (equippedChipText) {
+      equippedChipText.textContent = t("title_none_name");
+    }
+    if (btnUnequip) {
+      btnUnequip.style.display = "none";
+    }
+  }
+
+  // Update Unclaimed Rewards Banner
+  const unclaimedBanner = document.getElementById("unclaimedRewardsBanner");
+  const unclaimedTitleEl = document.getElementById("unclaimedBannerTitle");
+  const unclaimedQiEl = document.getElementById("unclaimedBannerQi");
+  const unclaimedList = (typeof getUnclaimedAchievements === "function")
+    ? getUnclaimedAchievements(stats)
+    : [];
+
+  if (unclaimedList.length > 0) {
+    const totalRewardQi = unclaimedList.reduce((acc, it) => acc + (it.rewardQi || 50), 0);
+    if (unclaimedBanner) unclaimedBanner.style.display = "flex";
+    if (unclaimedTitleEl) unclaimedTitleEl.textContent = t("ach_reward_banner_text", { count: unclaimedList.length });
+    if (unclaimedQiEl) unclaimedQiEl.textContent = `+${totalRewardQi} Qi`;
+  } else {
+    if (unclaimedBanner) unclaimedBanner.style.display = "none";
   }
 
   const btBanner = document.getElementById("breakthroughBanner");
@@ -630,25 +1067,11 @@ async function renderCultivationUI() {
 
   const unlockedSet = new Set(stats.unlockedTitles || []);
 
-  // Update equippedTitleSelect dropdown
-  const selectEl = document.getElementById("equippedTitleSelect");
-  if (selectEl) {
-    const options = [`<option value="">${escapeHtml(t("title_none_name"))}</option>`];
-    ALL_TITLES.forEach((item) => {
-      if (unlockedSet.has(item.id)) {
-        const selected = stats.equippedTitle === item.id ? "selected" : "";
-        const cfg = TITLE_CONFIG[item.id] || { symbol: "🏆" };
-        options.push(
-          `<option value="${escapeHtml(item.id)}" ${selected}>${cfg.symbol} ${escapeHtml(t(`title_${item.id}_name`))}</option>`
-        );
-      }
-    });
-    selectEl.innerHTML = options.join("");
-  }
-
-  // Current theme titles
+  // Current theme titles sorted by difficulty (Phase 2)
   const targetTheme = THEMES_CONFIG[currentThemeFilter] || THEMES_CONFIG.cultivation;
-  const currentThemeTitles = targetTheme.titles || [];
+  const currentThemeTitles = typeof getSortedTitlesByDifficulty === "function"
+    ? getSortedTitlesByDifficulty(targetTheme.titles || [])
+    : (targetTheme.titles || []);
   const unlockedInTheme = currentThemeTitles.filter((item) => unlockedSet.has(item.id)).length;
 
   document.getElementById("titlesHeading").textContent = t("cult_titles_heading", {
@@ -661,24 +1084,42 @@ async function renderCultivationUI() {
     titlesContainer.innerHTML = currentThemeTitles.map((title) => {
       const isUnlocked = unlockedSet.has(title.id);
       const isEquipped = stats.equippedTitle === title.id;
+      const isClaimed = (stats.claimedRewards || []).includes(title.id);
       const cfg = TITLE_CONFIG[title.id] || { tier: 1, symbol: "📜" };
       const tier = cfg.tier || 1;
+      const rarity = (TITLE_CONFIG[title.id] && TITLE_CONFIG[title.id].rarity) || cfg.rarity || "common";
       const stateClass = isUnlocked ? "unlocked" : "locked";
       const equippedClass = isEquipped ? "equipped" : "";
 
-      // Level Gating check
+      const diffCfg = (typeof DIFFICULTY_CONFIG !== "undefined" && DIFFICULTY_CONFIG[title.difficulty]) || { id: "beginner" };
+      const diffName = t(`diff_${diffCfg.id}`) || diffCfg.id;
+      const diffTagHtml = `<span class="title-diff-tag diff-${title.difficulty || 1}">${escapeHtml(diffName)}</span>`;
+
+      // Level Gating check (with peak realm stage === null fix)
       let levelSatisfied = false;
       if (cultState.realmIndex > title.minRealmIndex) {
         levelSatisfied = true;
       } else if (cultState.realmIndex === title.minRealmIndex) {
-        levelSatisfied = (cultState.stage >= (title.minStage || 1));
+        levelSatisfied = (cultState.stage === null || (cultState.stage >= (title.minStage || 1)));
       }
 
       let actionBtnHtml = "";
-      if (isEquipped) {
-        actionBtnHtml = `<span class="title-action-btn btn-equipped">${cfg.symbol} ${escapeHtml(t("cult_equipped_badge"))}</span>`;
-      } else if (isUnlocked) {
-        actionBtnHtml = `<button type="button" class="title-action-btn btn-equip" data-title-id="${escapeHtml(title.id)}">${escapeHtml(t("cult_equip_btn"))}</button>`;
+      if (isUnlocked) {
+        let claimHtml = "";
+        if (!isClaimed) {
+          claimHtml = `<button type="button" class="btn-claim-reward" data-ach-id="${escapeHtml(title.id)}">${escapeHtml(t("ach_claim_btn", { qi: cfg.rewardQi || 50 }))}</button>`;
+        } else {
+          claimHtml = `<span class="badge-claimed">${escapeHtml(t("ach_claimed_badge"))}</span>`;
+        }
+
+        let equipHtml = "";
+        if (isEquipped) {
+          equipHtml = `<button type="button" class="title-action-btn btn-equipped" data-title-id="${escapeHtml(title.id)}" data-action="unequip" title="${escapeHtml(t("ach_unequip_btn") || "Desequipar")}"><span class="equip-icon">✓</span> ${escapeHtml(t("cult_equipped_badge"))}</button>`;
+        } else {
+          equipHtml = `<button type="button" class="title-action-btn btn-equip" data-title-id="${escapeHtml(title.id)}" data-action="equip">${escapeHtml(t("cult_equip_btn"))}</button>`;
+        }
+
+        actionBtnHtml = `<div class="title-actions-cluster">${claimHtml} ${equipHtml}</div>`;
       } else {
         actionBtnHtml = `<span class="title-action-btn btn-locked">🔒 ${escapeHtml(t("cult_title_locked"))}</span>`;
       }
@@ -688,44 +1129,336 @@ async function renderCultivationUI() {
         const themeRealms = (THEMES_CONFIG[title.themeId || currentThemeFilter] || THEMES_CONFIG.cultivation).realms;
         const reqRealmObj = themeRealms[title.minRealmIndex] || themeRealms[0];
         const reqRealmName = reqRealmObj ? t(`realm_${reqRealmObj.id}`) : "";
-        const reqText = t("cult_req_realm_stage", { realm: reqRealmName, stage: title.minStage || 1 });
+        const reqText = (reqRealmObj && !reqRealmObj.hasStages)
+          ? t("cult_req_realm_only", { realm: reqRealmName })
+          : t("cult_req_realm_stage", { realm: reqRealmName, stage: title.minStage || 1 });
         reqBadgeHtml = `<div class="title-req-stage-tag">${escapeHtml(reqText)}</div>`;
       }
 
+      const progress = getAchievementProgress(title, stats, cultState);
+      const progressHtml = `
+        <div class="title-progress-container">
+          <div class="title-progress-meta">
+            <span>${escapeHtml(progress.text)}</span>
+            <span class="title-progress-pct">${progress.pct}%</span>
+          </div>
+          <div class="title-progress-track">
+            <div class="title-progress-fill rarity-${rarity}" style="width: ${progress.pct}%;"></div>
+          </div>
+        </div>
+      `;
+
       return `
-        <div class="title-item tier-${tier} ${stateClass} ${equippedClass}" data-title-id="${escapeHtml(title.id)}" ${isUnlocked ? `tabindex="0" role="button" aria-label="${escapeHtml(t(`title_${title.id}_name`))}"` : ""}>
-          <div class="title-emblem">${cfg.symbol}</div>
+        <div class="title-item tier-${tier} rarity-${rarity} ${stateClass} ${equippedClass}" data-title-id="${escapeHtml(title.id)}" ${isUnlocked ? `tabindex="0" role="button" aria-label="${escapeHtml(t(`title_${title.id}_name`))}"` : ""}>
+          <div class="title-emblem">
+            ${renderBadge(title, { size: "md" })}
+          </div>
           <div class="title-info">
             <div class="title-header-row">
               <span class="title-name">${escapeHtml(t(`title_${title.id}_name`))}</span>
+              ${diffTagHtml}
+              <span class="title-rarity-tag rarity-tag-${rarity}">${escapeHtml(t(`ach_rarity_${rarity}`))}</span>
               <span class="title-tier-tag tier-tag-${tier}">${escapeHtml(t(`cult_tier_${tier}`))}</span>
             </div>
             <span class="title-desc">${escapeHtml(t(`title_${title.id}_desc`))}</span>
             ${reqBadgeHtml}
+            ${progressHtml}
           </div>
           ${actionBtnHtml}
         </div>
       `;
     }).join("");
   }
+
+  updateAvatarMiniSlots(stats);
+}
+
+function updateAvatarMiniSlots(stats, forceIsLoggedIn) {
+  const miniSlots = document.getElementById("avatarMiniSlots");
+  const avatarPortrait = document.getElementById("userAvatarPortrait");
+  const profileBtn = document.getElementById("btnUserProfile");
+  if (!miniSlots || !avatarPortrait) return;
+
+  const authEmail = document.getElementById("userEmailDisplay")?.textContent || "";
+  const isLoggedIn = typeof forceIsLoggedIn === "boolean" ? forceIsLoggedIn : Boolean(authEmail && authEmail.includes("@"));
+
+  if (profileBtn) {
+    if (isLoggedIn) profileBtn.classList.add("logged-in");
+    else profileBtn.classList.remove("logged-in");
+  }
+
+  if (!isLoggedIn) {
+    avatarPortrait.textContent = "👤";
+    miniSlots.innerHTML = "";
+    return;
+  }
+
+  avatarPortrait.textContent = "🧙‍♂️";
+  const equipped = Array.isArray(stats?.equippedItems) ? stats.equippedItems : [];
+  let html = "";
+  for (let i = 0; i < Math.min(equipped.length, 3); i++) {
+    const item = (typeof ITEMS_CONFIG !== "undefined" && ITEMS_CONFIG[equipped[i]]) || null;
+    if (!item) continue;
+    const itemName = typeof t === "function" ? t(item.nameKey) : item.id;
+    const bonus = Math.round(((item.qiBonusMultiplier !== undefined ? item.qiBonusMultiplier : (item.qiMultiplier ? item.qiMultiplier - 1 : 0))) * 100);
+    html += `
+      <div class="avatar-mini-dot slot-${i} rarity-${escapeHtml(item.rarity)}" title="${escapeHtml(itemName)} (+${bonus}% Qi)">
+        ${escapeHtml(item.icon)}
+      </div>
+    `;
+  }
+  miniSlots.innerHTML = html;
+}
+
+async function renderInventoryUI() {
+  const { stats: rawStats } = await chrome.storage.local.get(["stats"]);
+  const stats = { ...(typeof getDefaultStats === "function" ? getDefaultStats() : {}), ...(rawStats || {}) };
+  if (typeof syncUserInventory === "function") {
+    syncUserInventory(stats);
+  }
+
+  const equippedIds = Array.isArray(stats.equippedItems) ? stats.equippedItems : [];
+  const inventoryIds = Array.isArray(stats.inventory) ? stats.inventory : [];
+  const breakdown = typeof calculateQiBreakdown === "function" ? calculateQiBreakdown(stats) : {
+    baseReadingQi: (Number(stats.chaptersRead) || 0) + (Number(stats.novelsCompleted) || 0) * 50,
+    multiplier: 1.0,
+    bonusQi: Number(stats.bonusQi) || 0,
+    totalQi: 0
+  };
+
+  // 1. Render Equipped Slots (3 slots)
+  const slotsContainer = document.getElementById("equippedSlotsContainer");
+  if (slotsContainer) {
+    let slotsHtml = "";
+    for (let i = 0; i < 3; i++) {
+      const itemId = equippedIds[i];
+      if (itemId && typeof ITEMS_CONFIG !== "undefined" && ITEMS_CONFIG[itemId]) {
+        const item = ITEMS_CONFIG[itemId];
+        const pctBonus = Math.round(((item.qiBonusMultiplier !== undefined ? item.qiBonusMultiplier : (item.qiMultiplier ? item.qiMultiplier - 1 : 0))) * 100);
+        slotsHtml += `
+          <div class="equipped-slot-card slot-filled rarity-${escapeHtml(item.rarity)}">
+            <div class="slot-item-icon">${escapeHtml(item.icon)}</div>
+            <div class="slot-item-name" title="${escapeHtml(t(item.nameKey))}">${escapeHtml(t(item.nameKey))}</div>
+            <div class="slot-item-bonus">+${pctBonus}% Qi</div>
+            <button type="button" class="btn-slot-unequip" data-item-id="${escapeHtml(item.id)}" data-i18n="inventory_btn_unequip">${escapeHtml(t("inventory_btn_unequip") || "Desequipar")}</button>
+          </div>
+        `;
+      } else {
+        slotsHtml += `
+          <div class="equipped-slot-card slot-empty">
+            <span style="font-size:18px; opacity:0.35;">+</span>
+            <span style="font-size:9px; color:#64748b; margin-top:2px;">Ranura ${i + 1}</span>
+          </div>
+        `;
+      }
+    }
+    slotsContainer.innerHTML = slotsHtml;
+
+    slotsContainer.querySelectorAll(".btn-slot-unequip").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        const itemId = e.currentTarget.getAttribute("data-item-id");
+        if (!itemId) return;
+        btn.disabled = true;
+        try {
+          const res = await chrome.runtime.sendMessage({ type: "UNEQUIP_ITEM", itemId });
+          if (res && res.ok) {
+            await renderInventoryUI();
+            await renderCultivationUI();
+            await checkAuthState();
+          }
+        } catch (err) {
+          console.error("Error unequipping item:", err);
+        }
+      });
+    });
+  }
+
+  // 2. Render Qi Breakdown Formula
+  const elBase = document.getElementById("formulaBaseQi");
+  const elMult = document.getElementById("formulaMultiplier");
+  const elBonus = document.getElementById("formulaBonusQi");
+  const elTotal = document.getElementById("formulaTotalQi");
+  const elMultPill = document.getElementById("totalQiMultiplierPill");
+
+  if (elBase) elBase.textContent = String(breakdown.baseReadingQi || 0);
+  if (elMult) elMult.textContent = `${(breakdown.multiplier || 1.0).toFixed(2)}x`;
+  if (elBonus) elBonus.textContent = `+${breakdown.bonusQi || 0}`;
+  if (elTotal) elTotal.textContent = String(breakdown.finalQi ?? breakdown.totalQi ?? 0);
+  if (elMultPill) {
+    const totalBonusPct = Math.round(((breakdown.multiplier || 1.0) - 1) * 100);
+    elMultPill.textContent = totalBonusPct > 0 ? `+${totalBonusPct}% Qi (${breakdown.multiplier.toFixed(2)}x)` : "1.00x";
+  }
+
+  // 3. Render Available Inventory List
+  const itemsContainer = document.getElementById("inventoryItemsList");
+  if (itemsContainer) {
+    if (inventoryIds.length === 0) {
+      itemsContainer.innerHTML = `
+        <div class="inventory-empty-state">
+          <div style="font-size:24px; margin-bottom:6px;">🔮</div>
+          <p data-i18n="inventory_no_items">${escapeHtml(t("inventory_no_items") || "Tu inventario está vacío. Desbloquea títulos en Cultivo para obtener artefactos.")}</p>
+        </div>
+      `;
+    } else {
+      const isSlotsFull = equippedIds.length >= 3;
+      itemsContainer.innerHTML = inventoryIds.map((itemId) => {
+        const item = typeof ITEMS_CONFIG !== "undefined" && ITEMS_CONFIG[itemId];
+        if (!item) return "";
+        const isEquipped = equippedIds.includes(itemId);
+        const pctBonus = Math.round(((item.qiBonusMultiplier !== undefined ? item.qiBonusMultiplier : (item.qiMultiplier ? item.qiMultiplier - 1 : 0))) * 100);
+
+        let actionHtml = "";
+        if (isEquipped) {
+          actionHtml = `<span class="item-equipped-badge" data-i18n="inventory_equipped_badge">✓ ${escapeHtml(t("inventory_equipped_badge") || "Equipado")}</span>`;
+        } else {
+          actionHtml = `<button type="button" class="btn-equip-item" data-item-id="${escapeHtml(item.id)}" ${isSlotsFull ? "disabled title='Máximo 3 ranuras equipadas'" : ""} data-i18n="inventory_btn_equip">${escapeHtml(t("inventory_btn_equip") || "Equipar")}</button>`;
+        }
+
+        return `
+          <div class="inventory-item-card rarity-${escapeHtml(item.rarity)}" data-item-id="${escapeHtml(item.id)}">
+            <div class="item-card-left">
+              <div class="item-card-icon">${escapeHtml(item.icon)}</div>
+              <div class="item-card-details">
+                <div class="item-card-title-row">
+                  <span class="item-card-name">${escapeHtml(t(item.nameKey))}</span>
+                  <span class="title-rarity-tag rarity-tag-${escapeHtml(item.rarity)}">${escapeHtml(t(`ach_rarity_${item.rarity}`))}</span>
+                </div>
+                <span class="item-card-desc">${escapeHtml(t(item.descKey))}</span>
+                <span class="item-card-bonus-tag">+${pctBonus}% Qi</span>
+              </div>
+            </div>
+            <div>${actionHtml}</div>
+          </div>
+        `;
+      }).join("");
+
+      itemsContainer.querySelectorAll(".btn-equip-item").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const itemId = e.currentTarget.getAttribute("data-item-id");
+          if (!itemId) return;
+          btn.disabled = true;
+          try {
+            const res = await chrome.runtime.sendMessage({ type: "EQUIP_ITEM", itemId });
+            if (res && res.ok) {
+              await renderInventoryUI();
+              await renderCultivationUI();
+              await checkAuthState();
+            }
+          } catch (err) {
+            console.error("Error equipping item:", err);
+          }
+        });
+      });
+    }
+  }
+
+  updateAvatarMiniSlots(stats);
 }
 
 function initCultivationEvents() {
-  document.getElementById("equippedTitleSelect")?.addEventListener("change", async (e) => {
-    await equipTitleById(e.target.value);
+  document.getElementById("btnUnequipTitle")?.addEventListener("click", async () => {
+    await equipTitleById("");
   });
 
-  const handleTitleActivation = async (card) => {
+  document.getElementById("btnClaimAllRewards")?.addEventListener("click", async () => {
+    const btn = document.getElementById("btnClaimAllRewards");
+    if (btn) btn.disabled = true;
+    try {
+      const res = await chrome.runtime.sendMessage({ type: "CLAIM_ALL_ACHIEVEMENTS" });
+      if (res && res.ok) {
+        await renderCultivationUI();
+      }
+    } catch (err) {
+      console.error("Error claiming all achievements:", err);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  document.getElementById("btnClaimCelebrationReward")?.addEventListener("click", async (e) => {
+    const achId = e.currentTarget.getAttribute("data-ach-id");
+    if (!achId) return;
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: "CLAIM_ACHIEVEMENT_REWARD",
+        achievementId: achId
+      });
+      if (res && res.ok) {
+        e.currentTarget.textContent = t("ach_modal_claimed");
+        e.currentTarget.disabled = true;
+        setTimeout(() => {
+          closeCelebrationModal();
+          e.currentTarget.disabled = false;
+        }, 600);
+        await renderCultivationUI();
+      }
+    } catch (err) {
+      console.error("Error claiming celebration reward:", err);
+    }
+  });
+
+  document.getElementById("btnCloseCelebrationModal")?.addEventListener("click", () => {
+    closeCelebrationModal();
+  });
+
+  document.getElementById("achievementCelebrationModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "achievementCelebrationModal") {
+      closeCelebrationModal();
+    }
+  });
+
+  const handleTitleActivation = async (card, e) => {
     if (!card) return;
     const titleId = card.getAttribute("data-title-id");
-    if (titleId) {
+    if (!titleId) return;
+
+    const claimBtn = e?.target?.closest(".btn-claim-reward");
+    if (claimBtn) {
+      e?.stopPropagation();
+      const achId = claimBtn.getAttribute("data-ach-id") || titleId;
+      claimBtn.disabled = true;
+      try {
+        const res = await chrome.runtime.sendMessage({
+          type: "CLAIM_ACHIEVEMENT_REWARD",
+          achievementId: achId
+        });
+        if (res && res.ok) {
+          openCelebrationModal(achId);
+          await renderCultivationUI();
+        }
+      } catch (err) {
+        console.error("Error claiming reward:", err);
+      } finally {
+        claimBtn.disabled = false;
+      }
+      return;
+    }
+
+    const equippedBtn = e?.target?.closest(".btn-equipped");
+    if (equippedBtn) {
+      e?.stopPropagation();
+      await equipTitleById("");
+      return;
+    }
+
+    const equipBtn = e?.target?.closest(".btn-equip");
+    if (equipBtn) {
+      e?.stopPropagation();
+      await equipTitleById(titleId);
+      return;
+    }
+
+    const { stats } = await chrome.storage.local.get(["stats"]);
+    if (stats?.equippedTitle === titleId) {
+      await equipTitleById("");
+    } else {
       await equipTitleById(titleId);
     }
   };
 
   document.getElementById("titlesList")?.addEventListener("click", async (e) => {
     const card = e.target.closest(".title-item.unlocked");
-    await handleTitleActivation(card);
+    await handleTitleActivation(card, e);
   });
 
   document.getElementById("titlesList")?.addEventListener("keydown", async (e) => {
@@ -733,7 +1466,7 @@ function initCultivationEvents() {
       const card = e.target.closest(".title-item.unlocked");
       if (card) {
         e.preventDefault();
-        await handleTitleActivation(card);
+        await handleTitleActivation(card, e);
       }
     }
   });
@@ -751,9 +1484,92 @@ function initCultivationEvents() {
     document.getElementById("breakthroughBanner")?.classList.remove("visible");
   });
 
+  const handleBadgeImgError = (e) => {
+    const target = e.target;
+    if (target && target.tagName === "IMG" && target.dataset.fallback) {
+      if (!target.dataset.hasFailed && target.getAttribute("src") !== target.dataset.fallback) {
+        target.dataset.hasFailed = "true";
+        target.src = target.dataset.fallback;
+      }
+    }
+  };
+  window.addEventListener("error", handleBadgeImgError, true);
+  document.addEventListener("error", handleBadgeImgError, true);
+
+  const closeBtModal = () => {
+    const modal = document.getElementById("breakthroughConfirmModal");
+    if (modal) modal.style.display = "none";
+  };
+
+  document.getElementById("btnCancelBreakthroughAction")?.addEventListener("click", closeBtModal);
+  document.getElementById("btnCloseBreakthroughModal")?.addEventListener("click", closeBtModal);
+  document.getElementById("breakthroughConfirmModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "breakthroughConfirmModal") closeBtModal();
+  });
+
   document.getElementById("btnBreakthrough")?.addEventListener("click", async () => {
-    const btn = document.getElementById("btnBreakthrough");
-    if (btn) btn.disabled = true;
+    const { stats: rawStats } = await chrome.storage.local.get(["stats"]);
+    const stats = rawStats || {};
+    const cultState = getCultivationState(stats, currentThemeFilter);
+    if (!cultState || !cultState.isBottleneckReady || cultState.isPeakRealm) return;
+
+    const modal = document.getElementById("breakthroughConfirmModal");
+    if (!modal) return;
+
+    const modalIconEl = document.getElementById("btModalIcon");
+    const modalTitleEl = document.getElementById("btModalTitle");
+    const targetEl = document.getElementById("btModalTargetText");
+    const surplusEl = document.getElementById("btModalSurplusText");
+    const confirmBtn = document.getElementById("btnConfirmBreakthroughAction");
+
+    const currentRealmName = t(`realm_${cultState.realmId}`) || cultState.realmName || "";
+
+    if (cultState.isMajorBottleneck && cultState.nextRealmId) {
+      const nextRealmName = t(`realm_${cultState.nextRealmId}`) || cultState.nextRealmId;
+      if (modalIconEl) modalIconEl.textContent = "🌌";
+      if (modalTitleEl) modalTitleEl.textContent = t("bt_modal_title_realm");
+      if (targetEl) {
+        targetEl.textContent = `${currentRealmName} (Cúspide 9/9) ➔ ${nextRealmName} (Estadio 1/9)`;
+      }
+      if (confirmBtn) {
+        confirmBtn.textContent = t("bt_modal_btn_realm", { nextRealm: nextRealmName });
+      }
+    } else {
+      const realmSpan = cultState.realmObj ? (cultState.realmObj.nextQi - cultState.realmObj.minQi) : 100;
+      const progressInRealm = Math.max(0, cultState.totalQi - (cultState.realmObj?.minQi || 0));
+      const earnedStage = Math.min(9, Math.floor((progressInRealm * 9) / realmSpan) + 1);
+      const nextStage = Math.min(9, Math.max((cultState.stage || 1) + 1, earnedStage));
+
+      if (modalIconEl) modalIconEl.textContent = "⚡";
+      if (modalTitleEl) modalTitleEl.textContent = t("bt_modal_title_stage");
+      if (targetEl) {
+        targetEl.textContent = `${currentRealmName} • ${t("header_stage", { stage: nextStage })}`;
+      }
+      if (confirmBtn) {
+        confirmBtn.textContent = t("bt_modal_btn_stage");
+      }
+    }
+
+    if (surplusEl) {
+      if (cultState.overflowQi > 0) {
+        surplusEl.textContent = t("bt_modal_surplus", { qi: cultState.overflowQi });
+        surplusEl.style.display = "block";
+      } else {
+        surplusEl.textContent = "";
+        surplusEl.style.display = "none";
+      }
+    }
+
+    modal.style.display = "flex";
+    confirmBtn?.focus();
+  });
+
+  document.getElementById("btnConfirmBreakthroughAction")?.addEventListener("click", async () => {
+    const confirmBtn = document.getElementById("btnConfirmBreakthroughAction");
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = t("bt_ascending") || "Ascendiendo...";
+    }
 
     try {
       const res = await chrome.runtime.sendMessage({
@@ -761,6 +1577,7 @@ function initCultivationEvents() {
         themeId: currentThemeFilter
       });
       if (res && res.ok) {
+        closeBtModal();
         const header = document.querySelector(".header");
         if (header) {
           header.classList.remove("ascension-burst");
@@ -770,12 +1587,29 @@ function initCultivationEvents() {
             header.classList.remove("ascension-burst");
           }, 950);
         }
+        if (res.isMajor && res.realmObj) {
+          const newRealmName = t(`realm_${res.realmObj.id}`) || res.realmObj.name || "";
+          showToast(t("bt_success_realm_toast", { realm: newRealmName }), "success", 4000);
+        } else {
+          showToast(t("bt_success_stage_toast", { stage: res.newStage }), "success", 3000);
+        }
         await renderCultivationUI();
+      } else {
+        closeBtModal();
+        const errorMsg = res && res.reason === "already_max_level"
+          ? (t("bt_already_max") || "¡Has alcanzado la cima suprema de cultivo!")
+          : (t("bt_error_toast") || "Error al ascender");
+        showToast(errorMsg, "error", 3500);
       }
     } catch (err) {
       console.error("Error al romper cuello de botella:", err);
+      closeBtModal();
+      showToast(t("bt_error_toast") || "Error al ascender", "error", 3500);
     } finally {
-      if (btn) btn.disabled = false;
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = t("bt_modal_btn_confirm") || "¡Ascender ahora!";
+      }
     }
   });
 
@@ -804,8 +1638,12 @@ async function equipTitleById(chosenId) {
   stats.equippedTitle = chosenId;
   stats.updatedAt = Date.now();
   await chrome.storage.local.set({ stats });
-  chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
-  chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
+  try {
+    chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
+  } catch {}
+  try {
+    chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
+  } catch {}
   await renderCultivationUI();
 }
 
@@ -837,7 +1675,13 @@ async function checkUnconfirmedTab() {
       document.getElementById("unconfirmedName").value =
         cleanTabTitleForInput(data.novelName) || cleanTabTitleForInput(tab.title);
       document.getElementById("unconfirmedChap").value = data.chapter || "1";
+      const domainChip = document.getElementById("unconfirmedDomain");
+      if (domainChip) {
+        domainChip.textContent = extractDomain(data.url || tab.url);
+      }
       banner.classList.add("visible");
+    } else if (banner) {
+      banner.classList.remove("visible");
     }
   } catch {}
 }
@@ -848,20 +1692,106 @@ function initLibraryEvents() {
     renderNovels();
   });
 
-  document.querySelectorAll(".filter-chip").forEach((chip) => {
+  const filterChips = Array.from(document.querySelectorAll(".filter-chip"));
+  filterChips.forEach((chip, index) => {
     chip.addEventListener("click", () => {
-      document.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("active"));
+      filterChips.forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
       currentStatusFilter = chip.getAttribute("data-status") || "all";
       renderNovels();
     });
+
+    chip.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const nextIndex = (index + 1) % filterChips.length;
+        filterChips[nextIndex].focus();
+        filterChips[nextIndex].click();
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const prevIndex = (index - 1 + filterChips.length) % filterChips.length;
+        filterChips[prevIndex].focus();
+        filterChips[prevIndex].click();
+      }
+    });
+  });
+
+  document.getElementById("btnDismissUnconfirmed")?.addEventListener("click", async () => {
+    const banner = document.getElementById("unconfirmedBanner");
+    if (banner) banner.classList.remove("visible");
+    if (activeUnconfirmedTabId) {
+      try {
+        await chrome.runtime.sendMessage({
+          type: "DISCARD_UNCONFIRMED_TAB",
+          tabId: activeUnconfirmedTabId
+        });
+      } catch {}
+      try {
+        await chrome.storage.local.remove([`tab_${activeUnconfirmedTabId}`]);
+      } catch {}
+    }
+  });
+
+  document.getElementById("btnBlacklistUnconfirmed")?.addEventListener("click", async () => {
+    const banner = document.getElementById("unconfirmedBanner");
+    const targetDomain = extractDomain(activeUnconfirmedData?.url || "");
+    if (!targetDomain || targetDomain === t("domain_manual")) return;
+
+    if (banner) banner.classList.remove("visible");
+
+    try {
+      await chrome.runtime.sendMessage({
+        type: "ADD_DOMAIN_BLACKLIST",
+        domain: targetDomain
+      });
+    } catch {}
+
+    const tabIdToClear = activeUnconfirmedTabId;
+    if (tabIdToClear) {
+      try {
+        await chrome.runtime.sendMessage({
+          type: "DISCARD_UNCONFIRMED_TAB",
+          tabId: tabIdToClear
+        });
+      } catch {}
+      try {
+        await chrome.storage.local.remove([`tab_${tabIdToClear}`]);
+      } catch {}
+    }
+
+    showToast(t("blacklist_added_toast", { domain: targetDomain }), "warning", 5000, {
+      label: t("toast_undo"),
+      onClick: async () => {
+        try {
+          await chrome.runtime.sendMessage({
+            type: "REMOVE_DOMAIN_BLACKLIST",
+            domain: targetDomain
+          });
+        } catch {}
+        showToast(t("blacklist_removed_toast", { domain: targetDomain }), "info", 2000);
+        await checkUnconfirmedTab();
+      }
+    });
   });
 
   document.getElementById("btnSaveUnconfirmed")?.addEventListener("click", async () => {
-    const rawName = document.getElementById("unconfirmedName").value.trim();
-    const novelName = cleanTabTitleForInput(rawName) || rawName;
-    const chapter = document.getElementById("unconfirmedChap").value.trim() || "1";
-    if (!novelName || !activeUnconfirmedData) return;
+    const nameInput = document.getElementById("unconfirmedName");
+    const rawName = nameInput.value.trim().slice(0, 300);
+    const novelName = (cleanTabTitleForInput(rawName) || rawName).slice(0, 300);
+    const chapter = (document.getElementById("unconfirmedChap").value.trim() || "1").slice(0, 50);
+    const errEl = document.getElementById("unconfirmedErrorMsg");
+
+    if (!novelName || !activeUnconfirmedData || !isValidHttpUrl(activeUnconfirmedData.url)) {
+      if (errEl) {
+        errEl.textContent = t("form_name_required");
+        errEl.style.display = "block";
+      }
+      nameInput.classList.add("input-error");
+      nameInput.focus();
+      return;
+    }
+    if (errEl) errEl.style.display = "none";
+    nameInput.classList.remove("input-error");
 
     const seriesId =
       activeUnconfirmedData.novelUrl && activeUnconfirmedData.seriesId
@@ -871,6 +1801,7 @@ function initLibraryEvents() {
     const storage = await chrome.storage.local.get(["savedNovels"]);
     const savedNovels = storage.savedNovels || {};
     const existing = savedNovels[seriesId];
+    const isNewNovel = !existing;
 
     const entry = {
       seriesId,
@@ -893,21 +1824,53 @@ function initLibraryEvents() {
     const updates = { savedNovels };
     if (activeUnconfirmedTabId) {
       updates[`tab_${activeUnconfirmedTabId}`] = { ...entry, unconfirmed: false };
-      chrome.action.setBadgeText({ tabId: activeUnconfirmedTabId }).catch(() => {});
+      chrome.action.setBadgeText({ text: "", tabId: activeUnconfirmedTabId }).catch(() => {});
+      chrome.tabs.sendMessage(activeUnconfirmedTabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
     }
 
     await chrome.storage.local.set(updates);
+    if (isNewNovel || (parseFloat(chapter) || 1) > (parseFloat(existing?.maxCounted) || 0)) {
+      try {
+        const chapNum = parseFloat(chapter) || 1;
+        const prevMax = parseFloat(existing?.maxCounted) || 0;
+        const chaptersDelta = isNewNovel ? chapNum : Math.max(0, chapNum - prevMax);
+        await chrome.runtime.sendMessage({
+          type: "RECORD_MANUAL_READ",
+          chaptersDelta,
+          isNewNovel
+        });
+      } catch {}
+    }
     chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
     chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
     document.getElementById("unconfirmedBanner")?.classList.remove("visible");
-    renderNovels();
+    await renderNovels();
+    await renderCultivationUI();
+    showToast(t("prompt_novel_saved"), "success", 2500);
+  });
+
+  const handleUnconfirmedEnter = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("btnSaveUnconfirmed")?.click();
+    }
+  };
+  document.getElementById("unconfirmedName")?.addEventListener("keydown", handleUnconfirmedEnter);
+  document.getElementById("unconfirmedChap")?.addEventListener("keydown", handleUnconfirmedEnter);
+  document.getElementById("unconfirmedName")?.addEventListener("input", () => {
+    const errEl = document.getElementById("unconfirmedErrorMsg");
+    if (errEl) errEl.style.display = "none";
+    document.getElementById("unconfirmedName")?.classList.remove("input-error");
   });
 
   document.getElementById("btnToggleManual")?.addEventListener("click", async () => {
     const drawer = document.getElementById("manualDrawer");
     if (!drawer) return;
     document.getElementById("editingSeriesId").value = "";
-    document.getElementById("manualStatus").value = "";
+    setManualStatus("");
+    const errEl = document.getElementById("manualNameError");
+    if (errEl) errEl.style.display = "none";
+    document.getElementById("manualName")?.classList.remove("input-error");
     drawer.classList.toggle("open");
 
     if (drawer.classList.contains("open")) {
@@ -921,16 +1884,63 @@ function initLibraryEvents() {
     }
   });
 
+  const manualChips = Array.from(document.querySelectorAll("#manualStatusChips .status-chip"));
+  manualChips.forEach((chip, index) => {
+    chip.addEventListener("click", () => {
+      const status = chip.getAttribute("data-status") || "";
+      setManualStatus(status);
+    });
+
+    chip.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const nextIndex = (index + 1) % manualChips.length;
+        manualChips[nextIndex].focus();
+        manualChips[nextIndex].click();
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const prevIndex = (index - 1 + manualChips.length) % manualChips.length;
+        manualChips[prevIndex].focus();
+        manualChips[prevIndex].click();
+      }
+    });
+  });
+
+  const handleManualEnter = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("btnConfirmManual")?.click();
+    }
+  };
+  document.getElementById("manualName")?.addEventListener("keydown", handleManualEnter);
+  document.getElementById("manualChapter")?.addEventListener("keydown", handleManualEnter);
+  document.getElementById("manualName")?.addEventListener("input", () => {
+    const errEl = document.getElementById("manualNameError");
+    if (errEl) errEl.style.display = "none";
+    document.getElementById("manualName")?.classList.remove("input-error");
+  });
+
   document.getElementById("btnConfirmManual")?.addEventListener("click", async () => {
     const editingId = document.getElementById("editingSeriesId").value.trim();
     const nameInput = document.getElementById("manualName");
     const chapInput = document.getElementById("manualChapter");
     const statusSelect = document.getElementById("manualStatus");
-    const novelName = nameInput.value.trim();
-    const chapter = chapInput.value.trim() || "1";
+    const errEl = document.getElementById("manualNameError");
+    const novelName = nameInput.value.trim().slice(0, 300);
+    const chapter = (chapInput.value.trim() || "1").slice(0, 50);
     const statusManual = statusSelect.value;
 
-    if (!novelName) return;
+    if (!novelName) {
+      if (errEl) {
+        errEl.textContent = t("form_name_required");
+        errEl.style.display = "block";
+      }
+      nameInput.classList.add("input-error");
+      nameInput.focus();
+      return;
+    }
+    if (errEl) errEl.style.display = "none";
+    nameInput.classList.remove("input-error");
 
     const storage = await chrome.storage.local.get(["savedNovels", "stats"]);
     const savedNovels = storage.savedNovels || {};
@@ -945,23 +1955,26 @@ function initLibraryEvents() {
     };
 
     let targetId = editingId;
-    let currentUrl = "https://google.com";
+    let currentUrl = "https://mynovelsystem.local";
     let tabId = null;
 
     if (!targetId) {
       try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tab && tab.url) currentUrl = tab.url;
+        if (tab && tab.url && isValidHttpUrl(tab.url)) currentUrl = tab.url;
         if (tab && tab.id) tabId = tab.id;
       } catch {}
       targetId = buildManualSeriesId(novelName, currentUrl);
     }
 
     const existing = savedNovels[targetId];
+    const isNew = !existing;
     let completedCounted = Boolean(existing?.completedCounted);
+    let completedDelta = 0;
 
     if (statusManual === "completed" && !completedCounted) {
       completedCounted = true;
+      completedDelta = 1;
       stats.novelsCompleted = (Number(stats.novelsCompleted) || 0) + 1;
       evaluateUnlockedTitles(stats, currentThemeFilter);
       stats.updatedAt = Date.now();
@@ -969,6 +1982,7 @@ function initLibraryEvents() {
 
     const chapNum = parseFloat(chapter) || 1;
     const prevMax = existing ? parseFloat(existing.maxCounted ?? existing.chapter) || 0 : 0;
+    const chapDelta = isNew ? chapNum : Math.max(0, chapNum - prevMax);
 
     savedNovels[targetId] = {
       ...(existing || {}),
@@ -985,26 +1999,39 @@ function initLibraryEvents() {
     };
 
     if (tabId) {
-      chrome.action.setBadgeText({ tabId }).catch(() => {});
+      chrome.action.setBadgeText({ text: "", tabId }).catch(() => {});
+      chrome.tabs.sendMessage(tabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
     }
 
     await chrome.storage.local.set({ savedNovels, stats });
+    if (chapDelta > 0 || isNew || completedDelta > 0) {
+      try {
+        await chrome.runtime.sendMessage({
+          type: "RECORD_MANUAL_READ",
+          chaptersDelta: chapDelta,
+          isNewNovel: isNew,
+          completedDelta
+        });
+      } catch {}
+    }
     chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
     chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
 
     document.getElementById("editingSeriesId").value = "";
+    nameInput.value = "";
     chapInput.value = "";
-    statusSelect.value = "";
+    setManualStatus("");
     document.getElementById("manualDrawer")?.classList.remove("open");
     await renderCultivationUI();
     await renderNovels();
+    showToast(t("prompt_novel_saved"), "success", 2500);
   });
 
   document.getElementById("novelList")?.addEventListener("click", async (e) => {
     const resumeBtn = e.target.closest(".btn-resume");
     if (resumeBtn) {
       const url = resumeBtn.getAttribute("data-url");
-      if (url) chrome.tabs.create({ url });
+      if (url && isValidHttpUrl(url)) chrome.tabs.create({ url });
       return;
     }
 
@@ -1034,8 +2061,17 @@ function initLibraryEvents() {
         savedNovels[key].scrollPct = 0;
         savedNovels[key].updatedAt = Date.now();
         await chrome.storage.local.set({ savedNovels });
+        try {
+          await chrome.runtime.sendMessage({
+            type: "RECORD_MANUAL_READ",
+            chaptersDelta: 1,
+            isNewNovel: false,
+            completedDelta: 0
+          });
+        } catch {}
         chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
-        renderNovels();
+        await renderNovels();
+        await renderCultivationUI();
       }
       return;
     }
@@ -1052,7 +2088,10 @@ function initLibraryEvents() {
       document.getElementById("editingSeriesId").value = key;
       document.getElementById("manualName").value = item.customName || item.novelName || "";
       document.getElementById("manualChapter").value = item.chapter || "1";
-      document.getElementById("manualStatus").value = item.statusManual || "";
+      setManualStatus(item.statusManual || "");
+      const errEl = document.getElementById("manualNameError");
+      if (errEl) errEl.style.display = "none";
+      document.getElementById("manualName")?.classList.remove("input-error");
       drawer?.classList.add("open");
       document.getElementById("manualName")?.focus();
       return;
@@ -1063,16 +2102,32 @@ function initLibraryEvents() {
       const key = deleteBtn.getAttribute("data-key");
       const storage = await chrome.storage.local.get(["savedNovels"]);
       const savedNovels = storage.savedNovels || {};
-      if (savedNovels[key]) {
+      const backupNovel = savedNovels[key] ? { ...savedNovels[key] } : null;
+      if (backupNovel && !backupNovel.deleted) {
         savedNovels[key] = {
-          seriesId: key,
+          ...backupNovel,
           deleted: true,
           updatedAt: Date.now()
         };
         await chrome.storage.local.set({ savedNovels });
         chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
-        renderNovels();
+        await renderNovels();
+
+        const novelName = backupNovel.customName || backupNovel.novelName || t("domain_manual");
+        showToast(t("novel_deleted_toast", { name: novelName }), "info", 5000, {
+          label: t("toast_undo"),
+          onClick: async () => {
+            const s = await chrome.storage.local.get(["savedNovels"]);
+            const currentNovels = s.savedNovels || {};
+            currentNovels[key] = backupNovel;
+            await chrome.storage.local.set({ savedNovels: currentNovels });
+            chrome.runtime.sendMessage({ type: "FORCE_CLOUD_SYNC" });
+            await renderNovels();
+            showToast(t("novel_restored_toast"), "success", 2000);
+          }
+        });
       }
+      return;
     }
   });
 }
@@ -1102,7 +2157,7 @@ async function renderNovels() {
   if (keys.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        ${currentSearch || currentStatusFilter !== "all" ? escapeHtml(t("empty_search")) : t("empty_library")}
+        ${currentSearch || currentStatusFilter !== "all" ? escapeHtml(t("empty_search")) : escapeHtml(t("empty_library"))}
       </div>`;
     return;
   }
@@ -1187,6 +2242,23 @@ function updateWhatsappStatusBadge(status) {
 }
 
 function initWhatsappEvents() {
+  const updateWhatsappToggleIndicator = (enabled) => {
+    const ind = document.getElementById("waToggleIndicator");
+    if (ind) {
+      ind.textContent = enabled ? (t("status_on") || "ON") : (t("status_off") || "OFF");
+      ind.style.color = enabled ? "#4ade80" : "var(--text-secondary)";
+    }
+  };
+
+  document.getElementById("enableWhatsapp")?.addEventListener("change", async (e) => {
+    const isEnabled = Boolean(e.target.checked);
+    updateWhatsappToggleIndicator(isEnabled);
+    const storage = await chrome.storage.local.get(["settings"]);
+    const settings = { ...(storage.settings || {}), enableWhatsapp: isEnabled };
+    await chrome.storage.local.set({ settings });
+    showToast(isEnabled ? t("wa_enabled_toast") : t("wa_disabled_toast"), "info", 2000);
+  });
+
   document.getElementById("btnCopyCallmebotPhrase")?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText("I allow callmebot to send me messages");
@@ -1256,9 +2328,66 @@ function initWhatsappEvents() {
       }
     );
   });
+
+  const handleWaEnter = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("btnSaveSettings")?.click();
+    }
+  };
+  document.getElementById("apiKey")?.addEventListener("keydown", handleWaEnter);
+  document.getElementById("phone")?.addEventListener("keydown", handleWaEnter);
+  document.getElementById("waitMinutes")?.addEventListener("keydown", handleWaEnter);
 }
 
 function initSettingsAndBackupEvents() {
+  const updateLanguageSegmentedControl = (lang) => {
+    document.querySelectorAll("#languageSegmentedControl .lang-segment-btn").forEach((b) => {
+      const isCurrent = b.getAttribute("data-lang") === lang;
+      b.classList.toggle("active", isCurrent);
+      if (isCurrent) {
+        b.style.background = "rgba(99, 102, 241, 0.4)";
+        b.style.color = "#ffffff";
+      } else {
+        b.style.background = "transparent";
+        b.style.color = "var(--text-secondary)";
+      }
+    });
+  };
+
+  const langSegmentBtns = Array.from(document.querySelectorAll("#languageSegmentedControl .lang-segment-btn"));
+  langSegmentBtns.forEach((btn, index) => {
+    btn.addEventListener("click", async () => {
+      const lang = btn.getAttribute("data-lang");
+      if (!lang) return;
+      document.getElementById("languageSelect").value = lang;
+      updateLanguageSegmentedControl(lang);
+
+      const storage = await chrome.storage.local.get(["settings"]);
+      const settings = { ...(storage.settings || {}), language: lang };
+      await chrome.storage.local.set({ settings });
+
+      setCurrentLang(lang);
+      applyI18nToDom();
+      chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
+      await checkAuthState();
+      await renderCultivationUI();
+      await renderNovels();
+      await renderDiagnosticLogs();
+      await renderBlacklistUI();
+      showToast(t("lang_changed_toast"), "success", 2000);
+    });
+
+    btn.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const nextIndex = (index + 1) % langSegmentBtns.length;
+        langSegmentBtns[nextIndex].focus();
+        langSegmentBtns[nextIndex].click();
+      }
+    });
+  });
+
   document.getElementById("languageSelect")?.addEventListener("change", async (e) => {
     const lang = e.target.value;
     const storage = await chrome.storage.local.get(["settings"]);
@@ -1271,6 +2400,7 @@ function initSettingsAndBackupEvents() {
     await renderCultivationUI();
     await renderNovels();
     await renderDiagnosticLogs();
+    await renderBlacklistUI();
   });
 
   document.getElementById("enablePerfMode")?.addEventListener("change", async (e) => {
@@ -1281,11 +2411,25 @@ function initSettingsAndBackupEvents() {
     await chrome.storage.local.set({ settings });
   });
 
+  document.getElementById("showTierOnIcon")?.addEventListener("change", async (e) => {
+    const showTier = Boolean(e.target.checked);
+    const storage = await chrome.storage.local.get(["settings"]);
+    const settings = { ...(storage.settings || {}), showTierOnIcon: showTier };
+    await chrome.storage.local.set({ settings });
+    chrome.runtime.sendMessage({ type: "REFRESH_ICON" });
+  });
+
+  document.getElementById("linkPrivacyPolicy")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
+  });
+
   document.getElementById("btnSavePrefs")?.addEventListener("click", async () => {
     const lang = document.getElementById("languageSelect").value;
     const pauseDays = Math.max(1, parseInt(document.getElementById("pauseDaysInput").value, 10) || 30);
     const dropDays = Math.max(pauseDays + 1, parseInt(document.getElementById("dropDaysInput").value, 10) || 90);
     const isPerf = document.getElementById("enablePerfMode")?.checked;
+    const showTier = Boolean(document.getElementById("showTierOnIcon")?.checked);
 
     const storage = await chrome.storage.local.get(["settings"]);
     const settings = {
@@ -1293,7 +2437,8 @@ function initSettingsAndBackupEvents() {
       language: lang,
       pauseDays,
       dropDays,
-      perfMode: Boolean(isPerf)
+      perfMode: Boolean(isPerf),
+      showTierOnIcon: Boolean(showTier)
     };
 
     await chrome.storage.local.set({ settings });
@@ -1304,14 +2449,187 @@ function initSettingsAndBackupEvents() {
     await renderCultivationUI();
     await renderNovels();
     await renderDiagnosticLogs();
+    await renderBlacklistUI();
 
     const msg = document.getElementById("prefsMsg");
     msg.textContent = t("settings_prefs_saved");
     setTimeout(() => { msg.textContent = ""; }, 2000);
   });
 
+  const handlePrefsEnter = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("btnSavePrefs")?.click();
+    }
+  };
+  document.getElementById("pauseDaysInput")?.addEventListener("keydown", handlePrefsEnter);
+  document.getElementById("dropDaysInput")?.addEventListener("keydown", handlePrefsEnter);
+
+  // Blacklist Events
+  document.getElementById("btnQuickBlockCurrentSite")?.addEventListener("click", async () => {
+    const btn = document.getElementById("btnQuickBlockCurrentSite");
+    const host = btn?.getAttribute("data-host");
+    if (!host) return;
+
+    try {
+      await chrome.runtime.sendMessage({
+        type: "ADD_DOMAIN_BLACKLIST",
+        domain: host
+      });
+      await renderBlacklistUI();
+      showToast(t("blacklist_added_toast", { domain: host }), "warning", 5000, {
+        label: t("toast_undo"),
+        onClick: async () => {
+          await chrome.runtime.sendMessage({
+            type: "REMOVE_DOMAIN_BLACKLIST",
+            domain: host
+          });
+          await renderBlacklistUI();
+          showToast(t("blacklist_removed_toast", { domain: host }), "info", 2000);
+        }
+      });
+    } catch (err) {
+      console.error("Error quick blocking domain:", err);
+    }
+  });
+
+  const handleAddDomain = async () => {
+    const input = document.getElementById("blacklistDomainInput");
+    const errEl = document.getElementById("blacklistInputError");
+    if (!input) return;
+
+    const raw = input.value.trim();
+    const normalized = normalizeDomain(raw);
+
+    if (!normalized || !normalized.includes(".") || /\s/.test(normalized)) {
+      if (errEl) {
+        errEl.textContent = t("blacklist_invalid_err");
+        errEl.style.display = "block";
+      }
+      input.classList.add("input-error");
+      input.focus();
+      return;
+    }
+
+    const storage = await chrome.storage.local.get(["domainBlacklist"]);
+    const currentList = Array.isArray(storage.domainBlacklist) ? storage.domainBlacklist : [];
+    const exists = currentList.some((item) => {
+      const d = typeof item === "string" ? item : item?.domain;
+      return normalizeDomain(d) === normalized;
+    });
+    if (exists) {
+      if (errEl) {
+        errEl.textContent = t("blacklist_exists_err");
+        errEl.style.display = "block";
+      }
+      input.classList.add("input-error");
+      input.focus();
+      return;
+    }
+
+    if (errEl) errEl.style.display = "none";
+    input.classList.remove("input-error");
+
+    try {
+      await chrome.runtime.sendMessage({
+        type: "ADD_DOMAIN_BLACKLIST",
+        domain: normalized
+      });
+      input.value = "";
+      await renderBlacklistUI();
+      showToast(t("blacklist_added_toast", { domain: normalized }), "warning", 5000, {
+        label: t("toast_undo"),
+        onClick: async () => {
+          await chrome.runtime.sendMessage({
+            type: "REMOVE_DOMAIN_BLACKLIST",
+            domain: normalized
+          });
+          await renderBlacklistUI();
+          showToast(t("blacklist_removed_toast", { domain: normalized }), "info", 2000);
+        }
+      });
+    } catch (err) {
+      console.error("Error adding domain to blacklist:", err);
+    }
+  };
+
+  document.getElementById("btnAddBlacklistDomain")?.addEventListener("click", handleAddDomain);
+  document.getElementById("blacklistDomainInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddDomain();
+    }
+  });
+  document.getElementById("blacklistDomainInput")?.addEventListener("input", () => {
+    const errEl = document.getElementById("blacklistInputError");
+    if (errEl) errEl.style.display = "none";
+    document.getElementById("blacklistDomainInput")?.classList.remove("input-error");
+  });
+
+  document.getElementById("blacklistSearchInput")?.addEventListener("input", (e) => {
+    currentBlacklistSearch = e.target.value.toLowerCase().trim();
+    renderBlacklistUI();
+  });
+
+  document.getElementById("blacklistedDomainsList")?.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-remove-blacklist");
+    if (!btn) return;
+    const domain = btn.getAttribute("data-domain");
+    const addedAtRaw = btn.getAttribute("data-added-at");
+    const addedAt = addedAtRaw ? Number(addedAtRaw) : Date.now();
+    if (!domain) return;
+
+    try {
+      await chrome.runtime.sendMessage({
+        type: "REMOVE_DOMAIN_BLACKLIST",
+        domain
+      });
+      await renderBlacklistUI();
+      showToast(t("blacklist_removed_toast", { domain }), "info", 5000, {
+        label: t("toast_undo"),
+        onClick: async () => {
+          await chrome.runtime.sendMessage({
+            type: "ADD_DOMAIN_BLACKLIST",
+            domain,
+            addedAt
+          });
+          await renderBlacklistUI();
+          showToast(t("blacklist_added_toast", { domain }), "warning", 2000);
+        }
+      });
+    } catch (err) {
+      console.error("Error removing domain from blacklist:", err);
+    }
+  });
+
+  const closeClearBlModal = () => {
+    const modal = document.getElementById("clearBlacklistConfirmModal");
+    if (modal) modal.style.display = "none";
+  };
+
+  document.getElementById("btnClearBlacklist")?.addEventListener("click", () => {
+    const modal = document.getElementById("clearBlacklistConfirmModal");
+    if (modal) modal.style.display = "flex";
+  });
+  document.getElementById("btnCloseClearBlModal")?.addEventListener("click", closeClearBlModal);
+  document.getElementById("btnCancelClearBl")?.addEventListener("click", closeClearBlModal);
+  document.getElementById("clearBlacklistConfirmModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "clearBlacklistConfirmModal") closeClearBlModal();
+  });
+
+  document.getElementById("btnConfirmClearBl")?.addEventListener("click", async () => {
+    try {
+      await chrome.runtime.sendMessage({ type: "CLEAR_DOMAIN_BLACKLIST" });
+      closeClearBlModal();
+      await renderBlacklistUI();
+      showToast(t("blacklist_cleared_toast"), "success", 2500);
+    } catch (err) {
+      console.error("Error clearing domain blacklist:", err);
+    }
+  });
+
   document.getElementById("btnExportJson")?.addEventListener("click", async () => {
-    const { savedNovels, stats, settings } = await chrome.storage.local.get(["savedNovels", "stats", "settings"]);
+    const { savedNovels, stats, settings, domainBlacklist } = await chrome.storage.local.get(["savedNovels", "stats", "settings", "domainBlacklist"]);
     const safeSettings = { ...(settings || {}) };
     delete safeSettings.phone;
     delete safeSettings.apiKey;
@@ -1321,14 +2639,15 @@ function initSettingsAndBackupEvents() {
       exportedAt: Date.now(),
       novels: savedNovels || {},
       stats: stats || {},
-      settings: safeSettings
+      settings: safeSettings,
+      domainBlacklist: Array.isArray(domainBlacklist) ? domainBlacklist : []
     };
 
     const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `noveltrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `mynovelsystem-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
 
@@ -1358,6 +2677,7 @@ function initSettingsAndBackupEvents() {
           await loadSettings();
           await renderCultivationUI();
           await renderNovels();
+          await renderBlacklistUI();
           msg.className = "feedback-msg ok";
           msg.textContent = t("backup_import_ok", {
             added: res.added || 0,
@@ -1379,8 +2699,29 @@ function initSettingsAndBackupEvents() {
 }
 
 function initAccountEvents() {
+  // 1. Configuración de autenticación en pestaña de Ajustes
   document.getElementById("btnLogin")?.addEventListener("click", () => handleAuth("signInWithPassword"));
   document.getElementById("btnRegister")?.addEventListener("click", () => handleAuth("signUp"));
+
+  const handleAuthEnter = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAuth("signInWithPassword");
+    }
+  };
+  document.getElementById("authEmail")?.addEventListener("keydown", handleAuthEnter);
+  document.getElementById("authPass")?.addEventListener("keydown", handleAuthEnter);
+
+  document.getElementById("authEmail")?.addEventListener("input", () => {
+    document.getElementById("authEmail")?.classList.remove("input-error");
+    const msg = document.getElementById("authMsg");
+    if (msg) msg.textContent = "";
+  });
+  document.getElementById("authPass")?.addEventListener("input", () => {
+    document.getElementById("authPass")?.classList.remove("input-error");
+    const msg = document.getElementById("authMsg");
+    if (msg) msg.textContent = "";
+  });
 
   document.getElementById("btnSyncNow")?.addEventListener("click", () => {
     showAuthMsg(t("cloud_msg_syncing"), false);
@@ -1388,26 +2729,237 @@ function initAccountEvents() {
       showAuthMsg(t("cloud_msg_synced"), false);
       renderCultivationUI();
       renderNovels();
+      renderInventoryUI();
     });
   });
 
-  document.getElementById("btnLogout")?.addEventListener("click", async () => {
-    await chrome.storage.local.remove(["auth"]);
-    await checkAuthState();
-    showAuthMsg(t("cloud_msg_logged_out"), false);
+  document.getElementById("btnLogout")?.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ type: "LOGOUT" }, async () => {
+      await checkAuthState();
+      await renderNovels();
+      await renderCultivationUI();
+      await renderBlacklistUI();
+      await renderInventoryUI();
+      showAuthMsg(t("cloud_msg_logged_out"), false);
+    });
+  });
+
+  // 2. Modal de cuenta (Fase 3 y 6)
+  const accountModal = document.getElementById("accountModal");
+  const btnUserProfile = document.getElementById("btnUserProfile");
+  const btnCloseAccountModal = document.getElementById("btnCloseAccountModal");
+
+  const openAccountModal = async () => {
+    if (accountModal) {
+      accountModal.style.display = "flex";
+      showModalStatusMsg("", false);
+      await checkAuthState();
+      const { auth, stats } = await chrome.storage.local.get(["auth", "stats"]);
+      if (!auth || !auth.email) {
+        switchModalView("login");
+      }
+      const largeAvatar = document.getElementById("accountLargeAvatar");
+      if (largeAvatar) {
+        const titleId = stats?.equippedTitle;
+        const cfg = (titleId && typeof TITLE_CONFIG !== "undefined") ? TITLE_CONFIG[titleId] : null;
+        largeAvatar.textContent = cfg?.symbol || (auth?.email ? "🧙‍♂️" : "👤");
+      }
+    }
+  };
+
+  const closeAccountModal = () => {
+    if (accountModal) {
+      accountModal.style.display = "none";
+      showModalStatusMsg("", false);
+    }
+  };
+
+  btnUserProfile?.addEventListener("click", openAccountModal);
+  btnCloseAccountModal?.addEventListener("click", closeAccountModal);
+
+  accountModal?.addEventListener("click", (e) => {
+    if (e.target === accountModal) {
+      closeAccountModal();
+    }
+  });
+
+  const formLogin = document.getElementById("formAccountLogin");
+  const formRegister = document.getElementById("formAccountRegister");
+  const formForgot = document.getElementById("formAccountForgot");
+  const modalTitle = document.getElementById("accountModalTitle");
+  const modalSubtitle = document.getElementById("accountModalSubtitle");
+
+  const switchModalView = (view) => {
+    showModalStatusMsg("", false);
+    if (!formLogin || !formRegister || !formForgot) return;
+    if (view === "login") {
+      formLogin.style.display = "flex";
+      formRegister.style.display = "none";
+      formForgot.style.display = "none";
+      if (modalTitle) modalTitle.textContent = t("account_login_title") || "Acceso MyNovelSystem";
+      if (modalSubtitle) modalSubtitle.textContent = t("account_guest_desc") || "Inicia sesión o regístrate para sincronizar tu progreso y artefactos.";
+    } else if (view === "register") {
+      formLogin.style.display = "none";
+      formRegister.style.display = "flex";
+      formForgot.style.display = "none";
+      if (modalTitle) modalTitle.textContent = t("account_register_title") || "Crear Cuenta MyNovelSystem";
+      if (modalSubtitle) modalSubtitle.textContent = t("account_guest_desc") || "Inicia sesión o regístrate para sincronizar tu progreso y artefactos.";
+    } else if (view === "forgot") {
+      formLogin.style.display = "none";
+      formRegister.style.display = "none";
+      formForgot.style.display = "flex";
+      if (modalTitle) modalTitle.textContent = t("account_forgot_title") || "Recuperar Contraseña";
+      if (modalSubtitle) modalSubtitle.textContent = "Te enviaremos un enlace de recuperación.";
+    }
+  };
+
+  document.getElementById("linkToRegister")?.addEventListener("click", () => switchModalView("register"));
+  document.getElementById("linkToForgot")?.addEventListener("click", () => switchModalView("forgot"));
+  document.getElementById("linkToLoginFromReg")?.addEventListener("click", () => switchModalView("login"));
+  document.getElementById("linkToLoginFromForgot")?.addEventListener("click", () => switchModalView("login"));
+
+  // Submissions con validaciones cliente estrictas y prevención de llamadas duplicadas
+  formLogin?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("modalAuthEmail")?.value.trim() || "";
+    const pass = document.getElementById("modalAuthPass")?.value.trim() || "";
+    if (!email || !email.includes("@")) {
+      showModalStatusMsg(t("cloud_msg_invalid") || "Introduce un correo válido", true);
+      return;
+    }
+    if (!pass || pass.length < 6) {
+      showModalStatusMsg(t("account_pass_length_err") || "La contraseña debe tener al menos 6 caracteres", true);
+      return;
+    }
+    await executeFirebaseAuth(email, pass, "signInWithPassword", true);
+  });
+
+  formRegister?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("modalRegEmail")?.value.trim() || "";
+    const pass = document.getElementById("modalRegPass")?.value.trim() || "";
+    const confirmPass = document.getElementById("modalRegConfirmPass")?.value.trim() || "";
+
+    if (!email || !email.includes("@")) {
+      showModalStatusMsg(t("cloud_msg_invalid") || "Introduce un correo válido", true);
+      return;
+    }
+    if (!pass || pass.length < 6) {
+      showModalStatusMsg(t("account_pass_length_err") || "La contraseña debe tener al menos 6 caracteres", true);
+      return;
+    }
+    if (pass !== confirmPass) {
+      showModalStatusMsg(t("account_pass_mismatch_err") || "Las contraseñas no coinciden", true);
+      return;
+    }
+    await executeFirebaseAuth(email, pass, "signUp", true);
+  });
+
+  formForgot?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("modalForgotEmail")?.value.trim() || "";
+    if (!email || !email.includes("@")) {
+      showModalStatusMsg(t("cloud_msg_invalid") || "Introduce un correo válido", true);
+      return;
+    }
+
+    const forgotBtn = document.getElementById("btnModalSubmitForgot");
+    const origText = forgotBtn ? forgotBtn.textContent : "";
+    if (forgotBtn) {
+      forgotBtn.disabled = true;
+      forgotBtn.textContent = t("cloud_msg_connecting") || "Enviando...";
+    }
+    showModalStatusMsg(t("cloud_msg_connecting") || "Enviando...", false);
+
+    try {
+      const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FIREBASE_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestType: "PASSWORD_RESET", email })
+      });
+      const data = await res.json();
+      if (data.error) {
+        if (data.error.message && data.error.message.includes("EMAIL_NOT_FOUND")) {
+          showModalStatusMsg(t("account_reset_sent_msg") || "Si la cuenta existe, se ha enviado un enlace de recuperación a tu correo.", false);
+        } else {
+          showModalStatusMsg(mapFirebaseAuthError(data.error.message), true);
+        }
+      } else {
+        showModalStatusMsg(t("account_reset_sent_msg") || "Enlace enviado. Revisa tu bandeja de entrada.", false);
+      }
+    } catch {
+      showModalStatusMsg(t("cloud_msg_net_err") || "Error de conexión", true);
+    } finally {
+      if (forgotBtn) {
+        forgotBtn.disabled = false;
+        forgotBtn.textContent = origText;
+      }
+    }
+  });
+
+  // Acciones con sesión iniciada en modal
+  document.getElementById("btnAccountModalSync")?.addEventListener("click", () => {
+    showModalStatusMsg(t("cloud_msg_syncing") || "Sincronizando...", false);
+    chrome.runtime.sendMessage({ type: "PULL_FROM_CLOUD" }, () => {
+      showModalStatusMsg(t("cloud_msg_synced") || "¡Sincronizado con éxito!", false);
+      renderCultivationUI();
+      renderNovels();
+      renderInventoryUI();
+    });
+  });
+
+  document.getElementById("btnAccountModalLogout")?.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ type: "LOGOUT" }, async () => {
+      await checkAuthState();
+      await renderNovels();
+      await renderCultivationUI();
+      await renderBlacklistUI();
+      await renderInventoryUI();
+      showModalStatusMsg(t("cloud_msg_logged_out") || "Sesión cerrada", false);
+    });
   });
 }
 
-async function handleAuth(mode) {
-  const email = document.getElementById("authEmail").value.trim();
-  const password = document.getElementById("authPass").value.trim();
+function showModalStatusMsg(text, isError) {
+  const el = document.getElementById("accountModalStatusMsg");
+  if (!el) return;
+  el.textContent = text;
+  el.className = isError ? "feedback-msg err" : "feedback-msg ok";
+}
 
-  if (!email || password.length < 6) {
-    showAuthMsg(t("cloud_msg_invalid"), true);
-    return;
+function mapFirebaseAuthError(rawMsg) {
+  if (!rawMsg) return t("cloud_msg_net_err") || "Error de autenticación";
+  const str = String(rawMsg);
+  if (str.includes("EMAIL_EXISTS")) {
+    return t("account_err_email_exists") || "Este correo ya está registrado. Inicia sesión.";
   }
+  if (str.includes("INVALID_LOGIN_CREDENTIALS") || str.includes("INVALID_PASSWORD") || str.includes("EMAIL_NOT_FOUND")) {
+    return t("account_err_bad_credentials") || "Credenciales incorrectas. Comprueba tu correo y contraseña.";
+  }
+  if (str.includes("TOO_MANY_ATTEMPTS_TRY_LATER")) {
+    return t("account_err_too_many") || "Demasiados intentos. Inténtalo más tarde.";
+  }
+  if (str.includes("WEAK_PASSWORD")) {
+    return t("account_pass_length_err") || "La contraseña debe tener al menos 6 caracteres.";
+  }
+  if (str.includes("INVALID_EMAIL")) {
+    return t("cloud_msg_invalid") || "Introduce un correo válido.";
+  }
+  return `Error: ${str}`;
+}
 
-  showAuthMsg(t("cloud_msg_connecting"), false);
+async function executeFirebaseAuth(email, password, mode, isModal = false) {
+  const showFn = isModal ? showModalStatusMsg : showAuthMsg;
+  showFn(t("cloud_msg_connecting") || "Conectando...", false);
+
+  const submitBtn = isModal
+    ? (mode === "signUp" ? document.getElementById("btnModalSubmitRegister") : document.getElementById("btnModalSubmitLogin"))
+    : (mode === "signUp" ? document.getElementById("btnRegister") : document.getElementById("btnLogin"));
+  const origBtnText = submitBtn ? submitBtn.textContent : "";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = mode === "signUp" ? (t("account_btn_registering") || "Creando cuenta...") : (t("account_btn_logging_in") || "Iniciando sesión...");
+  }
 
   try {
     const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:${mode}?key=${FIREBASE_API_KEY}`, {
@@ -1418,7 +2970,7 @@ async function handleAuth(mode) {
 
     const data = await res.json();
     if (data.error) {
-      showAuthMsg(`Error: ${data.error.message}`, true);
+      showFn(mapFirebaseAuthError(data.error.message), true);
       return;
     }
 
@@ -1431,33 +2983,85 @@ async function handleAuth(mode) {
     };
 
     await chrome.storage.local.set({ auth: authData });
-    await checkAuthState();
-    showAuthMsg(t("cloud_msg_connected"), false);
-    chrome.runtime.sendMessage({ type: "PULL_FROM_CLOUD" });
+    chrome.runtime.sendMessage({ type: "SWITCH_ACCOUNT", uid: data.localId }, () => {
+      chrome.runtime.sendMessage({ type: "PULL_FROM_CLOUD" }, async () => {
+        await checkAuthState();
+        await renderNovels();
+        await renderCultivationUI();
+        await renderBlacklistUI();
+        await renderInventoryUI();
+        showFn(t("cloud_msg_connected") || "¡Conectado!", false);
+      });
+    });
   } catch {
-    showAuthMsg(t("cloud_msg_net_err"), true);
+    showFn(t("cloud_msg_net_err") || "Error de red", true);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = origBtnText;
+    }
   }
 }
 
+async function handleAuth(mode) {
+  const emailInput = document.getElementById("authEmail");
+  const passInput = document.getElementById("authPass");
+  const email = emailInput?.value.trim() || "";
+  const password = passInput?.value.trim() || "";
+
+  let hasError = false;
+  if (!email || !email.includes("@")) {
+    emailInput?.classList.add("input-error");
+    hasError = true;
+  }
+  if (!password || password.length < 6) {
+    passInput?.classList.add("input-error");
+    hasError = true;
+  }
+
+  if (hasError) {
+    showAuthMsg(t("cloud_msg_invalid"), true);
+    if (!email) emailInput?.focus();
+    else passInput?.focus();
+    return;
+  }
+
+  await executeFirebaseAuth(email, password, mode, false);
+}
+
 async function checkAuthState() {
-  const { auth } = await chrome.storage.local.get(["auth"]);
+  const { auth, stats } = await chrome.storage.local.get(["auth", "stats"]);
   const loggedOutView = document.getElementById("loggedOutView");
   const loggedInView = document.getElementById("loggedInView");
   const badge = document.getElementById("syncBadge");
   const syncText = document.getElementById("syncText");
 
-  if (auth && auth.email) {
-    loggedOutView.style.display = "none";
-    loggedInView.style.display = "flex";
-    document.getElementById("userEmailDisplay").textContent = auth.email;
-    syncText.textContent = t("sync_online");
-    badge.className = "sync-pill online";
+  const modalLoggedIn = document.getElementById("accountModalLoggedIn");
+  const modalLoggedOut = document.getElementById("accountModalLoggedOut");
+  const modalEmail = document.getElementById("accountModalUserEmail");
+
+  const isLoggedIn = Boolean(auth && auth.email);
+
+  if (loggedOutView) loggedOutView.style.display = isLoggedIn ? "none" : "flex";
+  if (loggedInView) loggedInView.style.display = isLoggedIn ? "flex" : "none";
+  if (modalLoggedIn) modalLoggedIn.style.display = isLoggedIn ? "flex" : "none";
+  if (modalLoggedOut) modalLoggedOut.style.display = isLoggedIn ? "none" : "flex";
+
+  if (isLoggedIn) {
+    const userEmail = document.getElementById("userEmailDisplay");
+    if (userEmail) userEmail.textContent = auth.email;
+    if (modalEmail) modalEmail.textContent = auth.email;
+    if (syncText) syncText.textContent = t("sync_online");
+    if (badge) badge.className = "sync-pill online";
   } else {
-    loggedOutView.style.display = "flex";
-    loggedInView.style.display = "none";
-    syncText.textContent = t("sync_local");
-    badge.className = "sync-pill";
+    const userEmail = document.getElementById("userEmailDisplay");
+    if (userEmail) userEmail.textContent = "";
+    if (modalEmail) modalEmail.textContent = "";
+    if (syncText) syncText.textContent = t("sync_local");
+    if (badge) badge.className = "sync-pill";
   }
+
+  updateAvatarMiniSlots(stats, isLoggedIn);
 }
 
 function showAuthMsg(text, isError) {
@@ -1471,7 +3075,13 @@ async function loadSettings() {
   const storage = await chrome.storage.local.get(["settings"]);
   const settings = storage.settings || {};
 
-  document.getElementById("enableWhatsapp").checked = Boolean(settings.enableWhatsapp);
+  const isWa = Boolean(settings.enableWhatsapp);
+  document.getElementById("enableWhatsapp").checked = isWa;
+  const waInd = document.getElementById("waToggleIndicator");
+  if (waInd) {
+    waInd.textContent = isWa ? (t("status_on") || "ON") : (t("status_off") || "OFF");
+    waInd.style.color = isWa ? "#4ade80" : "var(--text-secondary)";
+  }
   document.getElementById("waitMinutes").value = settings.waitMinutes || 1;
   document.getElementById("phone").value = settings.phone || "";
   document.getElementById("apiKey").value = settings.apiKey || "";
@@ -1481,7 +3091,20 @@ async function loadSettings() {
     : (settings.whatsappStatus || "untested");
   updateWhatsappStatusBadge(status);
 
-  document.getElementById("languageSelect").value = settings.language || getCurrentLang();
+  const lang = settings.language || getCurrentLang();
+  document.getElementById("languageSelect").value = lang;
+  document.querySelectorAll("#languageSegmentedControl .lang-segment-btn").forEach((b) => {
+    const isCurrent = b.getAttribute("data-lang") === lang;
+    b.classList.toggle("active", isCurrent);
+    if (isCurrent) {
+      b.style.background = "rgba(99, 102, 241, 0.4)";
+      b.style.color = "#ffffff";
+    } else {
+      b.style.background = "transparent";
+      b.style.color = "var(--text-secondary)";
+    }
+  });
+
   document.getElementById("pauseDaysInput").value = settings.pauseDays || 30;
   document.getElementById("dropDaysInput").value = settings.dropDays || 90;
 
@@ -1490,9 +3113,121 @@ async function loadSettings() {
   if (perfToggle) perfToggle.checked = isPerf;
   document.body.classList.toggle("perf-mode", isPerf);
 
+  const showTierToggle = document.getElementById("showTierOnIcon");
+  if (showTierToggle) showTierToggle.checked = Boolean(settings.showTierOnIcon);
+
   if (settings.activeThemeId && THEMES_CONFIG[settings.activeThemeId]) {
     currentThemeFilter = settings.activeThemeId;
   }
+}
+
+async function renderBlacklistUI() {
+  const container = document.getElementById("blacklistedDomainsList");
+  if (!container) return;
+
+  let rawList = [];
+  try {
+    const res = await chrome.runtime.sendMessage({ type: "GET_DOMAIN_BLACKLIST" });
+    if (res && Array.isArray(res.domainBlacklist)) {
+      rawList = res.domainBlacklist;
+    } else {
+      const s = await chrome.storage.local.get(["domainBlacklist"]);
+      rawList = Array.isArray(s.domainBlacklist) ? s.domainBlacklist : [];
+    }
+  } catch {
+    const s = await chrome.storage.local.get(["domainBlacklist"]);
+    rawList = Array.isArray(s.domainBlacklist) ? s.domainBlacklist : [];
+  }
+
+  const items = rawList
+    .map((item) => {
+      if (typeof item === "string") {
+        return { domain: normalizeDomain(item), addedAt: Date.now() };
+      }
+      return { domain: normalizeDomain(item?.domain), addedAt: Number(item?.addedAt) || Date.now() };
+    })
+    .filter((item) => Boolean(item.domain));
+
+  let currentTabHost = "";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url) {
+      const u = new URL(tab.url);
+      if (u.protocol.startsWith("http")) {
+        currentTabHost = normalizeDomain(u.hostname);
+      }
+    }
+  } catch {}
+
+  const quickBlockBtn = document.getElementById("btnQuickBlockCurrentSite");
+  const quickBlockText = document.getElementById("quickBlockText");
+  if (quickBlockBtn && quickBlockText) {
+    if (currentTabHost) {
+      const isAlreadyBlocked = items.some((item) => {
+        const pattern = item.domain;
+        if (currentTabHost === pattern) return true;
+        if (currentTabHost.endsWith("." + pattern)) return true;
+        return false;
+      });
+      if (isAlreadyBlocked) {
+        quickBlockText.textContent = `✓ ${currentTabHost} (${t("status_blocked") || "Bloqueado"})`;
+        quickBlockBtn.disabled = true;
+      } else {
+        quickBlockText.textContent = t("blacklist_quick_block", { domain: currentTabHost });
+        quickBlockBtn.disabled = false;
+        quickBlockBtn.setAttribute("data-host", currentTabHost);
+      }
+    } else {
+      quickBlockText.textContent = t("blacklist_quick_block_none");
+      quickBlockBtn.disabled = true;
+      quickBlockBtn.removeAttribute("data-host");
+    }
+  }
+
+  const filterContainer = document.getElementById("blacklistFilterContainer");
+  if (filterContainer) {
+    filterContainer.style.display = items.length > 8 ? "block" : "none";
+  }
+
+  const clearBtn = document.getElementById("btnClearBlacklist");
+  if (clearBtn) {
+    clearBtn.style.display = items.length > 0 ? "block" : "none";
+  }
+
+  const filtered = items.filter((item) => item.domain.toLowerCase().includes(currentBlacklistSearch));
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding:14px 8px; font-size:11px; text-align:center;">
+        <div style="color:var(--text-primary); font-weight:600;">${escapeHtml(t("blacklist_empty"))}</div>
+        <div style="color:var(--text-secondary); margin-top:4px;">${escapeHtml(t("blacklist_empty_desc"))}</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding:12px 8px; font-size:11px; text-align:center; color:var(--text-secondary);">
+        ${escapeHtml(t("blacklist_empty_search"))}
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered
+    .map(
+      (item) => `
+    <div class="blacklist-item-row" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.04); border:1px solid var(--border-subtle); padding:6px 10px; border-radius:6px; gap:8px;">
+      <div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;">
+        <span style="font-size:11.5px; font-family:monospace; color:var(--text-primary); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item.domain)}</span>
+        <span style="font-size:9.5px; color:var(--text-secondary);">${escapeHtml(formatTimeAgo(item.addedAt))}</span>
+      </div>
+      <button type="button" class="btn-remove-blacklist" data-domain="${escapeHtml(item.domain)}" data-added-at="${item.addedAt || ""}" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:15px; padding:2px 6px; border-radius:4px; line-height:1; flex-shrink:0;" title="${escapeHtml(t("btn_close") || "Eliminar")}" aria-label="Eliminar ${escapeHtml(item.domain)}">&times;</button>
+    </div>
+  `
+    )
+    .join("");
 }
 
 function extractDomain(url) {

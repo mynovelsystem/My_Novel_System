@@ -1,5 +1,6 @@
 // Test suite for P1 Blocks & P2 Enhancements
 const fs = require("fs");
+const path = require("path");
 const assert = require("assert");
 const vm = require("vm");
 
@@ -43,7 +44,8 @@ const mockChrome = {
     onInstalled: mockEvent(),
     onStartup: mockEvent(),
     onMessage: mockEvent(),
-    getManifest: () => ({ version: "4.0.0" })
+    getManifest: () => ({ version: "4.0.0" }),
+    getURL: (p) => p || ""
   },
   tabs: {
     onRemoved: mockEvent(),
@@ -88,7 +90,16 @@ const context = {
   parseInt,
   isNaN,
   URL,
-  importScripts: () => {},
+  importScripts: (...files) => {
+    for (const f of files) {
+      try {
+        const p = path.resolve(__dirname, "..", f);
+        if (fs.existsSync(p)) {
+          vm.runInContext(fs.readFileSync(p, "utf8"), context);
+        }
+      } catch {}
+    }
+  },
   chrome: mockChrome,
   t: (k) => k,
   initI18n: () => Promise.resolve(),
@@ -251,8 +262,13 @@ console.log("\n[Test 5] P2 - Chapter vs Volume Detection & i18n Synchronization:
   assert.ok(regexChapMatch, "CHAPTER_EXPLICIT_REGEX found in content.js");
   assert.ok(regexVolMatch, "VOLUME_FALLBACK_REGEX found in content.js");
 
-  const chapRegex = eval(regexChapMatch[1]);
-  const volRegex = eval(regexVolMatch[1]);
+  function parseRegexLiteral(str) {
+    const m = str.match(/^\/(.*)\/([a-z]*)$/);
+    if (!m) throw new Error("Invalid regex literal: " + str);
+    return new RegExp(m[1], m[2]);
+  }
+  const chapRegex = parseRegexLiteral(regexChapMatch[1]);
+  const volRegex = parseRegexLiteral(regexVolMatch[1]);
 
   function parseChapter(text) {
     const m = text.match(chapRegex);

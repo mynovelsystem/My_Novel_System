@@ -1,0 +1,704 @@
+{
+  "generatedAt": "2026-10-15T15:07:33.440Z",
+  "generator": "Headless Microsoft Edge (Chromium Blink/Skia SVG Engine)",
+  "sizes": [
+    16,
+    24,
+    32,
+    48
+  ],
+  "composition": {
+    "selectedVariant": "B",
+    "description": "NovelTrack 'N' Base + Bottom-Right Illustrated SVG Badge Patch",
+    "badgeScale": 0.56,
+    "nScale": 0.88,
+    "badgeMarginPx": 1,
+    "darkBorder": {
+      "color": "rgba(10, 15, 30, 0.85)",
+      "width16Px": 1,
+      "width32Px": 2
+    },
+    "aura": {
+      "inwardOffset": true,
+      "containedWithinCanvas": true,
+      "rarityAuraColors": {
+        "common": {
+          "color": "#d97706",
+          "aura": "rgba(217, 119, 6, 0.40)",
+          "blurFactor": 1,
+          "passes": 1
+        },
+        "rare": {
+          "color": "#06b6d4",
+          "aura": "rgba(6, 182, 212, 0.65)",
+          "blurFactor": 1.15,
+          "passes": 1
+        },
+        "epic": {
+          "color": "#c084fc",
+          "aura": "rgba(192, 132, 252, 0.75)",
+          "blurFactor": 1.3,
+          "passes": 1
+        },
+        "legendary": {
+          "color": "#fbbf24",
+          "aura": "rgba(251, 191, 36, 0.90)",
+          "blurFactor": 1.5,
+          "passes": 2
+        },
+        "negative": {
+          "color": "#e11d48",
+          "aura": "rgba(225, 29, 72, 0.80)",
+          "blurFactor": 1.25,
+          "passes": 1
+        }
+      }
+    }
+  },
+  "titles": {
+    "outer_disciple": {
+      "id": "outer_disciple",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/outer_disciple_16.png",
+        "24": "assets/toolbar/outer_disciple_24.png",
+        "32": "assets/toolbar/outer_disciple_32.png",
+        "48": "assets/toolbar/outer_disciple_48.png"
+      }
+    },
+    "scroll_initiate": {
+      "id": "scroll_initiate",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/scroll_initiate_16.png",
+        "24": "assets/toolbar/scroll_initiate_24.png",
+        "32": "assets/toolbar/scroll_initiate_32.png",
+        "48": "assets/toolbar/scroll_initiate_48.png"
+      }
+    },
+    "diligent_reader": {
+      "id": "diligent_reader",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/diligent_reader_16.png",
+        "24": "assets/toolbar/diligent_reader_24.png",
+        "32": "assets/toolbar/diligent_reader_32.png",
+        "48": "assets/toolbar/diligent_reader_48.png"
+      }
+    },
+    "body_refiner": {
+      "id": "body_refiner",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/body_refiner_16.png",
+        "24": "assets/toolbar/body_refiner_24.png",
+        "32": "assets/toolbar/body_refiner_32.png",
+        "48": "assets/toolbar/body_refiner_48.png"
+      }
+    },
+    "meridian_opener": {
+      "id": "meridian_opener",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/meridian_opener_16.png",
+        "24": "assets/toolbar/meridian_opener_24.png",
+        "32": "assets/toolbar/meridian_opener_32.png",
+        "48": "assets/toolbar/meridian_opener_48.png"
+      }
+    },
+    "secluded_cultivator": {
+      "id": "secluded_cultivator",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/secluded_cultivator_16.png",
+        "24": "assets/toolbar/secluded_cultivator_24.png",
+        "32": "assets/toolbar/secluded_cultivator_32.png",
+        "48": "assets/toolbar/secluded_cultivator_48.png"
+      }
+    },
+    "thousand_scrolls": {
+      "id": "thousand_scrolls",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/thousand_scrolls_16.png",
+        "24": "assets/toolbar/thousand_scrolls_24.png",
+        "32": "assets/toolbar/thousand_scrolls_32.png",
+        "48": "assets/toolbar/thousand_scrolls_48.png"
+      }
+    },
+    "spirit_temperer": {
+      "id": "spirit_temperer",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/spirit_temperer_16.png",
+        "24": "assets/toolbar/spirit_temperer_24.png",
+        "32": "assets/toolbar/spirit_temperer_32.png",
+        "48": "assets/toolbar/spirit_temperer_48.png"
+      }
+    },
+    "pill_refiner": {
+      "id": "pill_refiner",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "cultivation",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/pill_refiner_16.png",
+        "24": "assets/toolbar/pill_refiner_24.png",
+        "32": "assets/toolbar/pill_refiner_32.png",
+        "48": "assets/toolbar/pill_refiner_48.png"
+      }
+    },
+    "chapter_devourer": {
+      "id": "chapter_devourer",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/chapter_devourer_16.png",
+        "24": "assets/toolbar/chapter_devourer_24.png",
+        "32": "assets/toolbar/chapter_devourer_32.png",
+        "48": "assets/toolbar/chapter_devourer_48.png"
+      }
+    },
+    "tribulation_overcomer": {
+      "id": "tribulation_overcomer",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/tribulation_overcomer_16.png",
+        "24": "assets/toolbar/tribulation_overcomer_24.png",
+        "32": "assets/toolbar/tribulation_overcomer_32.png",
+        "48": "assets/toolbar/tribulation_overcomer_48.png"
+      }
+    },
+    "domain_ruler": {
+      "id": "domain_ruler",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/domain_ruler_16.png",
+        "24": "assets/toolbar/domain_ruler_24.png",
+        "32": "assets/toolbar/domain_ruler_32.png",
+        "48": "assets/toolbar/domain_ruler_48.png"
+      }
+    },
+    "bottleneck_breaker": {
+      "id": "bottleneck_breaker",
+      "rarity": "epic",
+      "tier": 4,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/bottleneck_breaker_16.png",
+        "24": "assets/toolbar/bottleneck_breaker_24.png",
+        "32": "assets/toolbar/bottleneck_breaker_32.png",
+        "48": "assets/toolbar/bottleneck_breaker_48.png"
+      }
+    },
+    "ancient_scholar": {
+      "id": "ancient_scholar",
+      "rarity": "epic",
+      "tier": 4,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/ancient_scholar_16.png",
+        "24": "assets/toolbar/ancient_scholar_24.png",
+        "32": "assets/toolbar/ancient_scholar_32.png",
+        "48": "assets/toolbar/ancient_scholar_48.png"
+      }
+    },
+    "dao_heart": {
+      "id": "dao_heart",
+      "rarity": "epic",
+      "tier": 5,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/dao_heart_16.png",
+        "24": "assets/toolbar/dao_heart_24.png",
+        "32": "assets/toolbar/dao_heart_32.png",
+        "48": "assets/toolbar/dao_heart_48.png"
+      }
+    },
+    "golden_immortal": {
+      "id": "golden_immortal",
+      "rarity": "epic",
+      "tier": 6,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/golden_immortal_16.png",
+        "24": "assets/toolbar/golden_immortal_24.png",
+        "32": "assets/toolbar/golden_immortal_32.png",
+        "48": "assets/toolbar/golden_immortal_48.png"
+      }
+    },
+    "heaven_defier": {
+      "id": "heaven_defier",
+      "rarity": "legendary",
+      "tier": 7,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/heaven_defier_16.png",
+        "24": "assets/toolbar/heaven_defier_24.png",
+        "32": "assets/toolbar/heaven_defier_32.png",
+        "48": "assets/toolbar/heaven_defier_48.png"
+      }
+    },
+    "cosmic_sovereign": {
+      "id": "cosmic_sovereign",
+      "rarity": "legendary",
+      "tier": 8,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/cosmic_sovereign_16.png",
+        "24": "assets/toolbar/cosmic_sovereign_24.png",
+        "32": "assets/toolbar/cosmic_sovereign_32.png",
+        "48": "assets/toolbar/cosmic_sovereign_48.png"
+      }
+    },
+    "tribulation_emperor": {
+      "id": "tribulation_emperor",
+      "rarity": "legendary",
+      "tier": 9,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/tribulation_emperor_16.png",
+        "24": "assets/toolbar/tribulation_emperor_24.png",
+        "32": "assets/toolbar/tribulation_emperor_32.png",
+        "48": "assets/toolbar/tribulation_emperor_48.png"
+      }
+    },
+    "primordial_immortal": {
+      "id": "primordial_immortal",
+      "rarity": "legendary",
+      "tier": 9,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/primordial_immortal_16.png",
+        "24": "assets/toolbar/primordial_immortal_24.png",
+        "32": "assets/toolbar/primordial_immortal_32.png",
+        "48": "assets/toolbar/primordial_immortal_48.png"
+      }
+    },
+    "qi_control": {
+      "id": "qi_control",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/qi_control_16.png",
+        "24": "assets/toolbar/qi_control_24.png",
+        "32": "assets/toolbar/qi_control_32.png",
+        "48": "assets/toolbar/qi_control_48.png"
+      }
+    },
+    "scroll_collector": {
+      "id": "scroll_collector",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/scroll_collector_16.png",
+        "24": "assets/toolbar/scroll_collector_24.png",
+        "32": "assets/toolbar/scroll_collector_32.png",
+        "48": "assets/toolbar/scroll_collector_48.png"
+      }
+    },
+    "saga_master": {
+      "id": "saga_master",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/saga_master_16.png",
+        "24": "assets/toolbar/saga_master_24.png",
+        "32": "assets/toolbar/saga_master_32.png",
+        "48": "assets/toolbar/saga_master_48.png"
+      }
+    },
+    "arc_lord": {
+      "id": "arc_lord",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/arc_lord_16.png",
+        "24": "assets/toolbar/arc_lord_24.png",
+        "32": "assets/toolbar/arc_lord_32.png",
+        "48": "assets/toolbar/arc_lord_48.png"
+      }
+    },
+    "legendary_reader": {
+      "id": "legendary_reader",
+      "rarity": "epic",
+      "tier": 5,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/legendary_reader_16.png",
+        "24": "assets/toolbar/legendary_reader_24.png",
+        "32": "assets/toolbar/legendary_reader_32.png",
+        "48": "assets/toolbar/legendary_reader_48.png"
+      }
+    },
+    "reading_immortal": {
+      "id": "reading_immortal",
+      "rarity": "legendary",
+      "tier": 9,
+      "themeId": "cultivation",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/reading_immortal_16.png",
+        "24": "assets/toolbar/reading_immortal_24.png",
+        "32": "assets/toolbar/reading_immortal_32.png",
+        "48": "assets/toolbar/reading_immortal_48.png"
+      }
+    },
+    "hunter_awakening": {
+      "id": "hunter_awakening",
+      "rarity": "common",
+      "tier": 1,
+      "themeId": "hunter",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/hunter_awakening_16.png",
+        "24": "assets/toolbar/hunter_awakening_24.png",
+        "32": "assets/toolbar/hunter_awakening_32.png",
+        "48": "assets/toolbar/hunter_awakening_48.png"
+      }
+    },
+    "dungeon_scout": {
+      "id": "dungeon_scout",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "hunter",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/dungeon_scout_16.png",
+        "24": "assets/toolbar/dungeon_scout_24.png",
+        "32": "assets/toolbar/dungeon_scout_32.png",
+        "48": "assets/toolbar/dungeon_scout_48.png"
+      }
+    },
+    "shadow_monarch": {
+      "id": "shadow_monarch",
+      "rarity": "epic",
+      "tier": 3,
+      "themeId": "hunter",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/shadow_monarch_16.png",
+        "24": "assets/toolbar/shadow_monarch_24.png",
+        "32": "assets/toolbar/shadow_monarch_32.png",
+        "48": "assets/toolbar/shadow_monarch_48.png"
+      }
+    },
+    "national_hunter": {
+      "id": "national_hunter",
+      "rarity": "legendary",
+      "tier": 6,
+      "themeId": "hunter",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/national_hunter_16.png",
+        "24": "assets/toolbar/national_hunter_24.png",
+        "32": "assets/toolbar/national_hunter_32.png",
+        "48": "assets/toolbar/national_hunter_48.png"
+      }
+    },
+    "fool_pathway": {
+      "id": "fool_pathway",
+      "rarity": "rare",
+      "tier": 2,
+      "themeId": "legendary_novels",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/fool_pathway_16.png",
+        "24": "assets/toolbar/fool_pathway_24.png",
+        "32": "assets/toolbar/fool_pathway_32.png",
+        "48": "assets/toolbar/fool_pathway_48.png"
+      }
+    },
+    "constellation_reader": {
+      "id": "constellation_reader",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "legendary_novels",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/constellation_reader_16.png",
+        "24": "assets/toolbar/constellation_reader_24.png",
+        "32": "assets/toolbar/constellation_reader_32.png",
+        "48": "assets/toolbar/constellation_reader_48.png"
+      }
+    },
+    "nano_symbiosis": {
+      "id": "nano_symbiosis",
+      "rarity": "rare",
+      "tier": 3,
+      "themeId": "legendary_novels",
+      "isSimplified16": true,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/nano_symbiosis_16.png",
+        "24": "assets/toolbar/nano_symbiosis_24.png",
+        "32": "assets/toolbar/nano_symbiosis_32.png",
+        "48": "assets/toolbar/nano_symbiosis_48.png"
+      }
+    },
+    "primordial_author": {
+      "id": "primordial_author",
+      "rarity": "epic",
+      "tier": 4,
+      "themeId": "legendary_novels",
+      "isSimplified16": false,
+      "composition": {
+        "variant": "B",
+        "badgeScale": 0.56,
+        "nScale": 0.88
+      },
+      "files": {
+        "16": "assets/toolbar/primordial_author_16.png",
+        "24": "assets/toolbar/primordial_author_24.png",
+        "32": "assets/toolbar/primordial_author_32.png",
+        "48": "assets/toolbar/primordial_author_48.png"
+      }
+    }
+  },
+  "rarityFallbacks": {
+    "common": {
+      "16": "assets/toolbar/badge_common_16.png",
+      "24": "assets/toolbar/badge_common_24.png",
+      "32": "assets/toolbar/badge_common_32.png",
+      "48": "assets/toolbar/badge_common_48.png"
+    },
+    "rare": {
+      "16": "assets/toolbar/badge_rare_16.png",
+      "24": "assets/toolbar/badge_rare_24.png",
+      "32": "assets/toolbar/badge_rare_32.png",
+      "48": "assets/toolbar/badge_rare_48.png"
+    },
+    "epic": {
+      "16": "assets/toolbar/badge_epic_16.png",
+      "24": "assets/toolbar/badge_epic_24.png",
+      "32": "assets/toolbar/badge_epic_32.png",
+      "48": "assets/toolbar/badge_epic_48.png"
+    },
+    "legendary": {
+      "16": "assets/toolbar/badge_legendary_16.png",
+      "24": "assets/toolbar/badge_legendary_24.png",
+      "32": "assets/toolbar/badge_legendary_32.png",
+      "48": "assets/toolbar/badge_legendary_48.png"
+    }
+  },
+  "baseIcon": {
+    "16": "assets/icon16.png",
+    "24": "assets/icon32.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png"
+  }
+}

@@ -1,4 +1,7 @@
 importScripts("i18n.js");
+try {
+  importScripts("achievements_data.js");
+} catch (_e) {}
 
 // ================= CONFIGURACIÓN DE NUBE (FIREBASE) =================
 const FIREBASE_API_KEY = "AIzaSyCBLWg72OnEmDUUxhc_33MQ9bXdu9rnSTU";
@@ -69,11 +72,163 @@ function isBlacklistedDomain(urlOrHost) {
   return false;
 }
 
+function normalizeDomain(input) {
+  if (!input || typeof input !== "string") return "";
+  let raw = input.trim().toLowerCase();
+  raw = raw.replace(/^[a-z0-9+.-]+:\/\//i, "");
+  if (raw.includes("@")) {
+    raw = raw.split("@").pop();
+  }
+  raw = raw.split(/[/?#]/)[0];
+  raw = raw.split(":")[0];
+  raw = raw.replace(/^www\./i, "");
+  raw = raw.replace(/^\*+\.?/i, "");
+  raw = raw.replace(/^\.+|\.+$/g, "");
+  return raw.trim();
+}
+
+function matchesDomainPattern(host, pattern) {
+  if (!host || !pattern) return false;
+  const cleanHost = normalizeDomain(host);
+  const cleanPattern = normalizeDomain(pattern);
+  if (!cleanHost || !cleanPattern) return false;
+
+  if (cleanHost === cleanPattern) return true;
+  if (cleanHost.endsWith("." + cleanPattern)) return true;
+  return false;
+}
+
+let cachedDomainBlacklist = [];
+
+async function getStoredDomainBlacklist() {
+  try {
+    const { domainBlacklist } = await chrome.storage.local.get(["domainBlacklist"]);
+    if (Array.isArray(domainBlacklist)) {
+      const normalizedList = domainBlacklist
+        .map((item) => {
+          if (typeof item === "string") {
+            const d = normalizeDomain(item);
+            return d ? { domain: d, addedAt: Date.now() } : null;
+          }
+          const d = normalizeDomain(item?.domain);
+          return d ? { domain: d, addedAt: Number(item?.addedAt) || Date.now() } : null;
+        })
+        .filter(Boolean);
+      cachedDomainBlacklist = normalizedList;
+      return normalizedList;
+    }
+    await chrome.storage.local.set({ domainBlacklist: [] });
+    cachedDomainBlacklist = [];
+    return [];
+  } catch {
+    return cachedDomainBlacklist || [];
+  }
+}
+
+async function isDomainBlacklisted(urlOrHost) {
+  if (!urlOrHost) return false;
+  if (isBlacklistedDomain(urlOrHost)) return true;
+
+  const cleanHost = normalizeDomain(urlOrHost);
+  if (!cleanHost) return false;
+
+  const list = await getStoredDomainBlacklist();
+  for (const item of list) {
+    const pattern = typeof item === "string" ? item : item?.domain;
+    if (matchesDomainPattern(cleanHost, pattern)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isHostBlacklistedSync(urlOrHost, userBlacklist = cachedDomainBlacklist) {
+  if (!urlOrHost) return false;
+  if (isBlacklistedDomain(urlOrHost)) return true;
+
+  const cleanHost = normalizeDomain(urlOrHost);
+  if (!cleanHost) return false;
+
+  const list = Array.isArray(userBlacklist) ? userBlacklist : cachedDomainBlacklist;
+  for (const item of list) {
+    const pattern = typeof item === "string" ? item : item?.domain;
+    if (matchesDomainPattern(cleanHost, pattern)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function addDomainToBlacklist(rawDomain, customAddedAt = null) {
+  const domain = normalizeDomain(rawDomain).slice(0, 253);
+  if (!domain || !domain.includes(".")) {
+    return { ok: false, error: "invalid_domain" };
+  }
+
+  const currentList = await getStoredDomainBlacklist();
+  const exists = currentList.some((item) => normalizeDomain(item.domain) === domain);
+  if (exists) {
+    return { ok: true, alreadyExists: true, domainBlacklist: currentList };
+  }
+
+  const addedAt = typeof customAddedAt === "number" ? customAddedAt : Date.now();
+  const updatedList = [{ domain, addedAt }, ...currentList];
+  cachedDomainBlacklist = updatedList;
+  await chrome.storage.local.set({ domainBlacklist: updatedList });
+
+  try {
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      if (tab.url && matchesDomainPattern(tab.url, domain)) {
+        setTabQuestionBadge(tab.id, false);
+        await chrome.storage.local.remove([`tab_${tab.id}`]);
+        chrome.tabs.sendMessage(tab.id, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+      }
+    }
+  } catch {}
+
+  await pushDomainBlacklistToCloud(updatedList);
+  return { ok: true, domainBlacklist: updatedList };
+}
+
+async function removeDomainFromBlacklist(rawDomain) {
+  const domain = normalizeDomain(rawDomain);
+  const currentList = await getStoredDomainBlacklist();
+  const updatedList = currentList.filter((item) => normalizeDomain(item.domain) !== domain);
+  cachedDomainBlacklist = updatedList;
+  await chrome.storage.local.set({ domainBlacklist: updatedList });
+  await pushDomainBlacklistToCloud(updatedList);
+  return { ok: true, domainBlacklist: updatedList };
+}
+
+async function clearDomainBlacklist() {
+  cachedDomainBlacklist = [];
+  await chrome.storage.local.set({ domainBlacklist: [] });
+  await pushDomainBlacklistToCloud([]);
+  return { ok: true, domainBlacklist: [] };
+}
+
+async function pushDomainBlacklistToCloud(list) {
+  const auth = await getValidAuth();
+  if (!auth) return;
+  const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
+  try {
+    const payload = Array.isArray(list) ? list : await getStoredDomainBlacklist();
+    await fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    await appendDiagnosticLog({ event: "CLOUD_BLACKLIST_PUSH_ERROR", error: String(e) });
+  }
+}
+
 function looksLikeReadingUrl(urlStr) {
   try {
     const u = new URL(urlStr);
     const host = u.hostname.toLowerCase();
-    if (isBlacklistedDomain(host)) return false;
+    if (isHostBlacklistedSync(host)) return false;
     if (/(?:manga|novel|scan|webtoon|manhwa|manhua|comic|read|leer|wuxia|tu-novela|skynovel|olympus|yugen|lector|visormanga|bato|tapas|webnovel)/i.test(host)) {
       return true;
     }
@@ -87,99 +242,20 @@ function looksLikeReadingUrl(urlStr) {
   return false;
 }
 
-const THEMES_CONFIG = {
-  cultivation: {
-    id: "cultivation",
-    nameKey: "theme_cultivation_name",
-    icon: "⛩️",
-    isPremium: false,
-    realms: [
-      { id: "qi_condensation", minQi: 0, nextQi: 100, hasStages: true, colors: ["#0ea5e9", "#6366f1", "#10b981"], gradient: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 55%, #10b981 100%)" },
-      { id: "foundation_establishment", minQi: 100, nextQi: 400, hasStages: true, colors: ["#10b981", "#059669", "#fbbf24"], gradient: "linear-gradient(135deg, #10b981 0%, #059669 55%, #fbbf24 100%)" },
-      { id: "golden_core", minQi: 400, nextQi: 1000, hasStages: true, colors: ["#f59e0b", "#d97706", "#fde047"], gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #fde047 100%)" },
-      { id: "nascent_soul", minQi: 1000, nextQi: 2500, hasStages: true, colors: ["#8b5cf6", "#ec4899", "#38bdf8"], gradient: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 55%, #38bdf8 100%)" },
-      { id: "spirit_transformation", minQi: 2500, nextQi: 5000, hasStages: true, colors: ["#f43f5e", "#9333ea", "#fbbf24"], gradient: "linear-gradient(135deg, #f43f5e 0%, #9333ea 55%, #fbbf24 100%)" },
-      { id: "void_refinement", minQi: 5000, nextQi: 9000, hasStages: true, colors: ["#3b82f6", "#1d4ed8", "#a855f7"], gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 55%, #a855f7 100%)" },
-      { id: "body_integration", minQi: 9000, nextQi: 15000, hasStages: true, colors: ["#ea580c", "#dc2626", "#facc15"], gradient: "linear-gradient(135deg, #ea580c 0%, #dc2626 55%, #facc15 100%)" },
-      { id: "mahayana", minQi: 15000, nextQi: 25000, hasStages: true, colors: ["#06b6d4", "#6366f1", "#f472b6"], gradient: "linear-gradient(135deg, #06b6d4 0%, #6366f1 55%, #f472b6 100%)" },
-      { id: "heavenly_tribulation", minQi: 25000, nextQi: 40000, hasStages: true, colors: ["#7c3aed", "#db2777", "#fde047"], gradient: "linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #fde047 100%)" },
-      { id: "immortal_ascension", minQi: 40000, nextQi: null, hasStages: false, colors: ["#fbbf24", "#ec4899", "#06b6d4"], gradient: "linear-gradient(135deg, #fbbf24 0%, #ec4899 50%, #06b6d4 100%)" }
-    ],
-    titles: [
-      { id: "outer_disciple", tier: 1, symbol: "📜", color: "#0284c7", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
-      { id: "scroll_initiate", tier: 1, symbol: "📖", color: "#0284c7", minRealmIndex: 0, minStage: 2, reqNovelsStarted: 5 },
-      { id: "diligent_reader", tier: 1, symbol: "🕯️", color: "#0284c7", minRealmIndex: 0, minStage: 3, reqSingleDay: 15 },
-      { id: "body_refiner", tier: 1, symbol: "🥋", color: "#ea580c", minRealmIndex: 0, minStage: 5, reqChapters: 60, reqStreak: 5 },
-      { id: "meridian_opener", tier: 2, symbol: "💫", color: "#0891b2", minRealmIndex: 1, minStage: 1, reqSingleDay: 25 },
-      { id: "secluded_cultivator", tier: 2, symbol: "🪷", color: "#059669", minRealmIndex: 1, minStage: 2, reqStreak: 14 },
-      { id: "thousand_scrolls", tier: 2, symbol: "📚", color: "#d97706", minRealmIndex: 1, minStage: 4, reqNovelsStarted: 25 },
-      { id: "spirit_temperer", tier: 2, symbol: "🔮", color: "#6d28d9", minRealmIndex: 1, minStage: 6, req30Days: 150, reqStreak: 20 },
-      { id: "pill_refiner", tier: 2, symbol: "🧪", color: "#10b981", minRealmIndex: 1, minStage: 7, reqNovelsCompleted: 3 },
-      { id: "chapter_devourer", tier: 3, symbol: "⚡", color: "#e11d48", minRealmIndex: 2, minStage: 1, req30Days: 250 },
-      { id: "tribulation_overcomer", tier: 3, symbol: "⚔️", color: "#ca8a04", minRealmIndex: 2, minStage: 4, reqNovelsCompleted: 7 },
-      { id: "domain_ruler", tier: 3, symbol: "🌌", color: "#9333ea", minRealmIndex: 2, minStage: 7, reqStreak: 35 },
-      { id: "bottleneck_breaker", tier: 4, symbol: "💥", color: "#0d9488", minRealmIndex: 3, minStage: 1, reqChapters: 400, reqQi: 1000 },
-      { id: "ancient_scholar", tier: 4, symbol: "🏛️", color: "#3b82f6", minRealmIndex: 3, minStage: 5, reqChapters: 750, reqNovelsCompleted: 10 },
-      { id: "dao_heart", tier: 5, symbol: "💖", color: "#7c3aed", minRealmIndex: 4, minStage: 1, reqStreak: 60 },
-      { id: "golden_immortal", tier: 6, symbol: "👑", color: "#b45309", minRealmIndex: 5, minStage: 1, reqChapters: 1500, reqNovelsCompleted: 15 },
-      { id: "heaven_defier", tier: 7, symbol: "🐉", color: "#be185d", minRealmIndex: 6, minStage: 1, reqChapters: 2500, reqStreak: 90 },
-      { id: "cosmic_sovereign", tier: 8, symbol: "🪐", color: "#f59e0b", minRealmIndex: 7, minStage: 1, reqChapters: 3500, reqNovelsCompleted: 25 },
-      { id: "tribulation_emperor", tier: 9, symbol: "⚡", color: "#db2777", minRealmIndex: 8, minStage: 1, reqChapters: 4200, reqStreak: 100 },
-      { id: "primordial_immortal", tier: 9, symbol: "☯️", color: "#ec4899", minRealmIndex: 9, minStage: 1, reqQi: 40000 }
-    ]
-  },
-  hunter: {
-    id: "hunter",
-    nameKey: "theme_hunter_name",
-    icon: "🗡️",
-    isPremium: true,
-    realms: [
-      { id: "hunter_rank_e", minQi: 0, nextQi: 100, hasStages: true, colors: ["#64748b", "#475569", "#94a3b8"], gradient: "linear-gradient(135deg, #64748b 0%, #475569 100%)" },
-      { id: "hunter_rank_d", minQi: 100, nextQi: 400, hasStages: true, colors: ["#10b981", "#059669", "#34d399"], gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)" },
-      { id: "hunter_rank_c", minQi: 400, nextQi: 1000, hasStages: true, colors: ["#3b82f6", "#2563eb", "#60a5fa"], gradient: "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)" },
-      { id: "hunter_rank_b", minQi: 1000, nextQi: 2500, hasStages: true, colors: ["#8b5cf6", "#7c3aed", "#a78bfa"], gradient: "linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%)" },
-      { id: "hunter_rank_a", minQi: 2500, nextQi: 6000, hasStages: true, colors: ["#f59e0b", "#d97706", "#fbbf24"], gradient: "linear-gradient(135deg, #b45309 0%, #f59e0b 100%)" },
-      { id: "hunter_rank_s", minQi: 6000, nextQi: 15000, hasStages: true, colors: ["#ef4444", "#dc2626", "#f87171"], gradient: "linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)" },
-      { id: "hunter_national", minQi: 15000, nextQi: null, hasStages: false, colors: ["#fbbf24", "#7c3aed", "#f43f5e"], gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)" }
-    ],
-    titles: [
-      { id: "hunter_awakening", tier: 1, symbol: "🗡️", color: "#64748b", minRealmIndex: 0, minStage: 1, reqChapters: 5 },
-      { id: "dungeon_scout", tier: 2, symbol: "🚪", color: "#059669", minRealmIndex: 1, minStage: 1, reqChapters: 120, reqStreak: 10 },
-      { id: "shadow_monarch", tier: 3, symbol: "👥", color: "#7c3aed", minRealmIndex: 2, minStage: 1, reqChapters: 500, req30Days: 200 },
-      { id: "national_hunter", tier: 6, symbol: "🛡️", color: "#f59e0b", minRealmIndex: 5, minStage: 1, reqChapters: 2000, reqNovelsCompleted: 15 }
-    ]
-  },
-  legendary_novels: {
-    id: "legendary_novels",
-    nameKey: "theme_novels_name",
-    icon: "📖",
-    isPremium: true,
-    realms: [
-      { id: "novice_reader", minQi: 0, nextQi: 200, hasStages: true, colors: ["#0284c7", "#0369a1", "#38bdf8"], gradient: "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)" },
-      { id: "lore_seeker", minQi: 200, nextQi: 800, hasStages: true, colors: ["#6366f1", "#4f46e5", "#818cf8"], gradient: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" },
-      { id: "omniscient_observer", minQi: 800, nextQi: 3000, hasStages: true, colors: ["#9333ea", "#7e22ce", "#c084fc"], gradient: "linear-gradient(135deg, #7e22ce 0%, #9333ea 100%)" },
-      { id: "mythic_chronicler", minQi: 3000, nextQi: null, hasStages: false, colors: ["#f59e0b", "#ec4899", "#06b6d4"], gradient: "linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #06b6d4 100%)" }
-    ],
-    titles: [
-      { id: "fool_pathway", tier: 2, symbol: "🃏", color: "#6366f1", minRealmIndex: 1, minStage: 1, reqChapters: 150 },
-      { id: "constellation_reader", tier: 3, symbol: "⭐", color: "#9333ea", minRealmIndex: 2, minStage: 1, reqChapters: 600, reqNovelsStarted: 20 },
-      { id: "nano_symbiosis", tier: 3, symbol: "⚙️", color: "#06b6d4", minRealmIndex: 2, minStage: 1, reqSingleDay: 30 },
-      { id: "primordial_author", tier: 4, symbol: "🖋️", color: "#f59e0b", minRealmIndex: 3, minStage: 1, reqChapters: 3000, reqNovelsCompleted: 20 }
-    ]
-  }
-};
+if (typeof THEMES_CONFIG === "undefined" && typeof require === "function") {
+  try {
+    const achData = require("./achievements_data.js");
+    Object.assign(globalThis, achData);
+  } catch (_e) {}
+}
 
-const CULTIVATION_REALMS = THEMES_CONFIG.cultivation.realms;
-
-const TITLE_BADGE_COLORS = {};
-const TITLE_BADGE_SYMBOLS = {};
-
-Object.values(THEMES_CONFIG).forEach((tCfg) => {
-  tCfg.titles.forEach((item) => {
-    TITLE_BADGE_COLORS[item.id] = item.color;
-    TITLE_BADGE_SYMBOLS[item.id] = item.symbol;
-  });
-});
+var THEMES_CONFIG = globalThis.THEMES_CONFIG || (typeof THEMES_CONFIG !== "undefined" ? THEMES_CONFIG : null);
+var CULTIVATION_REALMS = globalThis.CULTIVATION_REALMS || (THEMES_CONFIG ? THEMES_CONFIG.cultivation.realms : []);
+var ALL_TITLES = globalThis.ALL_TITLES || [];
+var TITLE_CONFIG = globalThis.TITLE_CONFIG || {};
+var TITLE_BADGE_COLORS = globalThis.TITLE_BADGE_COLORS || {};
+var TITLE_BADGE_SYMBOLS = globalThis.TITLE_BADGE_SYMBOLS || {};
+var CULTIVATION_TITLES = globalThis.CULTIVATION_TITLES || [];
 
 let storageMutex = Promise.resolve();
 function withStorageLock(task) {
@@ -261,69 +337,52 @@ async function handleSubmitBugReport(payload) {
 
 // ============================================================================
 
-function drawExtensionIconSize(size, colors, hasEquippedTitle) {
-  if (typeof OffscreenCanvas === "undefined") return null;
-  const canvas = new OffscreenCanvas(size, size);
-  const ctx = canvas.getContext("2d");
-  const r = size * 0.23;
+let refreshIconDebounceTimer = null;
+let lastRenderedStateKey = null;
 
-  const bgGrad = ctx.createLinearGradient(0, 0, size, size);
-  bgGrad.addColorStop(0, colors[0] || "#0ea5e9");
-  bgGrad.addColorStop(0.55, colors[1] || "#6366f1");
-  bgGrad.addColorStop(1, colors[2] || "#ec4899");
+function resetRenderedStateKey() {
+  lastRenderedStateKey = null;
+}
 
-  ctx.beginPath();
-  ctx.roundRect(0, 0, size, size, r);
-  ctx.fillStyle = bgGrad;
-  ctx.fill();
+const TIER_ROMAN = {
+  1: "I", 2: "II", 3: "III", 4: "IV", 5: "V",
+  6: "VI", 7: "VII", 8: "VIII", 9: "IX"
+};
 
-  const inset = Math.max(1, size * 0.055);
-  ctx.beginPath();
-  ctx.roundRect(inset, inset, size - inset * 2, size - inset * 2, r * 0.82);
-  ctx.strokeStyle = hasEquippedTitle ? "rgba(253, 224, 71, 0.9)" : "rgba(255, 255, 255, 0.35)";
-  ctx.lineWidth = Math.max(1, size * 0.055);
-  ctx.stroke();
+const RARITY_BADGE_COLORS = (typeof BADGE_RARITY_COLORS !== "undefined")
+  ? BADGE_RARITY_COLORS
+  : {
+      common: "#d97706",
+      rare: "#06b6d4",
+      epic: "#c084fc",
+      legendary: "#fbbf24",
+      negative: "#e11d48"
+    };
 
-  ctx.fillStyle = "rgba(10, 10, 18, 0.28)";
-  ctx.beginPath();
-  ctx.roundRect(size * 0.16, size * 0.18, size * 0.68, size * 0.64, size * 0.12);
-  ctx.fill();
+const BASE_TOOLBAR_ICONS = {
+  16: "assets/icon16.png",
+  24: "assets/icon32.png",
+  32: "assets/icon32.png",
+  48: "assets/icon48.png"
+};
 
-  ctx.save();
-  ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
-  ctx.shadowBlur = size * 0.12;
-  ctx.shadowOffsetY = size * 0.04;
+function getToolbarIconPathsForTitle(titleId, rarity) {
+  const safeRarity = ["common", "rare", "epic", "legendary"].includes(rarity) ? rarity : "common";
+  const titlePaths = titleId ? {
+    16: `assets/toolbar/${titleId}_16.png`,
+    24: `assets/toolbar/${titleId}_24.png`,
+    32: `assets/toolbar/${titleId}_32.png`,
+    48: `assets/toolbar/${titleId}_48.png`
+  } : null;
 
-  const nGrad = ctx.createLinearGradient(0, size * 0.2, 0, size * 0.82);
-  nGrad.addColorStop(0, "#ffffff");
-  nGrad.addColorStop(1, hasEquippedTitle ? "#fef08a" : "#e0e7ff");
+  const fallbackPaths = {
+    16: `assets/toolbar/badge_${safeRarity}_16.png`,
+    24: `assets/toolbar/badge_${safeRarity}_24.png`,
+    32: `assets/toolbar/badge_${safeRarity}_32.png`,
+    48: `assets/toolbar/badge_${safeRarity}_48.png`
+  };
 
-  ctx.strokeStyle = nGrad;
-  ctx.lineWidth = Math.max(2, size * 0.13);
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
-  const leftX = size * 0.29;
-  const rightX = size * 0.71;
-  const topY = size * 0.27;
-  const botY = size * 0.73;
-
-  ctx.beginPath();
-  ctx.moveTo(leftX, botY);
-  ctx.lineTo(leftX, topY);
-  ctx.lineTo(rightX, botY);
-  ctx.lineTo(rightX, topY);
-  ctx.stroke();
-  ctx.restore();
-
-  if (hasEquippedTitle) {
-    ctx.fillStyle = "#fde047";
-    ctx.beginPath();
-    ctx.arc(size * 0.5, size * 0.13, Math.max(1.5, size * 0.065), 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  return ctx.getImageData(0, 0, size, size);
+  return { titlePaths, fallbackPaths, basePaths: BASE_TOOLBAR_ICONS };
 }
 
 async function refreshBrowserActionAppearance() {
@@ -334,44 +393,87 @@ async function refreshBrowserActionAppearance() {
     const settings = storage.settings || {};
     const themeId = settings.activeThemeId || "cultivation";
     const cultState = getCultivationState(stats, themeId);
-    const themeRealms = (THEMES_CONFIG[themeId] || THEMES_CONFIG.cultivation).realms;
-    const realmObj = themeRealms[cultState.realmIndex] || themeRealms[0];
 
-    const equippedId =
-      stats.equippedTitle && (stats.unlockedTitles || []).includes(stats.equippedTitle)
-        ? stats.equippedTitle
-        : "";
-
-    if (typeof OffscreenCanvas !== "undefined") {
-      const imageData = {};
-      for (const sz of [16, 32, 48, 128]) {
-        const img = drawExtensionIconSize(sz, realmObj.colors, Boolean(equippedId));
-        if (img) imageData[sz] = img;
-      }
-      if (Object.keys(imageData).length > 0) {
-        await chrome.action.setIcon({ imageData }).catch(() => {});
+    // Fallback: Check if equippedTitle exists in TITLE_CONFIG and is unlocked
+    let rawEquippedId = stats.equippedTitle;
+    let equippedId = typeof rawEquippedId === "string" ? rawEquippedId : "";
+    let cfg = (equippedId && TITLE_CONFIG) ? (TITLE_CONFIG[equippedId] || null) : null;
+    if (equippedId && cfg) {
+      const isUnlocked = Boolean(Array.isArray(stats.unlockedTitles) && stats.unlockedTitles.includes(equippedId));
+      if (!isUnlocked) {
+        equippedId = "";
+        cfg = null;
       }
     }
 
+    const rarity = cfg ? (cfg.rarity || "common") : (stats.equippedRarity || "common");
+    const tier = cfg ? (cfg.tier || 1) : (Number(stats.equippedTier) || 0);
+    const showTier = Boolean(settings.showTierOnIcon);
+
+    const stateKey = `${themeId}::${equippedId || "none"}::${rarity}::${tier}::${cultState.isBottleneckReady ? "1" : "0"}::${showTier ? "1" : "0"}::${cultState.realmId}::${cultState.stage}::${cultState.totalQi}::${currentLang || "es"}`;
+    if (lastRenderedStateKey === stateKey) {
+      return;
+    }
+
+    // Set Extension Icon via pre-generated PNGs (fallback chain: title PNG -> rarity fallback -> base "N")
+    if (!equippedId) {
+      await chrome.action.setIcon({ path: BASE_TOOLBAR_ICONS }).catch(() => {});
+    } else {
+      const { titlePaths, fallbackPaths, basePaths } = getToolbarIconPathsForTitle(equippedId, rarity);
+      let setSuccess = false;
+      if (titlePaths && cfg) {
+        try {
+          await chrome.action.setIcon({ path: titlePaths });
+          setSuccess = true;
+        } catch {
+          setSuccess = false;
+        }
+      }
+      if (!setSuccess) {
+        try {
+          await chrome.action.setIcon({ path: fallbackPaths });
+          setSuccess = true;
+        } catch {
+          await chrome.action.setIcon({ path: basePaths }).catch(() => {});
+        }
+      }
+    }
+
+    // Badge Text & Background Color (Tier hidden by default; restored only if showTierOnIcon is explicitly true)
     if (cultState.isBottleneckReady) {
       await chrome.action.setBadgeText({ text: "⚡" }).catch(() => {});
       await chrome.action.setBadgeBackgroundColor({ color: "#e11d48" }).catch(() => {});
-    } else if (equippedId) {
-      const badgeSymbol = TITLE_BADGE_SYMBOLS[equippedId] || t(`title_${equippedId}_tag`) || "★";
-      const badgeColor = TITLE_BADGE_COLORS[equippedId] || "#6366f1";
-      await chrome.action.setBadgeText({ text: badgeSymbol }).catch(() => {});
+    } else if (equippedId && showTier && tier > 0) {
+      const tierText = TIER_ROMAN[tier] || String(tier);
+      const badgeColor = RARITY_BADGE_COLORS[rarity] || "#6366f1";
+      await chrome.action.setBadgeText({ text: tierText }).catch(() => {});
       await chrome.action.setBadgeBackgroundColor({ color: badgeColor }).catch(() => {});
     } else {
       await chrome.action.setBadgeText({ text: "" }).catch(() => {});
     }
 
-    const realmName = t(`realm_${cultState.realmId}`);
-    const stageStr = cultState.stage ? ` (${t("header_stage", { stage: cultState.stage })})` : "";
-    const titleStr = equippedId ? `🏆 ${t(`title_${equippedId}_name`)} • ` : "";
-    const bAlert = cultState.isBottleneckReady ? " [⚡ ¡Ruptura Lista!]" : "";
-    await chrome.action.setTitle({
-      title: `NovelTrack — ${titleStr}${realmName}${stageStr}${bAlert} • ${cultState.totalQi} Qi`
-    }).catch(() => {});
+    // Tooltip Title: "MyNovelSystem — {nombre del logro} · {rareza} · Tier {n}"
+    const bAlert = cultState.isBottleneckReady ? ` [⚡ ${t("bottleneck_ready_alert") || "¡Ruptura Lista!"}]` : "";
+    if (equippedId && cfg) {
+      const achTitleName = t(`title_${equippedId}_name`) || cfg.name || equippedId;
+      const achRarityName = t(`ach_rarity_${rarity}`) || rarity;
+      const tooltipTitle = `MyNovelSystem — ${achTitleName} · ${achRarityName} · Tier ${tier}${bAlert}`;
+      await chrome.action.setTitle({ title: tooltipTitle }).catch(() => {});
+    } else if (equippedId && !cfg) {
+      const achTitleName = t(`title_${equippedId}_name`) || stats.equippedTitleName || equippedId;
+      const achRarityName = t(`ach_rarity_${rarity}`) || rarity;
+      const tierSuffix = tier > 0 ? ` · Tier ${tier}` : "";
+      const tooltipTitle = `MyNovelSystem — ${achTitleName} · ${achRarityName}${tierSuffix}${bAlert}`;
+      await chrome.action.setTitle({ title: tooltipTitle }).catch(() => {});
+    } else {
+      const realmName = t(`realm_${cultState.realmId}`);
+      const stageStr = cultState.stage ? ` (${t("header_stage", { stage: cultState.stage })})` : "";
+      await chrome.action.setTitle({
+        title: `MyNovelSystem — ${realmName}${stageStr}${bAlert} • ${cultState.totalQi} Qi`
+      }).catch(() => {});
+    }
+
+    lastRenderedStateKey = stateKey;
   } catch (e) {
     console.error("Error actualizando apariencia del icono:", e);
   }
@@ -404,6 +506,10 @@ function getDefaultStats() {
     lastReadDay: "",
     unlockedTitles: [],
     equippedTitle: "",
+    claimedRewards: [],
+    bonusQi: 0,
+    inventory: [],
+    equippedItems: [],
     dailyChapters: {},
     cultivatedRealmIndex: undefined,
     cultivatedStage: undefined,
@@ -412,295 +518,22 @@ function getDefaultStats() {
   };
 }
 
-function calculateQi(stats) {
-  const chapters = Math.max(0, Number(stats?.chaptersRead) || 0);
-  const completed = Math.max(0, Number(stats?.novelsCompleted) || 0);
-  return chapters + 50 * completed;
-}
-
-function computeNaturalRealmAndStage(qi, realms = CULTIVATION_REALMS) {
-  let realmIndex = 0;
-  for (let i = realms.length - 1; i >= 0; i--) {
-    if (qi >= realms[i].minQi) {
-      realmIndex = i;
-      break;
-    }
-  }
-  const realm = realms[realmIndex] || realms[0];
-  if (!realm.hasStages || realm.nextQi === null) {
-    return { realmIndex, realmId: realm.id, stage: null };
-  }
-  const span = realm.nextQi - realm.minQi;
-  const progress = Math.max(0, qi - realm.minQi);
-  const stage = Math.min(9, Math.floor((progress * 9) / span) + 1);
-  return { realmIndex, realmId: realm.id, stage };
-}
-
-function computeRealmAndStage(qi) {
-  return computeNaturalRealmAndStage(qi, CULTIVATION_REALMS);
-}
-
-function getCultivationState(stats, themeId = "cultivation") {
-  const theme = THEMES_CONFIG[themeId] || THEMES_CONFIG.cultivation;
-  const realms = theme.realms;
-  const totalQi = calculateQi(stats);
-
-  const themeData = stats?.cultivationThemes?.[themeId];
-  let cultivatedRealmIndex = themeData?.realmIndex;
-  let cultivatedStage = themeData?.stage;
-
-  // Fallback a campos planos raíz si la temática es "cultivation"
-  if (themeId === "cultivation") {
-    if (cultivatedRealmIndex === undefined && stats?.cultivatedRealmIndex !== undefined) {
-      cultivatedRealmIndex = stats.cultivatedRealmIndex;
-      cultivatedStage = stats.cultivatedStage;
-    }
-  }
-
-  if (cultivatedRealmIndex === undefined) {
-    const natural = computeNaturalRealmAndStage(totalQi, realms);
-    cultivatedRealmIndex = natural.realmIndex;
-    cultivatedStage = natural.stage;
-  } else {
-    cultivatedRealmIndex = Math.min(realms.length - 1, Math.max(0, Number(cultivatedRealmIndex) || 0));
-    const targetRealm = realms[cultivatedRealmIndex] || realms[0];
-    if (!targetRealm.hasStages || targetRealm.nextQi === null) {
-      cultivatedStage = null;
-    } else {
-      cultivatedStage = Math.min(9, Math.max(1, Number(cultivatedStage) || 1));
-    }
-  }
-
-  const currentRealm = realms[cultivatedRealmIndex] || realms[0];
-  const isPeakRealm = (currentRealm.nextQi === null);
-
-  let currentStageCapQi = null;
-  let prevStageCapQi = currentRealm.minQi;
-  let isBottleneckReady = false;
-  let isMajorBottleneck = false;
-  let overflowQi = 0;
-  let pct = 100;
-
-  if (!isPeakRealm && currentRealm.hasStages && cultivatedStage !== null) {
-    const span = currentRealm.nextQi - currentRealm.minQi;
-    const stageStep = span / 9;
-    currentStageCapQi = Math.round(currentRealm.minQi + cultivatedStage * stageStep);
-    prevStageCapQi = Math.round(currentRealm.minQi + (cultivatedStage - 1) * stageStep);
-
-    if (totalQi >= currentStageCapQi) {
-      isBottleneckReady = true;
-      isMajorBottleneck = (cultivatedStage >= 9);
-      overflowQi = totalQi - currentStageCapQi;
-      pct = 100;
-    } else {
-      isBottleneckReady = false;
-      isMajorBottleneck = false;
-      overflowQi = 0;
-      const progressInStage = Math.max(0, totalQi - prevStageCapQi);
-      const stageSpan = Math.max(1, currentStageCapQi - prevStageCapQi);
-      pct = Math.min(99, Math.max(0, Math.round((progressInStage / stageSpan) * 100)));
-    }
-  }
-
-  const nextRealm = (!isPeakRealm && cultivatedRealmIndex < realms.length - 1)
-    ? realms[cultivatedRealmIndex + 1]
-    : null;
-
-  return {
-    themeId,
-    realmIndex: cultivatedRealmIndex,
-    realmId: currentRealm.id,
-    realmNameKey: `realm_${currentRealm.id}`,
-    stage: cultivatedStage,
-    colors: currentRealm.colors,
-    gradient: currentRealm.gradient,
-    totalQi,
-    currentStageCapQi,
-    prevStageCapQi,
-    isBottleneckReady,
-    isMajorBottleneck,
-    overflowQi,
-    pct,
-    nextRealmId: nextRealm ? nextRealm.id : null,
-    isPeakRealm
-  };
-}
-
-function advanceCultivationBreakthrough(stats, themeId = "cultivation") {
-  const state = getCultivationState(stats, themeId);
-  if (!state.isBottleneckReady) return { ok: false, reason: "not_ready" };
-
-  const theme = THEMES_CONFIG[themeId] || THEMES_CONFIG.cultivation;
-  const realms = theme.realms;
-
-  let newRealmIndex = state.realmIndex;
-  let newStage = state.stage;
-
-  if (state.isMajorBottleneck) {
-    newRealmIndex = Math.min(realms.length - 1, state.realmIndex + 1);
-    const targetRealm = realms[newRealmIndex] || realms[0];
-    newStage = (targetRealm.hasStages && targetRealm.nextQi !== null) ? 1 : null;
-  } else {
-    newStage = Math.min(9, (state.stage || 1) + 1);
-  }
-
-  if (!stats.cultivationThemes) {
-    stats.cultivationThemes = {};
-  }
-  const breakthroughInfo = {
-    realmId: realms[newRealmIndex].id,
-    stage: newStage,
-    timestamp: Date.now()
-  };
-  stats.cultivationThemes[themeId] = {
-    realmIndex: newRealmIndex,
-    stage: newStage,
-    lastBreakthrough: breakthroughInfo
-  };
-
-  if (themeId === "cultivation") {
-    stats.cultivatedRealmIndex = newRealmIndex;
-    stats.cultivatedStage = newStage;
-  }
-  stats.lastBreakthrough = breakthroughInfo;
-  stats.updatedAt = Date.now();
-
-  evaluateUnlockedTitles(stats, themeId);
-
-  return {
-    ok: true,
-    stats,
-    breakthroughInfo
-  };
-}
-
-function pruneAndSumDailyChapters(dailyChapters, nowTs = Date.now()) {
-  const pruned = {};
-  const todayStr = getLocalDateStr(nowTs);
-  let last30DaysSum = 0;
-  let maxSingleDay = 0;
-
-  for (const [dateStr, count] of Object.entries(dailyChapters || {})) {
-    const diff = daysBetweenDateStrings(dateStr, todayStr);
-    const validCount = Math.max(0, Number(count) || 0);
-    if (diff !== null && diff >= 0 && diff <= 35 && validCount > 0) {
-      pruned[dateStr] = validCount;
-      if (diff <= 30) {
-        last30DaysSum += validCount;
-      }
-      if (validCount > maxSingleDay) {
-        maxSingleDay = validCount;
-      }
-    }
-  }
-  return { pruned, last30DaysSum, maxSingleDay };
-}
-
-function evaluateUnlockedTitles(stats, currentThemeId = "cultivation") {
-  const unlocked = new Set(Array.isArray(stats.unlockedTitles) ? stats.unlockedTitles : []);
-  const totalQi = calculateQi(stats);
-  const { last30DaysSum, maxSingleDay } = pruneAndSumDailyChapters(stats.dailyChapters);
-  const maxStreak = Math.max(Number(stats.streakDays) || 0, Number(stats.bestStreak) || 0);
-
-  for (const tConfig of Object.values(THEMES_CONFIG)) {
-    const themeState = getCultivationState(stats, tConfig.id);
-    const themeRealmIndex = themeState.realmIndex;
-    const themeStage = themeState.stage;
-
-    for (const title of tConfig.titles) {
-      if (unlocked.has(title.id)) continue;
-
-      // 1. Level Gating: Check minimum realm and stage within THIS title's theme
-      let levelSatisfied = false;
-      if (themeRealmIndex > title.minRealmIndex) {
-        levelSatisfied = true;
-      } else if (themeRealmIndex === title.minRealmIndex) {
-        levelSatisfied = (themeStage === null || (themeStage >= (title.minStage || 1)));
-      }
-
-      if (!levelSatisfied) continue;
-
-      // 2. Reading requirements
-      let reqSatisfied = true;
-      if (title.reqChapters && (Number(stats.chaptersRead) || 0) < title.reqChapters) reqSatisfied = false;
-      if (title.reqNovelsStarted && (Number(stats.novelsStarted) || 0) < title.reqNovelsStarted) reqSatisfied = false;
-      if (title.reqNovelsCompleted && (Number(stats.novelsCompleted) || 0) < title.reqNovelsCompleted) reqSatisfied = false;
-      if (title.reqStreak && maxStreak < title.reqStreak) reqSatisfied = false;
-      if (title.reqSingleDay && maxSingleDay < title.reqSingleDay) reqSatisfied = false;
-      if (title.req30Days && last30DaysSum < title.req30Days) reqSatisfied = false;
-      if (title.reqQi && totalQi < title.reqQi) reqSatisfied = false;
-
-      if (reqSatisfied) {
-        unlocked.add(title.id);
-      }
-    }
-  }
-
-  const unlockedArr = Array.from(unlocked);
-  stats.unlockedTitles = unlockedArr;
-  if (!stats.equippedTitle && unlockedArr.length > 0) {
-    stats.equippedTitle = unlockedArr[unlockedArr.length - 1];
-  }
-  return stats;
-}
-
-function recordCultivationProgress(rawStats, chaptersDelta, isNewNovelStarted, completedDelta = 0) {
-  const stats = { ...getDefaultStats(), ...(rawStats || {}) };
-
-  // Ensure cultivated level is initialized so no auto-jumping occurs
-  if (stats.cultivatedRealmIndex === undefined || stats.cultivatedStage === undefined) {
-    const initialQi = calculateQi(stats);
-    const natural = computeNaturalRealmAndStage(initialQi);
-    stats.cultivatedRealmIndex = natural.realmIndex;
-    stats.cultivatedStage = natural.stage;
-  }
-
-  if (!stats.cultivationThemes) {
-    stats.cultivationThemes = {};
-  }
-  if (!stats.cultivationThemes.cultivation) {
-    stats.cultivationThemes.cultivation = {
-      realmIndex: stats.cultivatedRealmIndex,
-      stage: stats.cultivatedStage,
-      lastBreakthrough: stats.lastBreakthrough || null
-    };
-  }
-
-  if (isNewNovelStarted) {
-    stats.novelsStarted = Math.max(0, Number(stats.novelsStarted) || 0) + 1;
-  }
-
-  if (completedDelta !== 0) {
-    stats.novelsCompleted = Math.max(0, (Number(stats.novelsCompleted) || 0) + completedDelta);
-  }
-
-  if (chaptersDelta > 0) {
-    stats.chaptersRead = Math.max(0, Number(stats.chaptersRead) || 0) + chaptersDelta;
-
-    const todayStr = getLocalDateStr();
-    const diffDays = stats.lastReadDay ? daysBetweenDateStrings(stats.lastReadDay, todayStr) : null;
-
-    if (!stats.lastReadDay || diffDays === null || diffDays > 1 || diffDays < 0) {
-      stats.streakDays = 1;
-    } else if (diffDays === 1) {
-      stats.streakDays = (Number(stats.streakDays) || 0) + 1;
-    } else if (diffDays === 0) {
-      stats.streakDays = Math.max(1, Number(stats.streakDays) || 1);
-    }
-
-    stats.lastReadDay = todayStr;
-    stats.bestStreak = Math.max(Number(stats.bestStreak) || 0, stats.streakDays);
-
-    const daily = { ...(stats.dailyChapters || {}) };
-    daily[todayStr] = (Number(daily[todayStr]) || 0) + chaptersDelta;
-    const { pruned } = pruneAndSumDailyChapters(daily);
-    stats.dailyChapters = pruned;
-  }
-
-  evaluateUnlockedTitles(stats);
-  stats.updatedAt = Date.now();
-  return stats;
-}
+var calculateBonusQi = globalThis.calculateBonusQi;
+var calculateQi = globalThis.calculateQi;
+var computeNaturalRealmAndStage = globalThis.computeNaturalRealmAndStage;
+var computeRealmAndStage = globalThis.computeRealmAndStage;
+var getCultivationState = globalThis.getCultivationState;
+var advanceCultivationBreakthrough = globalThis.advanceCultivationBreakthrough;
+var pruneAndSumDailyChapters = globalThis.pruneAndSumDailyChapters;
+var evaluateUnlockedTitles = globalThis.evaluateUnlockedTitles;
+var claimAchievementReward = globalThis.claimAchievementReward;
+var getUnclaimedAchievements = globalThis.getUnclaimedAchievements;
+var recordCultivationProgress = globalThis.recordCultivationProgress;
+var syncUserInventory = globalThis.syncUserInventory;
+var equipItem = globalThis.equipItem;
+var unequipItem = globalThis.unequipItem;
+var getEquippedQiMultiplier = globalThis.getEquippedQiMultiplier;
+var calculateQiBreakdown = globalThis.calculateQiBreakdown;
 
 function fnv1aHex(str) {
   let hash = 0x811c9dc5;
@@ -937,7 +770,7 @@ function computeCanonicalSeriesId(entry, fallbackKey) {
     if (idFromUrl) return { seriesId: idFromUrl, novelUrl: bestNovelUrl };
   }
 
-  const rawEffectiveName = entry.customName || (!isBogusNovelName(entry.novelName, bestNovelUrl) ? entry.novelName : "") || fallbackKey;
+  const rawEffectiveName = (!isBogusNovelName(entry.novelName, bestNovelUrl) ? entry.novelName : "") || entry.customName || fallbackKey;
   const effectiveName = stripChapterFromTitle(rawEffectiveName);
   const domain = extractDomain(bestNovelUrl || entry.url);
   const idFromName = buildSeriesIdFromName(effectiveName, domain);
@@ -995,10 +828,7 @@ function deduplicateAndMigrateMap(rawMap) {
     }
 
     const domain = extractDomain(novelUrl || entry.url);
-    if (isBlacklistedDomain(domain) || isBlacklistedDomain(entry.url)) {
-      changed = true;
-      continue;
-    }
+    // CRÍTICO: Las novelas guardadas de dominios en lista negra NUNCA se borran al migrar o sincronizar.
     const nameAlias = `${normalizeText(validName)}@@${domain}`;
     const slugPart = extractSlugFromNovelUrl(novelUrl);
     const slugAlias = slugPart ? `${slugPart}@@${domain}` : "";
@@ -1119,7 +949,22 @@ function mergeStatsObjects(localStats, cloudStats) {
   }
   const { pruned } = pruneAndSumDailyChapters(mergedDaily);
 
-  const mergedUnlocked = Array.from(new Set([...(l.unlockedTitles || []), ...(c.unlockedTitles || [])]));
+  const lUnlocked = Array.isArray(l.unlockedTitles) ? l.unlockedTitles : [];
+  const cUnlocked = Array.isArray(c.unlockedTitles) ? c.unlockedTitles : [];
+  const mergedUnlocked = Array.from(new Set([...lUnlocked, ...cUnlocked]));
+  const lClaimed = Array.isArray(l.claimedRewards) ? l.claimedRewards : [];
+  const cClaimed = Array.isArray(c.claimedRewards) ? c.claimedRewards : [];
+  const mergedClaimed = Array.from(new Set([...lClaimed, ...cClaimed]));
+
+  const lInventory = Array.isArray(l.inventory) ? l.inventory : [];
+  const cInventory = Array.isArray(c.inventory) ? c.inventory : [];
+  const mergedInventory = Array.from(new Set([...lInventory, ...cInventory]));
+  const rawEquipped = Array.isArray(winner.equippedItems) && winner.equippedItems.length > 0
+    ? winner.equippedItems
+    : (Array.isArray(older.equippedItems) ? older.equippedItems : []);
+  const mergedEquipped = Array.from(new Set(rawEquipped))
+    .filter((id) => mergedInventory.includes(id))
+    .slice(0, 3);
 
   // Resolver nivel y etapa de cultivo evitando regresiones y asegurando persistencia
   let realmIndex = undefined;
@@ -1138,7 +983,24 @@ function mergeStatsObjects(localStats, cloudStats) {
       stage = cStage;
     } else {
       realmIndex = lRealm;
-      stage = Math.max(Number(lStage) || 1, Number(cStage) || 1);
+      const cultRealms = (typeof THEMES_CONFIG !== "undefined" && THEMES_CONFIG.cultivation?.realms) || [];
+      const rObj = cultRealms[realmIndex];
+      const isPeak = rObj && (!rObj.hasStages || rObj.nextQi === null);
+      if (isPeak) {
+        stage = null;
+      } else {
+        const validL = (lStage !== null && lStage !== undefined) ? Number(lStage) : null;
+        const validC = (cStage !== null && cStage !== undefined) ? Number(cStage) : null;
+        if (validL !== null && validC !== null) {
+          stage = Math.max(validL || 1, validC || 1);
+        } else if (validL !== null) {
+          stage = validL || 1;
+        } else if (validC !== null) {
+          stage = validC || 1;
+        } else {
+          stage = 1;
+        }
+      }
     }
   } else if (winner.cultivatedRealmIndex !== undefined) {
     realmIndex = winner.cultivatedRealmIndex;
@@ -1146,6 +1008,15 @@ function mergeStatsObjects(localStats, cloudStats) {
   } else if (older.cultivatedRealmIndex !== undefined) {
     realmIndex = older.cultivatedRealmIndex;
     stage = older.cultivatedStage;
+  }
+
+  // Si el reino consolidado no tiene etapas, stage debe ser estrictamente null
+  if (realmIndex !== undefined) {
+    const cultRealms = (typeof THEMES_CONFIG !== "undefined" && THEMES_CONFIG.cultivation?.realms) || [];
+    const rObj = cultRealms[realmIndex];
+    if (rObj && (!rObj.hasStages || rObj.nextQi === null)) {
+      stage = null;
+    }
   }
 
   // Fusión por temática si existen estructuras multi-tema
@@ -1160,21 +1031,54 @@ function mergeStatsObjects(localStats, cloudStats) {
       const lT = (l.cultivationThemes || {})[tKey];
       const cT = (c.cultivationThemes || {})[tKey];
       if (lT && cT) {
-        if ((lT.realmIndex || 0) > (cT.realmIndex || 0)) {
-          mergedThemes[tKey] = { ...lT };
-        } else if ((cT.realmIndex || 0) > (lT.realmIndex || 0)) {
-          mergedThemes[tKey] = { ...cT };
+        const tTheme = (typeof THEMES_CONFIG !== "undefined" && THEMES_CONFIG[tKey]);
+        const tRealms = tTheme?.realms || [];
+        const lR = Number(lT.realmIndex) || 0;
+        const cR = Number(cT.realmIndex) || 0;
+        const mergedRIndex = Math.max(lR, cR);
+        const tRObj = tRealms[mergedRIndex];
+        const isPeak = tRObj && (!tRObj.hasStages || tRObj.nextQi === null);
+
+        let mergedStage = null;
+        if (isPeak) {
+          mergedStage = null;
+        } else if (lR > cR) {
+          mergedStage = lT.stage !== null && lT.stage !== undefined ? Number(lT.stage) || 1 : 1;
+        } else if (cR > lR) {
+          mergedStage = cT.stage !== null && cT.stage !== undefined ? Number(cT.stage) || 1 : 1;
         } else {
-          mergedThemes[tKey] = {
-            realmIndex: lT.realmIndex,
-            stage: Math.max(Number(lT.stage) || 1, Number(cT.stage) || 1),
-            lastBreakthrough: (lT.lastBreakthrough?.timestamp || 0) >= (cT.lastBreakthrough?.timestamp || 0)
-              ? lT.lastBreakthrough
-              : cT.lastBreakthrough
-          };
+          const validL = (lT.stage !== null && lT.stage !== undefined) ? Number(lT.stage) : null;
+          const validC = (cT.stage !== null && cT.stage !== undefined) ? Number(cT.stage) : null;
+          if (validL !== null && validC !== null) {
+            mergedStage = Math.max(validL || 1, validC || 1);
+          } else if (validL !== null) {
+            mergedStage = validL || 1;
+          } else if (validC !== null) {
+            mergedStage = validC || 1;
+          } else {
+            mergedStage = 1;
+          }
         }
+
+        mergedThemes[tKey] = {
+          realmIndex: mergedRIndex,
+          stage: mergedStage,
+          lastBreakthrough: (lT.lastBreakthrough?.timestamp || 0) >= (cT.lastBreakthrough?.timestamp || 0)
+            ? lT.lastBreakthrough
+            : cT.lastBreakthrough
+        };
       } else {
-        mergedThemes[tKey] = { ...(lT || cT) };
+        const singleTheme = lT || cT;
+        const tTheme = (typeof THEMES_CONFIG !== "undefined" && THEMES_CONFIG[tKey]);
+        const tRealms = tTheme?.realms || [];
+        const singleR = Number(singleTheme?.realmIndex) || 0;
+        const tRObj = tRealms[singleR];
+        const isPeak = tRObj && (!tRObj.hasStages || tRObj.nextQi === null);
+        mergedThemes[tKey] = {
+          ...(singleTheme || {}),
+          realmIndex: singleR,
+          stage: isPeak ? null : (singleTheme?.stage !== null && singleTheme?.stage !== undefined ? Number(singleTheme.stage) || 1 : 1)
+        };
       }
     }
   }
@@ -1186,6 +1090,31 @@ function mergeStatsObjects(localStats, cloudStats) {
     }
   }
 
+  // Sincronizar tema cultivation con campos raíz
+  if (mergedThemes && mergedThemes.cultivation && realmIndex !== undefined) {
+    if (realmIndex > (mergedThemes.cultivation.realmIndex || 0)) {
+      mergedThemes.cultivation.realmIndex = realmIndex;
+      mergedThemes.cultivation.stage = stage;
+    } else if (realmIndex === (mergedThemes.cultivation.realmIndex || 0)) {
+      if (stage !== null && mergedThemes.cultivation.stage !== null) {
+        const sMax = Math.max(Number(stage) || 1, Number(mergedThemes.cultivation.stage) || 1);
+        stage = sMax;
+        mergedThemes.cultivation.stage = sMax;
+      }
+    } else {
+      realmIndex = mergedThemes.cultivation.realmIndex;
+      stage = mergedThemes.cultivation.stage;
+    }
+  } else if (!mergedThemes && realmIndex !== undefined) {
+    mergedThemes = {
+      cultivation: {
+        realmIndex,
+        stage,
+        lastBreakthrough: bestBreakthrough || null
+      }
+    };
+  }
+
   const merged = {
     chaptersRead: Math.max(Number(l.chaptersRead) || 0, Number(c.chaptersRead) || 0),
     novelsStarted: Math.max(Number(l.novelsStarted) || 0, Number(c.novelsStarted) || 0),
@@ -1195,6 +1124,9 @@ function mergeStatsObjects(localStats, cloudStats) {
     lastReadDay: winner.lastReadDay || older.lastReadDay || "",
     unlockedTitles: mergedUnlocked,
     equippedTitle: winner.equippedTitle || older.equippedTitle || "",
+    claimedRewards: mergedClaimed,
+    inventory: mergedInventory,
+    equippedItems: mergedEquipped,
     dailyChapters: pruned,
     cultivatedRealmIndex: realmIndex,
     cultivatedStage: stage,
@@ -1204,6 +1136,10 @@ function mergeStatsObjects(localStats, cloudStats) {
   };
 
   evaluateUnlockedTitles(merged);
+  if (typeof syncUserInventory === "function") {
+    syncUserInventory(merged);
+  }
+  merged.bonusQi = calculateBonusQi(merged);
   return merged;
 }
 
@@ -1236,7 +1172,11 @@ migrateLocalStorageNow();
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.stats || changes.settings) {
-    refreshBrowserActionAppearance();
+    if (refreshIconDebounceTimer) clearTimeout(refreshIconDebounceTimer);
+    refreshIconDebounceTimer = setTimeout(() => {
+      refreshIconDebounceTimer = null;
+      refreshBrowserActionAppearance();
+    }, 50);
   }
 });
 
@@ -1244,6 +1184,7 @@ chrome.storage.onChanged.addListener((changes) => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("periodic_cloud_sync", { periodInMinutes: 30 });
   migrateLocalStorageNow();
+  refreshBrowserActionAppearance();
 });
 
 chrome.runtime.onStartup.addListener(() => {
@@ -1252,17 +1193,151 @@ chrome.runtime.onStartup.addListener(() => {
   pullFromCloud();
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  if (changeInfo.url && isBlacklistedDomain(changeInfo.url)) {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  if (changeInfo.url && (await isDomainBlacklisted(changeInfo.url))) {
     setTabQuestionBadge(tabId, false);
     chrome.storage.local.remove([`tab_${tabId}`]).catch(() => {});
+    chrome.tabs.sendMessage(tabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message || !message.type) return false;
+const GROUP_1_CONTENT_SCRIPT_MESSAGES = new Set([
+  "NOVEL_DETECTED",
+  "SCROLL_UPDATED",
+  "CONFIRM_UNCONFIRMED_TAB",
+  "DISCARD_UNCONFIRMED_TAB",
+  "ADD_DOMAIN_BLACKLIST",
+  "REMOVE_DOMAIN_BLACKLIST",
+  "DIAGNOSTIC_LOG"
+]);
 
-  if (message.type === "NOVEL_DETECTED" && sender.tab) {
+const GROUP_2_ADMIN_MESSAGES = new Set([
+  "IMPORT_DATA",
+  "PERFORM_BREAKTHROUGH",
+  "CLAIM_ACHIEVEMENT_REWARD",
+  "CLAIM_ALL_ACHIEVEMENTS",
+  "RECORD_MANUAL_READ",
+  "FORCE_CLOUD_SYNC",
+  "PULL_FROM_CLOUD",
+  "SWITCH_ACCOUNT",
+  "LOGOUT",
+  "TEST_WHATSAPP",
+  "CLEAR_DOMAIN_BLACKLIST",
+  "GET_DOMAIN_BLACKLIST",
+  "CHECK_DOMAIN_BLACKLISTED",
+  "SUBMIT_BUG_REPORT",
+  "REFRESH_ICON",
+  "EQUIP_ITEM",
+  "UNEQUIP_ITEM",
+  "GET_INVENTORY"
+]);
+
+function isValidHttpUrl(urlStr) {
+  if (!urlStr || typeof urlStr !== "string") return false;
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateMessageSchema(message) {
+  if (!message || typeof message !== "object") return false;
+  const { type, data } = message;
+  if (type === "NOVEL_DETECTED") {
+    if (!data || typeof data !== "object") return false;
+    if (data.novelName && typeof data.novelName !== "string") return false;
+    if (data.url && (typeof data.url !== "string" || !isValidHttpUrl(data.url) || data.url.length > 2048)) return false;
+    if (data.novelUrl && (typeof data.novelUrl !== "string" || !isValidHttpUrl(data.novelUrl) || data.novelUrl.length > 2048)) return false;
+    if (data.chapter && typeof data.chapter !== "string") return false;
+    if (data.seriesId && (typeof data.seriesId !== "string" || data.seriesId.length > 200)) return false;
+    return true;
+  }
+  if (type === "SCROLL_UPDATED") {
+    if (!data || typeof data !== "object") return false;
+    if (!data.seriesId || typeof data.seriesId !== "string" || data.seriesId.length > 200) return false;
+    if (data.chapter != null && typeof data.chapter !== "string" && typeof data.chapter !== "number") return false;
+    if (data.scrollPct != null && (typeof data.scrollPct !== "number" || isNaN(data.scrollPct) || data.scrollPct < 0 || data.scrollPct > 100)) return false;
+    if (data.url && (typeof data.url !== "string" || !isValidHttpUrl(data.url) || data.url.length > 2048)) return false;
+    return true;
+  }
+  if (type === "CONFIRM_UNCONFIRMED_TAB") {
+    if (message.novelName && (typeof message.novelName !== "string" || message.novelName.length > 300)) return false;
+    if (message.customName && (typeof message.customName !== "string" || message.customName.length > 300)) return false;
+    if (message.chapter != null && String(message.chapter).length > 50) return false;
+    if (message.url && (typeof message.url !== "string" || !isValidHttpUrl(message.url) || message.url.length > 2048)) return false;
+    if (message.novelUrl && (typeof message.novelUrl !== "string" || !isValidHttpUrl(message.novelUrl) || message.novelUrl.length > 2048)) return false;
+    if (message.seriesId && (typeof message.seriesId !== "string" || message.seriesId.length > 200)) return false;
+    return true;
+  }
+  if (type === "ADD_DOMAIN_BLACKLIST" || type === "REMOVE_DOMAIN_BLACKLIST") {
+    if (message.domain && (typeof message.domain !== "string" || message.domain.length > 253)) return false;
+    return true;
+  }
+  if (type === "DIAGNOSTIC_LOG") {
+    if (message.entry && typeof message.entry !== "object") return false;
+    return true;
+  }
+  return true;
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message || typeof message !== "object" || !message.type) {
+    sendResponse({ ok: false, error: "Invalid message format" });
+    return false;
+  }
+
+  const isGroup1 = GROUP_1_CONTENT_SCRIPT_MESSAGES.has(message.type);
+  const isGroup2 = GROUP_2_ADMIN_MESSAGES.has(message.type);
+
+  // SEC-02: Tipo de mensaje desconocido: rechazar con respuesta de error, sin ejecutar nada
+  if (!isGroup1 && !isGroup2) {
+    sendResponse({ ok: false, error: `Unknown message type: ${message.type}` });
+    return true;
+  }
+
+  // SEC-02: Validación de emisor frente a chrome.runtime.id si está disponible
+  const currentRuntimeId = (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.id) ? chrome.runtime.id : null;
+  if (currentRuntimeId && sender && sender.id && sender.id !== currentRuntimeId) {
+    sendResponse({ ok: false, error: "Unauthorized sender id" });
+    return true;
+  }
+
+  // SEC-02: Grupo 2 (acciones administrativas): exige sender.id === chrome.runtime.id Y !sender.tab
+  if (isGroup2) {
+    if (sender && sender.tab) {
+      sendResponse({ ok: false, error: "Unauthorized: administrative action rejected from tab" });
+      return true;
+    }
+  }
+
+  // SEC-02: Grupo 1 (acciones desde content scripts / tabs):
+  if (sender && sender.tab) {
+    if (!validateMessageSchema(message)) {
+      sendResponse({ ok: false, error: "Invalid message schema" });
+      return true;
+    }
+
+    // En las acciones de lista negra enviadas desde el aviso, el dominio debe coincidir con el hostname de sender.tab.url
+    if (message.type === "ADD_DOMAIN_BLACKLIST" || message.type === "REMOVE_DOMAIN_BLACKLIST") {
+      const tabUrl = sender.tab.url || "";
+      const tabDomain = extractDomain(tabUrl);
+      if (!tabDomain || tabDomain === "local") {
+        sendResponse({ ok: false, error: "Cannot determine valid domain from tab URL" });
+        return true;
+      }
+      message.domain = tabDomain;
+    }
+  } else {
+    // Si viene sin tab pero es NOVEL_DETECTED o SCROLL_UPDATED, rechazar
+    if (message.type === "NOVEL_DETECTED" || message.type === "SCROLL_UPDATED") {
+      sendResponse({ ok: false, error: "Unauthorized: content detection requires tab sender" });
+      return true;
+    }
+  }
+
+  if (message.type === "NOVEL_DETECTED" && sender && sender.tab) {
     handleNovelDetected(message.data, Boolean(message.confident), sender.tab.id)
       .then((res) => sendResponse(res))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
@@ -1311,6 +1386,67 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === "CLAIM_ACHIEVEMENT_REWARD") {
+    withStorageLock(async () => {
+      const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
+      const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      const res = claimAchievementReward(stats, message.achievementId);
+      if (res.ok) {
+        await chrome.storage.local.set({ stats });
+        await refreshBrowserActionAppearance();
+        await pushToCloudUnlocked(storage.savedNovels || {}, stats);
+      }
+      return res;
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "CLAIM_ALL_ACHIEVEMENTS") {
+    withStorageLock(async () => {
+      const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
+      const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      const unclaimed = getUnclaimedAchievements(stats);
+      let claimedCount = 0;
+      let totalReward = 0;
+      for (const item of unclaimed) {
+        const res = claimAchievementReward(stats, item.id);
+        if (res.ok) {
+          claimedCount++;
+          totalReward += res.rewardQi;
+        }
+      }
+      if (claimedCount > 0) {
+        await chrome.storage.local.set({ stats });
+        await refreshBrowserActionAppearance();
+        await pushToCloudUnlocked(storage.savedNovels || {}, stats);
+      }
+      return { ok: true, claimedCount, totalReward, stats };
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "RECORD_MANUAL_READ") {
+    withStorageLock(async () => {
+      const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
+      let currentStats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      const chaptersDelta = Math.max(0, Number(message.chaptersDelta) || 0);
+      const isNewNovel = Boolean(message.isNewNovel);
+      const completedDelta = Number(message.completedDelta) || 0;
+      currentStats = recordCultivationProgress(currentStats, chaptersDelta, isNewNovel, completedDelta);
+      await chrome.storage.local.set({ stats: currentStats });
+      await refreshBrowserActionAppearance();
+      await pushToCloudUnlocked(storage.savedNovels || {}, currentStats);
+      return { ok: true, stats: currentStats };
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
   if (message.type === "PERFORM_BREAKTHROUGH") {
     withStorageLock(async () => {
       const storage = await chrome.storage.local.get(["stats", "settings", "savedNovels"]);
@@ -1318,16 +1454,77 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const settings = storage.settings || {};
       const themeId = message.themeId || settings.activeThemeId || "cultivation";
 
-      const res = advanceCultivationBreakthrough(stats, themeId);
+      const res = advanceCultivationBreakthrough(stats, themeId, { applySurplus: true });
       if (res.ok) {
-        await chrome.storage.local.set({ stats: res.stats });
+        const finalStats = res.stats || stats;
+        await chrome.storage.local.set({ stats: finalStats });
         await refreshBrowserActionAppearance();
-        await pushToCloudUnlocked(storage.savedNovels || {}, res.stats);
+        await pushToCloudUnlocked(storage.savedNovels || {}, finalStats);
       }
       return res;
     })
       .then((res) => sendResponse(res))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "EQUIP_ITEM") {
+    withStorageLock(async () => {
+      const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
+      const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      if (typeof equipItem === "function") {
+        equipItem(stats, message.itemId);
+      }
+      stats.updatedAt = Date.now();
+      await chrome.storage.local.set({ stats });
+      await refreshBrowserActionAppearance();
+      await pushToCloudUnlocked(storage.savedNovels || {}, stats);
+      return {
+        ok: true,
+        stats,
+        breakdown: typeof calculateQiBreakdown === "function" ? calculateQiBreakdown(stats) : null
+      };
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "UNEQUIP_ITEM") {
+    withStorageLock(async () => {
+      const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
+      const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      if (typeof unequipItem === "function") {
+        unequipItem(stats, message.itemId);
+      }
+      stats.updatedAt = Date.now();
+      await chrome.storage.local.set({ stats });
+      await refreshBrowserActionAppearance();
+      await pushToCloudUnlocked(storage.savedNovels || {}, stats);
+      return {
+        ok: true,
+        stats,
+        breakdown: typeof calculateQiBreakdown === "function" ? calculateQiBreakdown(stats) : null
+      };
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "GET_INVENTORY") {
+    chrome.storage.local.get(["stats"], (storage) => {
+      const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      if (typeof syncUserInventory === "function") {
+        syncUserInventory(stats);
+      }
+      sendResponse({
+        ok: true,
+        inventory: stats.inventory || [],
+        equippedItems: stats.equippedItems || [],
+        breakdown: typeof calculateQiBreakdown === "function" ? calculateQiBreakdown(stats) : null
+      });
+    });
     return true;
   }
 
@@ -1354,8 +1551,178 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === "SWITCH_ACCOUNT") {
+    withStorageLock(async () => {
+      return await switchAccountProfile(message.uid);
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "LOGOUT") {
+    withStorageLock(async () => {
+      const res = await switchAccountProfile("guest");
+      await chrome.storage.local.remove(["auth"]);
+      await refreshBrowserActionAppearance();
+      return res;
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "GET_DOMAIN_BLACKLIST") {
+    getStoredDomainBlacklist()
+      .then((list) => sendResponse({ ok: true, domainBlacklist: list }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "ADD_DOMAIN_BLACKLIST") {
+    addDomainToBlacklist(message.domain, message.addedAt)
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "REMOVE_DOMAIN_BLACKLIST") {
+    removeDomainFromBlacklist(message.domain)
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "CLEAR_DOMAIN_BLACKLIST") {
+    clearDomainBlacklist()
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "CHECK_DOMAIN_BLACKLISTED") {
+    isDomainBlacklisted(message.domain || message.url)
+      .then((blacklisted) => sendResponse({ ok: true, blacklisted }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "DISCARD_UNCONFIRMED_TAB") {
+    const targetTabId = message.tabId || sender?.tab?.id;
+    if (targetTabId) {
+      setTabQuestionBadge(targetTabId, false);
+      chrome.storage.local.remove([`tab_${targetTabId}`]).catch(() => {});
+      chrome.tabs.sendMessage(targetTabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+    }
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (message.type === "CONFIRM_UNCONFIRMED_TAB") {
+    const targetTabId = message.tabId || sender?.tab?.id;
+    handleConfirmUnconfirmedTab({
+      tabId: targetTabId,
+      novelName: message.novelName,
+      chapter: message.chapter,
+      customName: message.customName,
+      url: message.url || sender?.tab?.url,
+      seriesId: message.seriesId,
+      novelUrl: message.novelUrl
+    })
+      .then((res) => {
+        if (targetTabId) {
+          chrome.tabs.sendMessage(targetTabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+        }
+        sendResponse(res);
+      })
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
   return false;
 });
+
+async function handleConfirmUnconfirmedTab({ tabId, novelName, chapter, customName, url, seriesId, novelUrl }) {
+  return withStorageLock(async () => {
+    let tabData = null;
+    if (tabId) {
+      const storage = await chrome.storage.local.get([`tab_${tabId}`]);
+      tabData = storage[`tab_${tabId}`];
+    }
+    const rawName = (customName || novelName || tabData?.novelName || "").trim();
+    const finalName = rawName.slice(0, 300);
+    const rawChap = String(chapter || tabData?.chapter || "1").trim();
+    const finalChap = rawChap.slice(0, 50);
+    const rawUrl = url || tabData?.url || "";
+    if (!isValidHttpUrl(rawUrl)) {
+      return { ok: false, error: "Invalid URL scheme" };
+    }
+    const finalUrl = rawUrl.slice(0, 2048);
+    const rawNovelUrl = novelUrl || tabData?.novelUrl || "";
+    let finalNovelUrl = "";
+    if (rawNovelUrl) {
+      if (!isValidHttpUrl(rawNovelUrl)) {
+        return { ok: false, error: "Invalid novel URL scheme" };
+      }
+      finalNovelUrl = rawNovelUrl.slice(0, 2048);
+    }
+    let finalSeriesId = String(seriesId || tabData?.seriesId || "").slice(0, 200);
+
+    if (!finalSeriesId) {
+      const computed = computeCanonicalSeriesId(
+        { url: finalUrl, novelUrl: finalNovelUrl, novelName: finalName },
+        finalName
+      );
+      finalSeriesId = computed.seriesId || buildSeriesIdFromName(finalName, extractDomain(finalUrl));
+    }
+
+    const storage = await chrome.storage.local.get(["savedNovels", "stats"]);
+    const savedNovels = storage.savedNovels || {};
+    let stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+    const existing = savedNovels[finalSeriesId];
+    const isNew = !existing;
+
+    const chapNum = parseFloat(finalChap) || 1;
+    const prevMax = existing ? parseFloat(existing.maxCounted ?? existing.chapter) || 0 : 0;
+    const chapDelta = isNew ? chapNum : Math.max(0, chapNum - prevMax);
+
+    const entry = {
+      ...(existing || {}),
+      seriesId: finalSeriesId,
+      novelName: existing?.customName || finalName,
+      novelUrl: finalNovelUrl || existing?.novelUrl || "",
+      url: finalUrl || existing?.url || "",
+      chapter: finalChap,
+      maxCounted: Math.max(prevMax, chapNum),
+      scrollPct: existing?.scrollPct || 0,
+      statusManual: existing?.statusManual || "",
+      completedCounted: Boolean(existing?.completedCounted),
+      alert: null,
+      updatedAt: Date.now()
+    };
+    if (existing?.customName || customName) {
+      entry.customName = customName || existing.customName;
+    }
+
+    savedNovels[finalSeriesId] = entry;
+
+    if (chapDelta > 0 || isNew) {
+      stats = recordCultivationProgress(stats, chapDelta, isNew, 0);
+    }
+
+    const updates = { savedNovels, stats };
+    if (tabId) {
+      updates[`tab_${tabId}`] = { ...entry, unconfirmed: false };
+      setTabQuestionBadge(tabId, false);
+      chrome.action.setBadgeText({ text: "", tabId }).catch(() => {});
+    }
+
+    await chrome.storage.local.set(updates);
+    await refreshBrowserActionAppearance();
+    await pushToCloudUnlocked(savedNovels, stats);
+    return { ok: true, seriesId: finalSeriesId, chapter: finalChap, novelName: finalName };
+  });
+}
 
 function setTabQuestionBadge(tabId, showQuestion) {
   if (!tabId) return;
@@ -1363,7 +1730,7 @@ function setTabQuestionBadge(tabId, showQuestion) {
     chrome.action.setBadgeText({ text: "?", tabId }).catch(() => {});
     chrome.action.setBadgeBackgroundColor({ color: "#f59e0b", tabId }).catch(() => {});
   } else {
-    chrome.action.setBadgeText({ tabId }).catch(() => {});
+    chrome.action.setBadgeText({ text: "", tabId }).catch(() => {});
     refreshBrowserActionAppearance();
   }
 }
@@ -1390,10 +1757,20 @@ async function handleScrollUpdated(data) {
 async function handleNovelDetected(novelData, confident, tabId) {
   return withStorageLock(async () => {
     // 1. Descartar de inmediato si es un dominio excluido o URL inválida
-    if (!novelData || !novelData.url || isBlacklistedDomain(novelData.url)) {
+    if (!novelData || !novelData.url || !isValidHttpUrl(novelData.url) || (await isDomainBlacklisted(novelData.url))) {
       setTabQuestionBadge(tabId, false);
       await chrome.storage.local.remove([`tab_${tabId}`]);
-      return { ok: false, ignored: true };
+      return { ok: false, ignored: true, blacklisted: true };
+    }
+
+    novelData.novelName = String(novelData.novelName || "").slice(0, 300);
+    novelData.url = String(novelData.url).slice(0, 2048);
+    if (novelData.novelUrl) {
+      novelData.novelUrl = isValidHttpUrl(novelData.novelUrl) ? String(novelData.novelUrl).slice(0, 2048) : "";
+    }
+    novelData.chapter = String(novelData.chapter || "1").slice(0, 50);
+    if (novelData.seriesId) {
+      novelData.seriesId = String(novelData.seriesId).slice(0, 200);
     }
 
     const storage = await chrome.storage.local.get(["savedNovels", "stats"]);
@@ -1462,7 +1839,16 @@ async function handleNovelDetected(novelData, confident, tabId) {
         seriesId
       });
       setTabQuestionBadge(tabId, true);
-      return { ok: true, saved: false, unconfirmed: true };
+      return {
+        ok: true,
+        saved: false,
+        unconfirmed: true,
+        seriesId,
+        novelName: cleanIncomingName || "",
+        chapter: resolvedChapterStr,
+        url: novelData.url,
+        novelUrl
+      };
     }
 
     const customName = existing?.customName && !isBogusNovelName(existing.customName, novelUrl)
@@ -1572,7 +1958,6 @@ async function handleNovelDetected(novelData, confident, tabId) {
       stats: currentStats,
       [`tab_${tabId}`]: { ...updatedEntry, unconfirmed: false }
     });
-    chrome.storage.sync.set({ savedNovels }).catch(() => {});
 
     await appendDiagnosticLog({
       event: "DETECT_SAVED_OK",
@@ -1587,26 +1972,42 @@ async function handleNovelDetected(novelData, confident, tabId) {
     chrome.alarms.clear(`inactive_${tabId}`);
 
     await refreshBrowserActionAppearance();
-    await pushToCloudUnlocked(savedNovels, currentStats);
+    const hasDataChanged =
+      isNewNovelStarted ||
+      chaptersToCount > 0 ||
+      !existing ||
+      existing.deleted ||
+      existing.chapter !== resolvedChapterStr ||
+      existing.url !== novelData.url ||
+      existing.novelName !== stableNovelName;
+
+    if (hasDataChanged) {
+      chrome.storage.sync.set({ savedNovels }).catch(() => {});
+      await pushToCloudUnlocked(savedNovels, currentStats);
+    }
     return { ok: true, saved: true, seriesId, chapter: resolvedChapterStr, restoreScrollPct };
   });
+}
+
+function buildCallMeBotUrl(phone, apiKey, textMsg) {
+  const cleanPhone = String(phone || "").replace(/\D/g, "");
+  const cleanApiKey = encodeURIComponent(String(apiKey || "").trim());
+  const cleanText = encodeURIComponent(String(textMsg || ""));
+  if (!cleanPhone || !cleanApiKey) return null;
+  return `https://api.callmebot.com/whatsapp.php?phone=${cleanPhone}&text=${cleanText}&apikey=${cleanApiKey}`;
 }
 
 async function handleTestWhatsapp(data) {
   await initI18n();
   const storage = await chrome.storage.local.get(["settings"]);
   const settings = { ...(storage.settings || {}), ...(data || {}) };
-  const phone = String(settings.phone || "").replace(/[^0-9]/g, "");
-  const apiKey = String(settings.apiKey || "").trim();
+  const waUrl = buildCallMeBotUrl(settings.phone, settings.apiKey, t("wa_msg_test"));
 
-  if (!phone || !apiKey) {
+  if (!waUrl) {
     settings.whatsappStatus = "unconfigured";
     await chrome.storage.local.set({ settings });
     return { ok: false, status: "unconfigured" };
   }
-
-  const textMsg = t("wa_msg_test");
-  const waUrl = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(textMsg)}&apikey=${encodeURIComponent(apiKey)}`;
 
   try {
     const res = await fetch(waUrl);
@@ -1648,16 +2049,64 @@ async function handleImportData(payload) {
     for (const [rawKey, incEntry] of Object.entries(incomingNovels)) {
       if (!incEntry || typeof incEntry !== "object") continue;
       const { seriesId } = computeCanonicalSeriesId(incEntry, incEntry.seriesId || rawKey);
-      const localEntry = combinedNovels[seriesId];
+      let localEntry = combinedNovels[seriesId] || combinedNovels[rawKey] || (incEntry.seriesId ? combinedNovels[incEntry.seriesId] : null);
+
+      if (!localEntry) {
+        const incNovelNorm = normalizeText(incEntry.novelName);
+        const incCustomNorm = normalizeText(incEntry.customName);
+        for (const [locK, locE] of Object.entries(combinedNovels)) {
+          if (!locE) continue;
+          const locNovelNorm = normalizeText(locE.novelName);
+          const locCustomNorm = normalizeText(locE.customName);
+          if (
+            (incNovelNorm && locNovelNorm && incNovelNorm === locNovelNorm) ||
+            (incCustomNorm && locCustomNorm && incCustomNorm === locCustomNorm) ||
+            (incNovelNorm && locCustomNorm && incNovelNorm === locCustomNorm) ||
+            (incCustomNorm && locNovelNorm && incCustomNorm === locNovelNorm)
+          ) {
+            localEntry = locE;
+            delete combinedNovels[locK];
+            break;
+          }
+        }
+      }
+
+      if (rawKey !== seriesId && combinedNovels[rawKey]) {
+        delete combinedNovels[rawKey];
+      }
+      if (incEntry.seriesId && incEntry.seriesId !== seriesId && combinedNovels[incEntry.seriesId]) {
+        delete combinedNovels[incEntry.seriesId];
+      }
 
       if (!localEntry) {
         combinedNovels[seriesId] = { ...incEntry, seriesId };
         if (!incEntry.deleted) added++;
-      } else if ((incEntry.updatedAt || 0) > (localEntry.updatedAt || 0)) {
-        combinedNovels[seriesId] = { ...localEntry, ...incEntry, seriesId };
-        updated++;
       } else {
-        skipped++;
+        const incMax = parseFloat(incEntry.maxCounted ?? incEntry.chapter) || 0;
+        const locMax = parseFloat(localEntry.maxCounted ?? localEntry.chapter) || 0;
+        const bestMax = Math.max(incMax, locMax);
+        const isIncomingNewer = (incEntry.updatedAt || 0) > (localEntry.updatedAt || 0);
+        const customName = isIncomingNewer
+          ? (incEntry.customName || localEntry.customName)
+          : (localEntry.customName || incEntry.customName);
+
+        if (isIncomingNewer) {
+          combinedNovels[seriesId] = {
+            ...localEntry,
+            ...incEntry,
+            seriesId,
+            maxCounted: bestMax,
+            ...(customName ? { customName } : {})
+          };
+          updated++;
+        } else {
+          combinedNovels[seriesId] = {
+            ...localEntry,
+            maxCounted: bestMax,
+            ...(customName ? { customName } : {})
+          };
+          skipped++;
+        }
       }
     }
 
@@ -1680,6 +2129,25 @@ async function handleImportData(payload) {
       stats: mergedStats,
       settings: mergedSettings
     });
+
+    if (Array.isArray(payload.domainBlacklist)) {
+      const currentBl = await getStoredDomainBlacklist();
+      const blMap = new Map();
+      currentBl.forEach((item) => {
+        const d = normalizeDomain(item && item.domain);
+        if (d) blMap.set(d, { domain: d, addedAt: item.addedAt || Date.now() });
+      });
+      payload.domainBlacklist.forEach((item) => {
+        const d = normalizeDomain(typeof item === "string" ? item : item?.domain);
+        if (d && !blMap.has(d)) {
+          blMap.set(d, { domain: d, addedAt: item?.addedAt || Date.now() });
+        }
+      });
+      const mergedBl = Array.from(blMap.values()).sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+      await chrome.storage.local.set({ domainBlacklist: mergedBl });
+      cachedDomainBlacklist = mergedBl;
+      await pushDomainBlacklistToCloud(mergedBl);
+    }
 
     await refreshBrowserActionAppearance();
     await pushToCloudUnlocked(migratedNovels, mergedStats);
@@ -1767,8 +2235,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     chapter: currentSaved.chapter,
     url: currentSaved.url
   });
-  const encodedText = encodeURIComponent(textMsg);
-  const waUrl = `https://api.callmebot.com/whatsapp.php?phone=${settings.phone}&text=${encodedText}&apikey=${settings.apiKey}`;
+  const waUrl = buildCallMeBotUrl(settings.phone, settings.apiKey, textMsg);
+  if (!waUrl) return;
 
   try {
     const res = await fetch(waUrl);
@@ -1833,6 +2301,7 @@ chrome.omnibox.onInputEntered.addListener(async (text, disposition) => {
 });
 
 function openUrlInDisposition(url, disposition) {
+  if (!isValidHttpUrl(url)) return;
   if (disposition === "currentTab") {
     chrome.tabs.update({ url });
   } else if (disposition === "newBackgroundTab") {
@@ -1846,7 +2315,7 @@ chrome.commands.onCommand.addListener(async (command) => {
   if (command === "continue-latest-novel") {
     const { savedNovels } = await chrome.storage.local.get(["savedNovels"]);
     const novels = Object.values(savedNovels || {})
-      .filter((n) => n && !n.deleted && n.url)
+      .filter((n) => n && !n.deleted && n.url && isValidHttpUrl(n.url))
       .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
     if (novels.length > 0) {
@@ -1889,7 +2358,7 @@ async function getValidAuth() {
   return null;
 }
 
-async function pushToCloudUnlocked(novelsMap, statsObj) {
+async function pushToCloudUnlocked(novelsMap, statsObj, blacklistArr) {
   const auth = await getValidAuth();
   if (!auth) return;
 
@@ -1919,14 +2388,115 @@ async function pushToCloudUnlocked(novelsMap, statsObj) {
       );
     }
 
+    const currentBl = blacklistArr !== undefined ? blacklistArr : cachedDomainBlacklist;
+    if (Array.isArray(currentBl)) {
+      promises.push(
+        fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentBl)
+        })
+      );
+    }
+
     await Promise.all(promises);
   } catch (e) {
     await appendDiagnosticLog({ event: "CLOUD_PUSH_ERROR", error: String(e) });
   }
 }
 
+async function switchAccountProfile(targetUid) {
+  const normTarget = targetUid && typeof targetUid === "string" ? targetUid : "guest";
+  const storage = await chrome.storage.local.get([
+    "lastAuthUid",
+    "savedNovels",
+    "stats",
+    "domainBlacklist",
+    "guest_data",
+    `account_data_${normTarget}`
+  ]);
+
+  const currentUid = storage.lastAuthUid || "guest";
+  if (currentUid === normTarget) {
+    return { ok: true, switched: false, currentUid };
+  }
+
+  // 1. Guardar estado activo en la bóveda del usuario saliente
+  const activeSnapshot = {
+    savedNovels: storage.savedNovels || {},
+    stats: storage.stats || getDefaultStats(),
+    domainBlacklist: storage.domainBlacklist || [],
+    updatedAt: Date.now()
+  };
+
+  const toSave = {};
+  if (currentUid === "guest") {
+    toSave.guest_data = activeSnapshot;
+  } else {
+    toSave[`account_data_${currentUid}`] = activeSnapshot;
+  }
+
+  // 2. Restaurar estado de la bóveda del usuario entrante
+  let targetData = null;
+  if (normTarget === "guest") {
+    targetData = storage.guest_data || null;
+  } else {
+    targetData = storage[`account_data_${normTarget}`] || null;
+  }
+
+  let restoredNovels = {};
+  let restoredStats = getDefaultStats();
+  let restoredBlacklist = [];
+
+  if (targetData && typeof targetData === "object") {
+    restoredNovels = targetData.savedNovels || {};
+    restoredStats = targetData.stats || getDefaultStats();
+    restoredBlacklist = Array.isArray(targetData.domainBlacklist) ? targetData.domainBlacklist : [];
+  } else if (normTarget !== "guest" && currentUid === "guest" && Object.keys(activeSnapshot.savedNovels || {}).length > 0) {
+    // Si el usuario era invitado y acaba de iniciar sesión por primera vez, hereda sus novelas locales sin perderlas
+    restoredNovels = activeSnapshot.savedNovels;
+    restoredStats = activeSnapshot.stats;
+    restoredBlacklist = activeSnapshot.domainBlacklist;
+  }
+
+  toSave.savedNovels = restoredNovels;
+  toSave.stats = restoredStats;
+  toSave.domainBlacklist = restoredBlacklist;
+  toSave.lastAuthUid = normTarget;
+
+  cachedDomainBlacklist = restoredBlacklist;
+  await chrome.storage.local.set(toSave);
+  await refreshBrowserActionAppearance();
+
+  return { ok: true, switched: true, previousUid: currentUid, newUid: normTarget };
+}
+
 async function pullFromCloud() {
   return withStorageLock(async () => {
+    const { auth: rawAuth } = await chrome.storage.local.get(["auth"]);
+    if (!rawAuth || !rawAuth.refreshToken) {
+      const { lastAuthUid } = await chrome.storage.local.get(["lastAuthUid"]);
+      if (lastAuthUid && lastAuthUid !== "guest") {
+        await switchAccountProfile("guest");
+      }
+      await refreshBrowserActionAppearance();
+      return;
+    }
+
+    const auth = await getValidAuth();
+    if (!auth) {
+      // Dispositivo offline o error de red temporal al refrescar token.
+      // Mantener al usuario en su perfil activo para lectura offline sin conmutar a invitado.
+      return;
+    }
+
+    const { lastAuthUid } = await chrome.storage.local.get(["lastAuthUid"]);
+    if (lastAuthUid && lastAuthUid !== auth.uid) {
+      await switchAccountProfile(auth.uid);
+    } else if (!lastAuthUid) {
+      await chrome.storage.local.set({ lastAuthUid: auth.uid });
+    }
+
     const { savedNovels, stats } = await chrome.storage.local.get(["savedNovels", "stats"]);
     const localMig = deduplicateAndMigrateMap(savedNovels || {});
     let localStats = evaluateUnlockedTitles({ ...getDefaultStats(), ...(stats || {}) });
@@ -1935,18 +2505,41 @@ async function pullFromCloud() {
       await chrome.storage.local.set({ savedNovels: localMig.migratedNovels });
     }
 
-    const auth = await getValidAuth();
-    if (!auth) {
-      await refreshBrowserActionAppearance();
-      return;
-    }
-
     const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
     try {
-      const [novelsRes, statsRes] = await Promise.all([
+      const [novelsRes, statsRes, blacklistRes] = await Promise.all([
         fetch(`${dbCleanUrl}/users/${auth.uid}/novels.json?auth=${auth.idToken}`),
-        fetch(`${dbCleanUrl}/users/${auth.uid}/stats.json?auth=${auth.idToken}`)
+        fetch(`${dbCleanUrl}/users/${auth.uid}/stats.json?auth=${auth.idToken}`),
+        fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`).catch(() => null)
       ]);
+
+      if (blacklistRes && blacklistRes.ok) {
+        const rawCloudBl = (await blacklistRes.json()) || [];
+        if (Array.isArray(rawCloudBl)) {
+          const localBl = await getStoredDomainBlacklist();
+          const blMap = new Map();
+          localBl.forEach((item) => {
+            const d = normalizeDomain(typeof item === "string" ? item : item?.domain);
+            const addedAt = (typeof item === "object" && typeof item?.addedAt === "number") ? item.addedAt : Date.now();
+            if (d) blMap.set(d, { domain: d, addedAt });
+          });
+          let cloudHadNew = false;
+          rawCloudBl.forEach((item) => {
+            const d = normalizeDomain(typeof item === "string" ? item : item?.domain);
+            const addedAt = (typeof item === "object" && typeof item?.addedAt === "number") ? item.addedAt : Date.now();
+            if (d && !blMap.has(d)) {
+              blMap.set(d, { domain: d, addedAt });
+              cloudHadNew = true;
+            }
+          });
+          const mergedBl = Array.from(blMap.values()).sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+          await chrome.storage.local.set({ domainBlacklist: mergedBl });
+          cachedDomainBlacklist = mergedBl;
+          if (mergedBl.length > rawCloudBl.length) {
+            await pushDomainBlacklistToCloud(mergedBl);
+          }
+        }
+      }
 
       const rawCloudNovels = novelsRes.ok ? (await novelsRes.json()) || {} : {};
       const rawCloudStats = statsRes.ok ? (await statsRes.json()) || null : null;
@@ -2051,4 +2644,52 @@ async function pullFromCloud() {
       await appendDiagnosticLog({ event: "CLOUD_PULL_ERROR", error: String(e) });
     }
   });
+}
+
+if (typeof globalThis !== "undefined") {
+  globalThis.normalizeDomain = normalizeDomain;
+  globalThis.matchesDomainPattern = matchesDomainPattern;
+  globalThis.isDomainBlacklisted = isDomainBlacklisted;
+  globalThis.isHostBlacklistedSync = isHostBlacklistedSync;
+  globalThis.addDomainToBlacklist = addDomainToBlacklist;
+  globalThis.removeDomainFromBlacklist = removeDomainFromBlacklist;
+  globalThis.clearDomainBlacklist = clearDomainBlacklist;
+  globalThis.getStoredDomainBlacklist = getStoredDomainBlacklist;
+  globalThis.handleConfirmUnconfirmedTab = handleConfirmUnconfirmedTab;
+  globalThis.handleNovelDetected = handleNovelDetected;
+  globalThis.deduplicateAndMigrateMap = deduplicateAndMigrateMap;
+  globalThis.mergeStatsObjects = mergeStatsObjects;
+  globalThis.refreshBrowserActionAppearance = refreshBrowserActionAppearance;
+  globalThis.TIER_ROMAN = TIER_ROMAN;
+  globalThis.RARITY_BADGE_COLORS = RARITY_BADGE_COLORS;
+  globalThis.BASE_TOOLBAR_ICONS = BASE_TOOLBAR_ICONS;
+  globalThis.getToolbarIconPathsForTitle = getToolbarIconPathsForTitle;
+  globalThis.resetRenderedStateKey = resetRenderedStateKey;
+  globalThis.switchAccountProfile = switchAccountProfile;
+  globalThis.handleImportData = handleImportData;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    normalizeDomain,
+    matchesDomainPattern,
+    isDomainBlacklisted,
+    isHostBlacklistedSync,
+    addDomainToBlacklist,
+    removeDomainFromBlacklist,
+    clearDomainBlacklist,
+    getStoredDomainBlacklist,
+    handleConfirmUnconfirmedTab,
+    handleNovelDetected,
+    deduplicateAndMigrateMap,
+    mergeStatsObjects,
+    refreshBrowserActionAppearance,
+    switchAccountProfile,
+    handleImportData,
+    TIER_ROMAN,
+    RARITY_BADGE_COLORS,
+    BASE_TOOLBAR_ICONS,
+    getToolbarIconPathsForTitle,
+    resetRenderedStateKey
+  };
 }

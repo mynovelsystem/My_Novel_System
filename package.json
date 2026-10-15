@@ -1,0 +1,10 @@
+{
+  "name": "novel-tracker",
+  "version": "4.0.0",
+  "description": "Novel Chapter Tracker Chrome Extension",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node tests/test_audit_comprehensive_v10.js",
+    "test:mv3": "node tests/test_webnovel_continuous_scroll_mv3.js"
+  }
+}

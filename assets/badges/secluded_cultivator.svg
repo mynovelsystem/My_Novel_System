@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  
+    <defs>
+      <!-- Bronze / Common -->
+      <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#451a03" />
+        <stop offset="35%" stop-color="#78350f" />
+        <stop offset="70%" stop-color="#b45309" />
+        <stop offset="100%" stop-color="#92400e" />
+      </linearGradient>
+      <linearGradient id="bronzeRim" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fef08a" />
+        <stop offset="50%" stop-color="#d97706" />
+        <stop offset="100%" stop-color="#78350f" />
+      </linearGradient>
+
+      <!-- Jade / Rare -->
+      <linearGradient id="jadeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#064e3b" />
+        <stop offset="40%" stop-color="#059669" />
+        <stop offset="75%" stop-color="#10b981" />
+        <stop offset="100%" stop-color="#06b6d4" />
+      </linearGradient>
+      <linearGradient id="jadeRim" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#a7f3d0" />
+        <stop offset="50%" stop-color="#34d399" />
+        <stop offset="100%" stop-color="#047857" />
+      </linearGradient>
+
+      <!-- Epic / Amethyst -->
+      <linearGradient id="epicGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3b0764" />
+        <stop offset="35%" stop-color="#6b21a8" />
+        <stop offset="70%" stop-color="#9333ea" />
+        <stop offset="100%" stop-color="#c026d3" />
+      </linearGradient>
+      <linearGradient id="epicRim" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f5d0fe" />
+        <stop offset="50%" stop-color="#c084fc" />
+        <stop offset="100%" stop-color="#7e22ce" />
+      </linearGradient>
+
+      <!-- Legendary / Solar Gold -->
+      <linearGradient id="solarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#78350f" />
+        <stop offset="25%" stop-color="#b45309" />
+        <stop offset="60%" stop-color="#f59e0b" />
+        <stop offset="85%" stop-color="#fbbf24" />
+        <stop offset="100%" stop-color="#fde047" />
+      </linearGradient>
+      <linearGradient id="solarRim" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff" />
+        <stop offset="40%" stop-color="#fef08a" />
+        <stop offset="80%" stop-color="#f59e0b" />
+        <stop offset="100%" stop-color="#b45309" />
+      </linearGradient>
+
+      <!-- Core Inner Radial Glows -->
+      <radialGradient id="commonInnerGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#78350f" stop-opacity="0.4" />
+        <stop offset="100%" stop-color="#140c06" />
+      </radialGradient>
+      <radialGradient id="rareInnerGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#047857" stop-opacity="0.45" />
+        <stop offset="100%" stop-color="#041814" />
+      </radialGradient>
+      <radialGradient id="epicInnerGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#7e22ce" stop-opacity="0.5" />
+        <stop offset="100%" stop-color="#12061e" />
+      </radialGradient>
+      <radialGradient id="legendaryInnerGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#d97706" stop-opacity="0.55" />
+        <stop offset="100%" stop-color="#180e03" />
+      </radialGradient>
+
+      <!-- Drop Shadows & Filters -->
+      <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.75" />
+      </filter>
+      <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#fbbf24" flood-opacity="0.65" />
+      </filter>
+    </defs>
+  
+  <g class="badge-frame">
+    
+        <!-- Jade Hexagonal Outer Frame -->
+        <polygon points="50,4 94,27 94,73 50,96 6,73 6,27" fill="url(#jadeGrad)" stroke="url(#jadeRim)" stroke-width="2.5" filter="url(#badgeShadow)" />
+        <polygon points="50,11 88,31 88,69 50,89 12,69 12,31" fill="url(#rareInnerGlow)" stroke="#34d399" stroke-width="1.2" stroke-opacity="0.75" />
+        <!-- Jade Bevel Facets -->
+        <line x1="50" y1="4" x2="50" y2="11" stroke="#a7f3d0" stroke-width="1.2" />
+        <line x1="94" y1="27" x2="88" y2="31" stroke="#a7f3d0" stroke-width="1.2" />
+        <line x1="94" y1="73" x2="88" y2="69" stroke="#a7f3d0" stroke-width="1.2" />
+        <line x1="50" y1="96" x2="50" y2="89" stroke="#a7f3d0" stroke-width="1.2" />
+        <line x1="6" y1="73" x2="12" y2="69" stroke="#a7f3d0" stroke-width="1.2" />
+        <line x1="6" y1="27" x2="12" y2="31" stroke="#a7f3d0" stroke-width="1.2" />
+      
+  </g>
+  <g class="badge-art" filter="url(#badgeShadow)">
+    
+    <path d="M50 26 C45 38 42 50 50 68 C58 50 55 38 50 26 Z" fill="#6ee7b7" stroke="#047857" stroke-width="1.5" />
+    <path d="M50 68 C35 65 24 55 30 44 C38 48 44 56 50 68 Z" fill="#34d399" stroke="#047857" stroke-width="1.5" />
+    <path d="M50 68 C65 65 76 55 70 44 C62 48 56 56 50 68 Z" fill="#34d399" stroke="#047857" stroke-width="1.5" />
+    <circle cx="50" cy="56" r="4" fill="#fef08a" />
+  
+  </g>
+</svg>

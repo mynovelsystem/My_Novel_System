@@ -31,13 +31,55 @@
     return false;
   }
 
+  let cachedUserBlacklist = [];
+  try {
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["domainBlacklist"], (res) => {
+        if (Array.isArray(res?.domainBlacklist)) {
+          cachedUserBlacklist = res.domainBlacklist;
+          if (isCurrentDomainBlacklisted()) {
+            dismissInPagePrompt();
+            stopBodyObserver();
+          }
+        }
+      });
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes.domainBlacklist) {
+          cachedUserBlacklist = Array.isArray(changes.domainBlacklist.newValue)
+            ? changes.domainBlacklist.newValue
+            : [];
+          if (isCurrentDomainBlacklisted()) {
+            dismissInPagePrompt();
+            stopBodyObserver();
+          }
+        }
+      });
+    }
+  } catch {}
+
+  function isCurrentDomainBlacklisted() {
+    if (isBlacklistedDomain(location.hostname)) return true;
+    const cleanHost = String(location.hostname || "").toLowerCase().replace(/^www\./, "").trim();
+    if (!cleanHost) return false;
+    for (const item of cachedUserBlacklist) {
+      const pattern = typeof item === "string" ? item : item?.domain;
+      if (!pattern) continue;
+      const cleanPattern = String(pattern).toLowerCase().replace(/^www\./, "").replace(/^\*+\.?/, "").trim();
+      if (!cleanPattern) continue;
+      if (cleanHost === cleanPattern || cleanHost.endsWith("." + cleanPattern)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Si estamos en un dominio excluido, no ejecutar ningún observador ni lógica (0 consumo y 0 falsos positivos)
   if (isBlacklistedDomain(location.hostname)) {
     return;
   }
 
-  // Patrón 1: Con palabra clave explícita (Capítulo 12, Cap. 12, Chapter 12, Episode 12, Ep. 12, Parte 12, c12, #12)
-  const CHAPTER_EXPLICIT_REGEX = /\b(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|part|ch\.?|cap\.?|ep\.?|pt\.?|c\.?)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b|(?:^|\s)#(\d{1,5}(?:[.,-]\d{1,2})?)(?:\s|:|-|$)/i;
+  // Patrón 1: Con palabra clave explícita (Capítulo 12, Cap. 12, Chapter 12, Episode 12, Ep. 12, Parte 12, c12, #12, Bab 1)
+  const CHAPTER_EXPLICIT_REGEX = /\b(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|part|ch\.?|cap\.?|ep\.?|pt\.?|c\.?|bab)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b|(?:^|\s)#(\d{1,5}(?:[.,-]\d{1,2})?)(?:\s|:|-|$)/i;
   const VOLUME_FALLBACK_REGEX = /\b(?:tomo|volumen|volume|vol\.?|v\.?)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b/i;
 
   // Patrón para capítulos especiales (Prólogo, Epílogo, One-shot, Extra, etc.)
@@ -46,9 +88,9 @@
   // Patrón 2: Número al inicio de un título de capítulo ("12. El comienzo", "12 - Título", "[12] Título")
   const CHAPTER_LEADING_NUM_REGEX = /^\s*(?:\[\s*(\d{1,5}(?:[.,]\d{1,2})?)\s*\]|(\d{1,5}(?:[.,]\d{1,2})?)\s*[-–—.:)\]]\s+\S)/;
 
-  const CHAPTER_URL_REGEX = /(?:\/|-|_|\b)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c)[-_\/.]?(\d{1,5}(?:[.-]\d{1,2})?)(?:\/|$|\?|#|-|_)/i;
-  const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c)[-_\/.]?\d+(?:[._-]\d+)?(?:\/.*)?$/i;
-  const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|ch\.|cap\.|ep\.|c\.)\s*#?\s*\d+.*$/i;
+  const CHAPTER_URL_REGEX = /(?:\/|-|_|\b)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c|bab)[-_\/.]?(\d{1,5}(?:[.-]\d{1,2})?)(?:\/|$|\?|#|-|_)/i;
+  const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c|bab)[-_\/.]?\d+(?:[._-]\d+)?(?:\/.*)?$/i;
+  const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|ch\.|cap\.|ep\.|c\.|bab)\s*#?\s*\d+.*$/i;
   const TRAILING_MEDIA_SUFFIX_REGEX = /\s+\b(?:manhwa|manhua|manga|webtoon|novela\s*ligera|light\s*novel|web\s*novel|novela|novel|comic|raw|sub\s*espa[ñn]ol|en\s*espa[ñn]ol|online|gratis|free|skynovels)\b\s*$/i;
 
   const CATALOG_SEGMENTS = new Set([
@@ -141,6 +183,7 @@
   let lastCheckedHref = location.href;
   let lastCapturedUrl = "";
   let lastCapturedChapterForPrevUrl = "";
+  let lastCapturedSeriesIdForPrevUrl = "";
   let lastSentKey = "";
   let lastLoggedMissUrl = "";
 
@@ -255,6 +298,10 @@
       .replace(/\/+$/, "")
       .split("/")
       .filter(Boolean);
+    // Para rutas con prefijo de idioma como /es/book/... o /en/book/..., normalizar quitando el prefijo de idioma
+    if (segments.length >= 2 && /^[a-z]{2}$/.test(segments[0]) && CATALOG_SEGMENTS.has(segments[1])) {
+      segments.shift();
+    }
     if (segments.length >= 2 && CATALOG_SEGMENTS.has(segments[0])) {
       segments[0] = "series";
     }
@@ -307,6 +354,14 @@
       const segments = pathname.split("/").filter(Boolean);
       if (segments.length === 0) return null;
 
+      // Caso Webnovel: /(?:[a-z]{2}\/)?book/{novelSlug}_{novelId}(?:/{chapterSlug}_{chapterId})?
+      if (u.hostname.includes("webnovel.com")) {
+        const bookMatch = pathname.match(/^((?:\/[a-z]{2})?\/book\/[a-z0-9_-]+_\d+)(?:\/.*)?$/i);
+        if (bookMatch && bookMatch[1]) {
+          return `${u.origin}${bookMatch[1]}`;
+        }
+      }
+
       // Caso A: patrón explícito /chapter-X o /capitulo-X en cualquier nivel (incluyendo /{slug}/capitulo-X)
       const explicitMatch = pathname.match(CHAPTER_STRIP_PATH_REGEX);
       if (explicitMatch && explicitMatch[1]) {
@@ -329,10 +384,10 @@
         }
       }
 
-      // Caso C (SkyNovels): /novelas/{novelId}/{novelSlug}/{chapterId}
+      // Caso C (SkyNovels): /novelas/{novelId}/{novelSlug}/{chapterId} o /novelas/{novelId}/{novelSlug}
       if (
         CATALOG_SEGMENTS.has(firstLower) &&
-        segments.length >= 4 &&
+        segments.length >= 3 &&
         /^\d+$/.test(segments[1]) &&
         /[a-z]/i.test(segments[2])
       ) {
@@ -425,6 +480,8 @@
     const str = String(text);
     const m = str.match(CHAPTER_EXPLICIT_REGEX);
     if (m) return parseValidChapterNumber(m[1] || m[2]);
+    const mSpecial = parseSpecialChapter(str);
+    if (mSpecial !== null) return mSpecial;
     const mVol = str.match(VOLUME_FALLBACK_REGEX);
     if (mVol) return parseValidChapterNumber(mVol[1]);
     return null;
@@ -442,11 +499,20 @@
     const num = parseFloat(String(rawNum).replace(",", "."));
     // Evitar confundir un año (ej. 2025, 2026) con un capítulo si no lleva palabra clave
     if (isNaN(num) || num < 0 || num > 4000 || (num >= 1990 && num <= 2035)) return null;
+
+    // Si el nombre de la novela empieza con ese mismo número (ej. "86 - Eighty Six", "100 Mans"), no es un número de capítulo
+    if (novelNameHint) {
+      const hintLeading = String(novelNameHint).trim().match(/^(\d{1,5})/);
+      if (hintLeading && parseFloat(hintLeading[1]) === num) {
+        return null;
+      }
+    }
+
     return String(num);
   }
 
   // Extracción prioritaria desde elementos <select> o dropdowns del lector (99% de fiabilidad en lectores)
-  function extractChapterFromReaderDropdown() {
+  function extractChapterFromReaderDropdown(novelNameHint = "") {
     try {
       const select = document.querySelector(
         'select[id*="chap" i], select[name*="chap" i], select[class*="chap" i], ' +
@@ -456,8 +522,12 @@
       if (select && select.options && select.selectedIndex >= 0) {
         const selectedOpt = select.options[select.selectedIndex];
         const text = (selectedOpt.textContent || "").trim();
-        const matched = matchExplicitChapter(text) || parseSpecialChapter(text);
+        const matched = matchExplicitChapter(text) || parseSpecialChapter(text) || matchLeadingNumberChapter(text, novelNameHint);
         if (matched !== null) return matched;
+        if (/^\d{1,5}(?:[.,]\d{1,2})?$/.test(text)) {
+          const parsed = parseValidChapterNumber(text);
+          if (parsed !== null) return parsed;
+        }
       }
 
       // Dropdowns custom o de Angular Material (como SkyNovels)
@@ -466,8 +536,12 @@
       );
       if (customSelectEl) {
         const text = getCleanElementText(customSelectEl);
-        const matched = matchExplicitChapter(text) || parseSpecialChapter(text);
+        const matched = matchExplicitChapter(text) || parseSpecialChapter(text) || matchLeadingNumberChapter(text, novelNameHint);
         if (matched !== null) return matched;
+        if (/^\d{1,5}(?:[.,]\d{1,2})?$/.test(text)) {
+          const parsed = parseValidChapterNumber(text);
+          if (parsed !== null) return parsed;
+        }
       }
     } catch {}
     return null;
@@ -505,11 +579,12 @@
       }
 
       // 4. Ruta puramente numérica al final: /manga/slug/120 o /series/slug/120/
-      // Excluyendo paginación de imágenes (/page/3 o /p/3)
+      // Excluyendo paginación de imágenes (/page/3 o /p/3) y rutas de catálogo con ID numérico (ej. SkyNovels /novelas/{id}/{slug}/{id})
       if (segments.length >= 2) {
         const last = segments[segments.length - 1];
         const prev = segments[segments.length - 2].toLowerCase();
-        if (/^\d{1,5}(?:[.-]\d{1,2})?$/.test(last) && !["page", "pagina", "p", "pag"].includes(prev)) {
+        const isCatalogIdPath = segments.length >= 3 && CATALOG_SEGMENTS.has(segments[0].toLowerCase()) && /^\d+$/.test(segments[1]);
+        if (!isCatalogIdPath && /^\d{1,5}(?:[.-]\d{1,2})?$/.test(last) && !["page", "pagina", "p", "pag"].includes(prev)) {
           const parsed = parseValidChapterNumber(last);
           if (parsed !== null) return parsed;
         }
@@ -551,11 +626,185 @@
     return { novelName, novelUrl, chapter };
   }
 
-  // Motor de extracción de capítulo en 7 niveles protegidos
+  // Detección de capítulo visible en el viewport para lectores continuos (Webnovel, etc.)
+  function getVisibleChapterFromViewport(novelNameHint = "") {
+    if (typeof window === "undefined" || !document) return null;
+    try {
+      const viewportHeight = window.innerHeight || 800;
+      // La línea/zona focal de lectura: aproximadamente el 35% de la altura de la ventana
+      const focalY = viewportHeight * 0.35;
+
+      // ESTRATEGIA 1: Contenedores de capítulo (Webnovel, lectores SPA continuos)
+      const containerSelectors = [
+        '[data-chapter-no]',
+        '[data-chapterno]',
+        '[data-chapter]',
+        '.chapter-entity',
+        '.j_chapterBox',
+        '.cha-content',
+        '.chapter-section',
+        '.chapter-wrapper',
+        '[class*="chapter-entity"]',
+        '[class*="j_chapterBox"]',
+        '[class*="cha-content-wrap"]',
+        '[class*="chapter-section"]',
+        'article'
+      ];
+
+      const foundContainers = [];
+      const seenContainers = new Set();
+      for (const sel of containerSelectors) {
+        let elements = [];
+        try {
+          elements = document.querySelectorAll(sel);
+        } catch {
+          continue;
+        }
+        for (const el of elements) {
+          if (seenContainers.has(el)) continue;
+          seenContainers.add(el);
+
+          let chapNum = null;
+          const attrVal = el.getAttribute("data-chapter-no") ||
+                          el.getAttribute("data-chapterno") ||
+                          el.getAttribute("data-chapter");
+          if (attrVal) {
+            chapNum = parseValidChapterNumber(attrVal);
+          }
+
+          if (chapNum === null) {
+            const heading = el.querySelector('h1, h2, h3, h4, h5, [class*="cha-tit"], [class*="chapter-title"], .chr-title');
+            if (heading) {
+              const hText = getCleanElementText(heading);
+              chapNum = matchExplicitChapter(hText) || parseSpecialChapter(hText) || matchLeadingNumberChapter(hText, novelNameHint);
+            }
+          }
+
+          if (chapNum === null) {
+            const idStr = el.id || "";
+            const idMatch = idStr.match(/(?:chapter|chap|capitulo|cap|bab)[-_]?(\d+(?:[.-]\d+)?)/i);
+            if (idMatch && idMatch[1]) {
+              chapNum = parseValidChapterNumber(idMatch[1]);
+            }
+          }
+
+          if (chapNum !== null && typeof el.getBoundingClientRect === "function") {
+            try {
+              const rect = el.getBoundingClientRect();
+              foundContainers.push({ el, chapter: chapNum, top: rect.top, bottom: rect.bottom, height: rect.height });
+            } catch {}
+          }
+        }
+      }
+
+      if (foundContainers.length > 0) {
+        foundContainers.sort((a, b) => a.top - b.top);
+
+        // 1. Contenedor que envuelve la línea focal activa
+        for (const c of foundContainers) {
+          if (c.top <= focalY && c.bottom >= focalY) {
+            return c.chapter;
+          }
+        }
+
+        // 2. Mayor intersección con el viewport visible
+        let bestContainer = null;
+        let maxOverlap = 0;
+        for (const c of foundContainers) {
+          const visibleTop = Math.max(0, c.top);
+          const visibleBottom = Math.min(viewportHeight, c.bottom);
+          const overlap = visibleBottom - visibleTop;
+          if (overlap > maxOverlap) {
+            maxOverlap = overlap;
+            bestContainer = c;
+          }
+        }
+        if (bestContainer && maxOverlap > 50) {
+          return bestContainer.chapter;
+        }
+      }
+
+      // ESTRATEGIA 2: Secuencia de cabeceras de capítulo en el DOM
+      const headingSelectors = [
+        'h1', 'h2', 'h3', 'h4', 'h5',
+        '[class*="cha-tit"]',
+        '[class*="chapter-title"]',
+        '.chr-title',
+        '.chap-title',
+        '.reading-title',
+        '.entry-title',
+        '.cha-hd-mn',
+        '[class*="chapter-header"]',
+        '[class*="titulo-capitulo"]'
+      ];
+
+      const foundHeadings = [];
+      const seenHeadings = new Set();
+      for (const sel of headingSelectors) {
+        let elements = [];
+        try {
+          elements = document.querySelectorAll(sel);
+        } catch {
+          continue;
+        }
+        for (const el of elements) {
+          if (seenHeadings.has(el)) continue;
+          seenHeadings.add(el);
+          const text = getCleanElementText(el);
+          const matched = matchExplicitChapter(text) || parseSpecialChapter(text) || matchLeadingNumberChapter(text, novelNameHint);
+          if (matched !== null && typeof el.getBoundingClientRect === "function") {
+            try {
+              const rect = el.getBoundingClientRect();
+              foundHeadings.push({ el, chapter: matched, top: rect.top, bottom: rect.bottom });
+            } catch {}
+          }
+        }
+      }
+
+      if (foundHeadings.length > 0) {
+        foundHeadings.sort((a, b) => a.top - b.top);
+
+        if (foundHeadings.length === 1) {
+          const h = foundHeadings[0];
+          if (h.top <= viewportHeight * 0.9) {
+            return h.chapter;
+          }
+          return null;
+        }
+
+        let activeChap = null;
+        for (let i = 0; i < foundHeadings.length; i++) {
+          if (foundHeadings[i].top <= focalY) {
+            activeChap = foundHeadings[i].chapter;
+          } else {
+            break;
+          }
+        }
+
+        if (activeChap !== null) {
+          return activeChap;
+        }
+
+        if (foundHeadings[0].top <= viewportHeight * 0.85) {
+          return foundHeadings[0].chapter;
+        }
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Motor de extracción de capítulo en niveles protegidos
   function extractChapterNumber(novelNameHint = "") {
     // Nivel 1: Dropdown / <select> del lector (Fuente más fiable en webs de manga/novelas)
-    const fromDropdown = extractChapterFromReaderDropdown();
+    const fromDropdown = extractChapterFromReaderDropdown(novelNameHint);
     if (fromDropdown !== null) return fromDropdown;
+
+    // Nivel 1.5: Viewport continuo (prioritario cuando hay múltiples capítulos en pantalla sin recarga)
+    const fromViewport = getVisibleChapterFromViewport(novelNameHint);
+    if (fromViewport !== null) return fromViewport;
 
     // Nivel 2: URL y parámetros (?episode_no=, /chapter-12, /slug/120)
     const fromUrl = extractChapterFromUrl(location.href);
@@ -856,10 +1105,32 @@
     }).catch(() => {});
   }
 
+  let lastCheckedScrollChapter = null;
+  function checkVisibleChapterOnScroll() {
+    if (document.visibilityState !== "visible") return;
+
+    // Detectar si el lector SPA cambió la URL mediante History API en el mundo principal
+    if (location.href !== lastCheckedHref) {
+      lastCheckedHref = location.href;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(evaluatePage, 250);
+      return;
+    }
+
+    const currentVisChapter = getVisibleChapterFromViewport();
+    if (currentVisChapter && currentVisChapter !== activeChapter && currentVisChapter !== lastCheckedScrollChapter) {
+      lastCheckedScrollChapter = currentVisChapter;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(evaluatePage, 300);
+    }
+  }
+
   window.addEventListener(
     "scroll",
     () => {
-      if (document.visibilityState !== "visible" || !activeSeriesId) return;
+      if (document.visibilityState !== "visible") return;
+      checkVisibleChapterOnScroll();
+      if (!activeSeriesId) return;
       const now = Date.now();
       const elapsed = now - lastScrollSentAt;
       if (elapsed >= 2000) {
@@ -916,7 +1187,7 @@
   }
 
   function isAuthenticReadingContext() {
-    if (isBlacklistedDomain(location.hostname)) return false;
+    if (isCurrentDomainBlacklisted()) return false;
 
     // Si es la raíz de la web (home) sin ruta de lectura, no evaluar
     const pathOnly = location.pathname.replace(/\/+$/, "");
@@ -993,12 +1264,22 @@
       reliableSeriesId = false;
     }
 
+    if (seriesId) {
+      if (activeSeriesId && activeSeriesId !== seriesId) {
+        activeChapter = "";
+        lastCapturedChapterForPrevUrl = "";
+        lastCapturedSeriesIdForPrevUrl = "";
+        lastSentKey = "";
+      }
+    }
+
     // Si estamos en una URL nueva de capítulo pero el SPA aún no ha renderizado el capítulo nuevo (o sigue mostrando el viejo)
     const isStaleSpaChapter =
       lastCapturedUrl &&
       lastCapturedUrl !== location.href &&
       chapter !== null &&
       chapter === lastCapturedChapterForPrevUrl &&
+      (!lastCapturedSeriesIdForPrevUrl || lastCapturedSeriesIdForPrevUrl === seriesId) &&
       retryCount < 6;
 
     const isPotentialReaderPage = Boolean(
@@ -1059,6 +1340,7 @@
     lastCapturedUrl = location.href;
     if (chapter !== "AUTO_NEXT") {
       lastCapturedChapterForPrevUrl = String(chapter);
+      lastCapturedSeriesIdForPrevUrl = finalSeriesId;
     }
     retryCount = 0;
     stopBodyObserver();
@@ -1089,6 +1371,12 @@
           if (typeof res.restoreScrollPct === "number" && res.restoreScrollPct > 0) {
             restoreScrollPosition(res.restoreScrollPct, `${res.seriesId}::${resolvedChapter}`);
           }
+        } else if (res && res.blacklisted) {
+          dismissInPagePrompt();
+          stopBodyObserver();
+          return;
+        } else if (res && res.unconfirmed) {
+          showInPagePrompt(res);
         }
       })
       .catch(() => {});
@@ -1098,7 +1386,7 @@
     retryCount = 0;
     clearTimeout(debounceTimer);
     clearTimeout(retryTimer);
-    if (!isAuthenticReadingContext()) return;
+    if (!isAuthenticReadingContext() || isCurrentDomainBlacklisted()) return;
     startTemporaryBodyObserver();
     debounceTimer = setTimeout(evaluatePage, 600);
   }
@@ -1146,6 +1434,369 @@
       triggerNavigationDetection();
     });
   }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  let inPagePromptHost = null;
+  let inPagePromptShadow = null;
+
+  function dismissInPagePrompt() {
+    if (inPagePromptHost) {
+      inPagePromptHost.remove();
+      inPagePromptHost = null;
+      inPagePromptShadow = null;
+    }
+  }
+
+  function showInPagePrompt(payload) {
+    if (isCurrentDomainBlacklisted()) return;
+    if (document.querySelector("mynovelsystem-prompt, noveltrack-prompt")) return;
+
+    const host = document.createElement("mynovelsystem-prompt");
+    inPagePromptHost = host;
+    const shadow = host.attachShadow({ mode: "closed" });
+    inPagePromptShadow = shadow;
+
+    const rawDomain = location.hostname.toLowerCase().replace(/^www\./, "");
+    const displayTitle = payload?.novelName || document.title || "Novela detectada";
+    const chapVal = payload?.chapter;
+    const displayChapter = chapVal && chapVal !== "AUTO_NEXT" ? `Cap. ${chapVal}` : "Cap. 1";
+
+    const style = document.createElement("style");
+    style.textContent = `
+      :host {
+        all: initial;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 2147483647;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 13px;
+        line-height: 1.4;
+        animation: ntFadeUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        :host {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+      @keyframes ntFadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .nt-card {
+        background: rgba(15, 15, 20, 0.94);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 14px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(99, 102, 241, 0.35);
+        color: #f8fafc;
+        width: 320px;
+        max-width: calc(100vw - 32px);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-sizing: border-box;
+      }
+      .nt-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .nt-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .nt-crest {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #0ea5e9, #6366f1, #ec4899);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+      }
+      .nt-title-lbl {
+        font-size: 12px;
+        font-weight: 700;
+        background: linear-gradient(90deg, #fff, #c7d2fe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .nt-btn-close {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .nt-btn-close:hover, .nt-btn-close:focus-visible {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+        outline: none;
+      }
+      .nt-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .nt-novel-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #f1f5f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .nt-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .nt-chip-chap {
+        font-size: 11px;
+        font-weight: 700;
+        background: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        padding: 2px 7px;
+        border-radius: 99px;
+      }
+      .nt-chip-domain {
+        font-size: 10.5px;
+        color: #94a3b8;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 2px 6px;
+        border-radius: 5px;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .nt-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .nt-btn {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.15s ease;
+      }
+      .nt-btn-primary {
+        background: linear-gradient(135deg, #06b6d4 0%, #6366f1 50%, #d946ef 100%);
+        color: #fff;
+        box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+      }
+      .nt-btn-primary:hover, .nt-btn-primary:focus-visible {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+        outline: 2px solid #818cf8;
+      }
+      .nt-btn-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #cbd5e1;
+      }
+      .nt-btn-secondary:hover, .nt-btn-secondary:focus-visible {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        outline: none;
+      }
+      .nt-btn-blacklist {
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.3);
+        color: #fda4af;
+        flex: 0 0 auto;
+        padding: 8px 10px;
+      }
+      .nt-btn-blacklist:hover, .nt-btn-blacklist:focus-visible {
+        background: rgba(244, 63, 94, 0.25);
+        color: #fff;
+        outline: none;
+      }
+      .nt-feedback {
+        font-size: 11.5px;
+        font-weight: 600;
+        text-align: center;
+        padding: 4px;
+        color: #34d399;
+      }
+    `;
+
+    const card = document.createElement("div");
+    card.className = "nt-card";
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "false");
+    card.setAttribute("aria-label", "Aviso de MyNovelSystem");
+
+    card.innerHTML = `
+      <div class="nt-header">
+        <div class="nt-brand">
+          <div class="nt-crest">N</div>
+          <span class="nt-title-lbl">MyNovelSystem</span>
+        </div>
+        <button type="button" class="nt-btn-close" aria-label="Cerrar aviso" title="Cerrar (Esc)">&times;</button>
+      </div>
+      <div class="nt-body">
+        <div class="nt-novel-title" title="${escapeHtml(displayTitle)}">${escapeHtml(displayTitle)}</div>
+        <div class="nt-meta-row">
+          <span class="nt-chip-chap">${escapeHtml(displayChapter)}</span>
+          <span class="nt-chip-domain" title="${escapeHtml(rawDomain)}">${escapeHtml(rawDomain)}</span>
+        </div>
+      </div>
+      <div class="nt-actions" id="ntActionsRow">
+        <button type="button" class="nt-btn nt-btn-primary" id="ntBtnAdd">+ Añadir</button>
+        <button type="button" class="nt-btn nt-btn-secondary" id="ntBtnDismiss">✕</button>
+        <button type="button" class="nt-btn nt-btn-blacklist" id="ntBtnBlacklist" title="Excluir este sitio en MyNovelSystem">🚫 BlackList</button>
+      </div>
+      <div class="nt-feedback" id="ntFeedback" style="display:none;"></div>
+    `;
+
+    shadow.appendChild(style);
+    shadow.appendChild(card);
+    document.body.appendChild(host);
+
+    const btnAdd = shadow.getElementById("ntBtnAdd");
+    const btnDismiss = shadow.getElementById("ntBtnDismiss");
+    const btnBlacklist = shadow.getElementById("ntBtnBlacklist");
+    const btnClose = shadow.querySelector(".nt-btn-close");
+    const actionsRow = shadow.getElementById("ntActionsRow");
+    const feedbackEl = shadow.getElementById("ntFeedback");
+
+    setTimeout(() => {
+      btnAdd?.focus();
+    }, 50);
+
+    const closeHandler = (e) => {
+      if (e && e.type === "click" && !e.isTrusted) return;
+      chrome.runtime.sendMessage({ type: "DISCARD_UNCONFIRMED_TAB" }).catch(() => {});
+      dismissInPagePrompt();
+    };
+
+    btnClose?.addEventListener("click", closeHandler);
+    btnDismiss?.addEventListener("click", closeHandler);
+
+    btnAdd?.addEventListener("click", async (e) => {
+      if (e && !e.isTrusted) return;
+      btnAdd.disabled = true;
+      try {
+        await chrome.runtime.sendMessage({
+          type: "CONFIRM_UNCONFIRMED_TAB",
+          novelName: displayTitle,
+          chapter: chapVal || "1",
+          url: payload?.url || location.href,
+          seriesId: payload?.seriesId,
+          novelUrl: payload?.novelUrl
+        });
+        actionsRow.style.display = "none";
+        feedbackEl.textContent = "✓ ¡Obra añadida a la biblioteca!";
+        feedbackEl.style.display = "block";
+        setTimeout(() => {
+          dismissInPagePrompt();
+        }, 800);
+      } catch {
+        dismissInPagePrompt();
+      }
+    });
+
+    btnBlacklist?.addEventListener("click", async (e) => {
+      if (e && !e.isTrusted) return;
+      btnBlacklist.disabled = true;
+      try {
+        await chrome.runtime.sendMessage({
+          type: "ADD_DOMAIN_BLACKLIST",
+          domain: rawDomain
+        });
+        actionsRow.style.display = "none";
+        feedbackEl.innerHTML = `<span>🚫 Dominio bloqueado</span> <button type="button" id="ntBtnUndo" style="background:transparent; border:1px solid #fda4af; color:#fda4af; border-radius:4px; padding:2px 8px; font-size:11px; margin-left:8px; cursor:pointer;">Deshacer</button>`;
+        feedbackEl.style.color = "#fda4af";
+        feedbackEl.style.display = "flex";
+        feedbackEl.style.alignItems = "center";
+        feedbackEl.style.justifyContent = "center";
+
+        let undoTimer = setTimeout(() => {
+          dismissInPagePrompt();
+        }, 5000);
+
+        shadow.getElementById("ntBtnUndo")?.addEventListener("click", async (ev) => {
+          if (ev && !ev.isTrusted) return;
+          clearTimeout(undoTimer);
+          try {
+            await chrome.runtime.sendMessage({
+              type: "REMOVE_DOMAIN_BLACKLIST",
+              domain: rawDomain
+            });
+            feedbackEl.style.display = "none";
+            feedbackEl.innerHTML = "";
+            actionsRow.style.display = "flex";
+            btnBlacklist.disabled = false;
+          } catch {
+            dismissInPagePrompt();
+          }
+        });
+      } catch {
+        dismissInPagePrompt();
+      }
+    });
+
+    const keyListener = (e) => {
+      if (e.key === "Escape") {
+        document.removeEventListener("keydown", keyListener);
+        closeHandler();
+      }
+    };
+    document.addEventListener("keydown", keyListener);
+  }
+
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg && msg.type === "SHOW_UNCONFIRMED_PROMPT") {
+      showInPagePrompt(msg.data);
+    }
+    if (msg && msg.type === "DISMISS_UNCONFIRMED_PROMPT") {
+      dismissInPagePrompt();
+    }
+  });
 
   setInterval(() => {
     if (location.href !== lastCheckedHref) {

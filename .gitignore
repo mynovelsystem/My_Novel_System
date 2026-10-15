@@ -1,0 +1,9 @@
+# NovelTrack - Git Ignore
+preview/
+scratch/
+_backup_*/
+*.zip
+*.tar.gz
+node_modules/
+.DS_Store
+Thumbs.db

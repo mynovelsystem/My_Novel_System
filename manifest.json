@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Novel Chapter Tracker",
+  "name": "MyNovelSystem",
   "version": "4.0.0",
-  "description": "Guarda automáticamente el capítulo y posición de lectura, sistema de cultivo, sincronización en la nube y avisos por WhatsApp.",
+  "description": "Tu sistema personal de lectura y cultivo. Guarda capítulos, calcula Qi, desbloquea recompensas y sube de reino.",
   "permissions": [
     "tabs",
     "storage",
@@ -10,8 +10,17 @@
     "activeTab"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://novel-tracker-1d134-default-rtdb.firebaseio.com/*",
+    "https://api.callmebot.com/*"
   ],
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
   "omnibox": {
     "keyword": "nt"
   },
@@ -25,7 +34,11 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "NovelTrack"
+    "default_title": "MyNovelSystem",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
@@ -39,7 +52,10 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["locales/es.json", "locales/en.json"],
+      "resources": [
+        "locales/es.json",
+        "locales/en.json"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

@@ -1,5 +1,6 @@
 // Test suite for P0: mergeStatsObjects preservation
 const fs = require("fs");
+const path = require("path");
 const assert = require("assert");
 
 // Helper to create mock event
@@ -42,7 +43,8 @@ const mockChrome = {
     onInstalled: mockEvent(),
     onStartup: mockEvent(),
     onMessage: mockEvent(),
-    getManifest: () => ({ version: "4.0.0" })
+    getManifest: () => ({ version: "4.0.0" }),
+    getURL: (p) => p || ""
   },
   tabs: {
     onRemoved: mockEvent(),
@@ -89,7 +91,16 @@ const context = {
   parseInt,
   isNaN,
   URL,
-  importScripts: () => {},
+  importScripts: (...files) => {
+    for (const f of files) {
+      try {
+        const p = path.resolve(__dirname, "..", f);
+        if (fs.existsSync(p)) {
+          vm.runInContext(fs.readFileSync(p, "utf8"), context);
+        }
+      } catch {}
+    }
+  },
   chrome: mockChrome,
   t: (k) => k,
   initI18n: () => Promise.resolve(),
@@ -279,6 +290,76 @@ async function runAsyncScenarios() {
     console.log("  [PASS] Scenario 5");
   } catch (err) {
     console.error("  [FAIL] Scenario 5:", err.message);
+    hasFailed = true;
+  }
+
+  // Scenario 6: Peak Realm stage === null preservation during cross-device merge
+  console.log("Scenario 6 (Peak Realm stage === null preservation during merge):");
+  const devicePeakA = {
+    ...getDefaultStats(),
+    chaptersRead: 50000,
+    cultivatedRealmIndex: 9,
+    cultivatedStage: null,
+    cultivationThemes: {
+      cultivation: { realmIndex: 9, stage: null }
+    },
+    updatedAt: 12000
+  };
+
+  const devicePeakB = {
+    ...getDefaultStats(),
+    chaptersRead: 55000,
+    cultivatedRealmIndex: 9,
+    cultivatedStage: null,
+    cultivationThemes: {
+      cultivation: { realmIndex: 9, stage: null }
+    },
+    updatedAt: 13000
+  };
+
+  const mergedPeak = mergeStatsObjects(devicePeakA, devicePeakB);
+  try {
+    assert.strictEqual(mergedPeak.cultivatedRealmIndex, 9, "Peak realm must be 9");
+    assert.strictEqual(mergedPeak.cultivatedStage, null, "Peak realm stage must strictly be null, never forced to 1");
+    assert.strictEqual(mergedPeak.cultivationThemes.cultivation.stage, null, "Cultivation theme stage must strictly be null at peak");
+    console.log("  [PASS] Scenario 6");
+  } catch (err) {
+    console.error("  [FAIL] Scenario 6:", err.message);
+    hasFailed = true;
+  }
+
+  // Scenario 7: Non-Peak Realm stage preservation (Realm 1 with stage: 3 vs stage: null)
+  console.log("Scenario 7 (Non-Peak Realm stage preservation when peer has null stage):");
+  const deviceR1Local = {
+    ...getDefaultStats(),
+    chaptersRead: 250,
+    cultivatedRealmIndex: 1,
+    cultivatedStage: 3,
+    cultivationThemes: {
+      cultivation: { realmIndex: 1, stage: 3 }
+    },
+    updatedAt: 14000
+  };
+
+  const deviceR1Cloud = {
+    ...getDefaultStats(),
+    chaptersRead: 200,
+    cultivatedRealmIndex: 1,
+    cultivatedStage: null,
+    cultivationThemes: {
+      cultivation: { realmIndex: 1, stage: null }
+    },
+    updatedAt: 12000
+  };
+
+  const mergedR1 = mergeStatsObjects(deviceR1Local, deviceR1Cloud);
+  try {
+    assert.strictEqual(mergedR1.cultivatedRealmIndex, 1, "Realm must be 1");
+    assert.strictEqual(mergedR1.cultivatedStage, 3, "Non-peak Realm 1 must preserve stage 3 and never coerce to null");
+    assert.strictEqual(mergedR1.cultivationThemes.cultivation.stage, 3, "Theme stage must also preserve stage 3");
+    console.log("  [PASS] Scenario 7");
+  } catch (err) {
+    console.error("  [FAIL] Scenario 7:", err.message);
     hasFailed = true;
   }
 
