@@ -1527,7 +1527,9 @@ function normalizeLang(lang) {
 
 function detectDefaultLanguage() {
   try {
-    const uiLang = (chrome.i18n && chrome.i18n.getUILanguage ? chrome.i18n.getUILanguage() : navigator.language) || "es";
+    const uiLang = (typeof chrome !== "undefined" && chrome.i18n && chrome.i18n.getUILanguage
+      ? chrome.i18n.getUILanguage()
+      : (typeof navigator !== "undefined" ? navigator.language : "es")) || "es";
     return normalizeLang(uiLang) || "es";
   } catch {
     return "es";
@@ -1536,13 +1538,23 @@ function detectDefaultLanguage() {
 
 async function initI18n(forcedLang) {
   if (!i18nLoadedPromise) {
-    i18nLoadedPromise = Promise.all([
-      fetch(chrome.runtime.getURL("locales/es.json")).then((r) => r.json()).catch(() => ({})),
-      fetch(chrome.runtime.getURL("locales/en.json")).then((r) => r.json()).catch(() => ({}))
-    ]).then(([esDict, enDict]) => {
-      I18N_DICTS.es = { ...FALLBACK_DICTS.es, ...(esDict || {}) };
-      I18N_DICTS.en = { ...FALLBACK_DICTS.en, ...(enDict || {}) };
-    });
+    const isExtension = typeof chrome !== "undefined" && chrome.runtime && typeof chrome.runtime.getURL === "function";
+    if (isExtension) {
+      i18nLoadedPromise = Promise.all([
+        fetch(chrome.runtime.getURL("locales/es.json")).then((r) => r.json()).catch(() => ({})),
+        fetch(chrome.runtime.getURL("locales/en.json")).then((r) => r.json()).catch(() => ({}))
+      ]).then(([esDict, enDict]) => {
+        I18N_DICTS.es = { ...FALLBACK_DICTS.es, ...(esDict || {}) };
+        I18N_DICTS.en = { ...FALLBACK_DICTS.en, ...(enDict || {}) };
+      }).catch(() => {
+        I18N_DICTS.es = { ...FALLBACK_DICTS.es };
+        I18N_DICTS.en = { ...FALLBACK_DICTS.en };
+      });
+    } else {
+      I18N_DICTS.es = { ...FALLBACK_DICTS.es };
+      I18N_DICTS.en = { ...FALLBACK_DICTS.en };
+      i18nLoadedPromise = Promise.resolve();
+    }
   }
   await i18nLoadedPromise;
 
@@ -1553,13 +1565,15 @@ async function initI18n(forcedLang) {
   }
 
   try {
-    const { settings } = await chrome.storage.local.get(["settings"]);
-    const normSettings = normalizeLang(settings?.language);
-    if (normSettings) {
-      currentLang = normSettings;
-    } else {
-      currentLang = detectDefaultLanguage();
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      const { settings } = await chrome.storage.local.get(["settings"]);
+      const normSettings = normalizeLang(settings?.language);
+      if (normSettings) {
+        currentLang = normSettings;
+        return currentLang;
+      }
     }
+    currentLang = detectDefaultLanguage();
   } catch {
     currentLang = detectDefaultLanguage();
   }

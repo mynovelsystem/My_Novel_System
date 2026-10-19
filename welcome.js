@@ -7,9 +7,13 @@ function initWelcomePage() {
   // 1. Resolve DOM Elements
   const btnLangEs = document.getElementById("btnLangEs");
   const btnLangEn = document.getElementById("btnLangEn");
+  const langSwitcher = document.getElementById("langSwitcher") || (typeof document.querySelector === "function" ? document.querySelector(".lang-switcher") : null);
   const shortcutPill = document.getElementById("shortcutCopyPill");
   const transferNavPill = document.getElementById("transferNavPill");
   const btnStartReading = document.getElementById("btnStartReading");
+
+  // Track if user explicitly clicked a language button to prevent background overrides
+  let userManuallySwitched = false;
 
   // 2. Resolve initial language from synchronous state/fallback
   let currentLanguage = "es";
@@ -27,9 +31,13 @@ function initWelcomePage() {
       if (lang === "es") {
         btnLangEs.classList.add("active");
         btnLangEn.classList.remove("active");
+        if (typeof btnLangEs.setAttribute === "function") btnLangEs.setAttribute("aria-pressed", "true");
+        if (typeof btnLangEn.setAttribute === "function") btnLangEn.setAttribute("aria-pressed", "false");
       } else {
         btnLangEn.classList.add("active");
         btnLangEs.classList.remove("active");
+        if (typeof btnLangEn.setAttribute === "function") btnLangEn.setAttribute("aria-pressed", "true");
+        if (typeof btnLangEs.setAttribute === "function") btnLangEs.setAttribute("aria-pressed", "false");
       }
     }
   }
@@ -48,6 +56,7 @@ function initWelcomePage() {
 
   async function switchLanguage(lang) {
     if (lang !== "es" && lang !== "en") return;
+    userManuallySwitched = true;
     currentLanguage = lang;
 
     if (typeof setCurrentLang === "function") {
@@ -72,12 +81,28 @@ function initWelcomePage() {
     }
   }
 
-  // 4. Bind UI event listeners synchronously
+  // 4. Bind UI event listeners synchronously (direct + delegated for 100% click capture)
   if (btnLangEs) {
-    btnLangEs.addEventListener("click", () => switchLanguage("es"));
+    btnLangEs.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      switchLanguage("es");
+    });
   }
   if (btnLangEn) {
-    btnLangEn.addEventListener("click", () => switchLanguage("en"));
+    btnLangEn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      switchLanguage("en");
+    });
+  }
+  if (langSwitcher) {
+    langSwitcher.addEventListener("click", (e) => {
+      const btn = e.target.closest(".lang-btn");
+      if (!btn) return;
+      const targetLang = btn.getAttribute("data-lang") || (btn.id === "btnLangEn" ? "en" : "es");
+      switchLanguage(targetLang);
+    });
   }
 
   // 5. Setup Shortcut Copy Interaction (Click & Keyboard Enter/Space)
@@ -182,7 +207,19 @@ function initWelcomePage() {
     }, 2500);
   }
 
-  // 8. Reactive listener for language changes from storage (e.g. Popup settings)
+  // 8. Immediate storage synchronization & reactive listener
+  try {
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["settings"]).then(({ settings }) => {
+        if (!userManuallySwitched && settings?.language && (settings.language === "es" || settings.language === "en")) {
+          currentLanguage = settings.language;
+          if (typeof setCurrentLang === "function") setCurrentLang(settings.language);
+          applyTranslations();
+        }
+      }).catch(() => {});
+    }
+  } catch {}
+
   try {
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
       chrome.storage.onChanged.addListener((changes, area) => {
@@ -208,10 +245,17 @@ function initWelcomePage() {
     try {
       if (typeof initI18n === "function") {
         await initI18n();
-        if (typeof getCurrentLang === "function") {
-          currentLanguage = getCurrentLang() || "es";
+        if (!userManuallySwitched) {
+          if (typeof getCurrentLang === "function") {
+            currentLanguage = getCurrentLang() || "es";
+          }
+          applyTranslations();
+        } else {
+          if (typeof setCurrentLang === "function") {
+            setCurrentLang(currentLanguage);
+          }
+          applyTranslations();
         }
-        applyTranslations();
       }
     } catch (err) {
       console.warn("[MyNovelSystem Welcome] Error initializing i18n:", err);
