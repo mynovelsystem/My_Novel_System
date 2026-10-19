@@ -4836,7 +4836,7 @@ function formatTimeAgo(timestamp) {
 }
 
 function escapeHtml(str) {
-  return String(str || "").replace(/[&<>"']/g, (s) => ({
+  return String(str ?? "").replace(/[&<>"']/g, (s) => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",

@@ -143,4 +143,48 @@ console.log("\n[Test 5] Production Package Verification:");
   console.log(`  [PASS] MyNovelSystem-v4.0.0.zip verified (${(stat.size / 1024).toFixed(1)} KB).`);
 }
 
+// ----------------------------------------------------------------------------
+// Test 6: escapeHtml(str) Behavior & 0 / false Preservation
+// ----------------------------------------------------------------------------
+console.log("\n[Test 6] escapeHtml(str) Nullish Coalescing & Type Safety:");
+{
+  const popupCode = fs.readFileSync(path.join(rootDir, "popup.js"), "utf8");
+  assert.ok(
+    popupCode.includes("String(str ?? \"\")"),
+    "popup.js escapeHtml must use String(str ?? \"\")"
+  );
+
+  function escapeHtml(str) {
+    return String(str ?? "").replace(/[&<>"']/g, (s) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[s]));
+  }
+
+  // 1. Number 0 converted to "0" (NOT empty string)
+  assert.strictEqual(escapeHtml(0), "0", "0 must convert to '0'");
+  assert.strictEqual(escapeHtml(42), "42", "42 must convert to '42'");
+
+  // 2. Boolean false converted to "false"
+  assert.strictEqual(escapeHtml(false), "false", "false must convert to 'false'");
+  assert.strictEqual(escapeHtml(true), "true", "true must convert to 'true'");
+
+  // 3. null and undefined converted to ""
+  assert.strictEqual(escapeHtml(null), "", "null must convert to ''");
+  assert.strictEqual(escapeHtml(undefined), "", "undefined must convert to ''");
+  assert.strictEqual(escapeHtml(""), "", "empty string must convert to ''");
+
+  // 4. Normal string
+  assert.strictEqual(escapeHtml("Shadow Slave"), "Shadow Slave");
+
+  // 5. HTML escaping
+  assert.strictEqual(escapeHtml('<script>alert("xss")</script>'), "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
+  assert.strictEqual(escapeHtml("Tom & Jerry's"), "Tom &amp; Jerry&#39;s");
+
+  console.log("  [PASS] escapeHtml preserves 0 and false while safely neutralizing dangerous HTML entities.");
+}
+
 console.log("\n>>> ALL V4.0.0 AUDIT & HARDENING TESTS PASSED (100%)! <<<\n");

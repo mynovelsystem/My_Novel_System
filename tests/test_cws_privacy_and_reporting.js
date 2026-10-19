@@ -417,21 +417,17 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
   // ----------------------------------------------------------------------------
   // Test 4: Privacy Policy & Legal Terms Coherence
   // ----------------------------------------------------------------------------
-  console.log("\n[Test 4] Privacy Policy Coherence (privacy.html, PRIVACY.md & docs/privacy/index.html):");
+  console.log("\n[Test 4] Privacy Policy Coherence (privacy.html, PRIVACY.md & docs/index.html):");
   {
-    const docsPrivacyPath = path.join(rootDir, "docs", "privacy", "index.html");
-    assert.ok(fs.existsSync(docsPrivacyPath), "Public docs/privacy/index.html must exist");
-    const docsPrivacySource = fs.readFileSync(docsPrivacyPath, "utf8");
+    const docsIndexPath = path.join(rootDir, "docs", "index.html");
+    assert.ok(fs.existsSync(docsIndexPath), "Public docs/index.html must exist for GitHub Pages");
+    const docsIndexSource = fs.readFileSync(docsIndexPath, "utf8");
 
     const policyDocs = [
       ["privacy.html", privacyHtmlSource],
       ["PRIVACY.md", privacyMdSource],
-      ["docs/privacy/index.html", docsPrivacySource]
+      ["docs/index.html", docsIndexSource]
     ];
-    const docsIndexPath = path.join(rootDir, "docs", "index.html");
-    if (fs.existsSync(docsIndexPath)) {
-      policyDocs.push(["docs/index.html", fs.readFileSync(docsIndexPath, "utf8")]);
-    }
 
     for (const [name, doc] of policyDocs) {
       // 1. Contact email maintained
