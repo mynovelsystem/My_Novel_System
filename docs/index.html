@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Política de Privacidad — MyNovelSystem</title>
+  <title id="pageTitle">Política de Privacidad — MyNovelSystem</title>
   <link rel="canonical" href="https://mynovelsystem.github.io/My_Novel_System/">
-  <meta name="description" content="Política de Privacidad oficial de MyNovelSystem v4.0.0 para Chrome Web Store. Información detallada sobre tratamiento de datos, Firebase, minimización y derechos RGPD.">
+  <meta id="metaDescription" name="description" content="Política de Privacidad oficial de MyNovelSystem v4.0.0 para Chrome Web Store. Información detallada sobre tratamiento de datos, Firebase, minimización y derechos RGPD.">
   <style>
     :root {
       --bg: #0b0f19;
@@ -32,6 +32,55 @@
       border-radius: 12px;
       padding: 36px 32px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent-light);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+      user-select: none;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .lang-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .lang-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
     }
     h1 {
       font-size: 26px;
@@ -71,17 +120,6 @@
       font-size: 13px;
       color: #a5b4fc;
     }
-    .badge {
-      display: inline-block;
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid var(--accent);
-      color: var(--accent-light);
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 16px;
-    }
     footer {
       margin-top: 36px;
       padding-top: 20px;
@@ -94,106 +132,292 @@
 </head>
 <body>
   <div class="container">
-    <span class="badge">Chrome Web Store — Versión 4.0.0</span>
-    <h1>Política de Privacidad de MyNovelSystem</h1>
-    <p><strong>Última actualización:</strong> 17 de octubre de 2026</p>
+    <div class="header-top">
+      <span class="badge" id="versionBadge">Chrome Web Store — Versión 4.0.0</span>
+      <div class="lang-switcher" role="group" aria-label="Language selector">
+        <button type="button" id="btnLangEs" class="lang-btn active" aria-pressed="true">Español (ES)</button>
+        <button type="button" id="btnLangEn" class="lang-btn" aria-pressed="false">English (EN)</button>
+      </div>
+    </div>
 
-    <h2>1. Responsable del Tratamiento y Contacto</h2>
-    <p>El responsable de la extensión de navegador <strong>MyNovelSystem</strong> es su desarrollador independiente. Para cualquier consulta, ejercicio de derechos o aclaración referente a esta política de privacidad, puede contactar en: <strong>mynovelsystem@gmail.com</strong>.</p>
+    <!-- SECCIÓN EN ESPAÑOL -->
+    <div id="lang-es">
+      <h1>Política de Privacidad de MyNovelSystem</h1>
+      <p><strong>Última actualización:</strong> 17 de octubre de 2026</p>
 
-    <h2>2. Filosofía de Privacidad y Ejecución en la Web</h2>
-    <p>MyNovelSystem está diseñada bajo el principio de <strong>minimización de datos y privacidad desde el diseño</strong>:</p>
-    <ul>
-      <li>La extensión puede utilizarse de forma <strong>100% local</strong> sin necesidad de registrarse ni crear ninguna cuenta.</li>
-      <li><strong>Navegación Privada y Modo Incógnito:</strong> En pestañas o ventanas en modo incógnito, la extensión desactiva por completo su ejecución: no rastrea lectura, no escribe en memoria ni en la nube, no programa alarmas ni notificaciones, y jamás transmite información de pestañas privadas en los reportes de error.</li>
-      <li><strong>Páginas que NO son novelas:</strong> En sitios que no corresponden a plataformas de lectura o en páginas donde no se detectan patrones de capítulos, la extensión <strong>NO almacena ningún dato, NO recopila información personal, NO rastrea la navegación y NO envía ninguna petición a servidores externos</strong>. El análisis heurístico se realiza exclusivamente en la memoria volátil del navegador y se descarta de inmediato.</li>
-      <li><strong>Lista Negra y Dominios Excluidos:</strong> La extensión bloquea por diseño y por defecto la ejecución de cualquier observador en buscadores (Google, Bing, Yahoo), redes sociales (X, Facebook, Instagram, Reddit), servicios de streaming (YouTube, Twitch, Netflix), plataformas de desarrollo (GitHub, StackOverflow), almacenamiento y productividad. Asimismo, el usuario puede añadir cualquier dominio a su lista negra local para detener toda inspección con 0 consumo y 0 interferencia.</li>
-      <li>No recopilamos contraseñas en servidores propios (la autenticación se delega exclusivamente en Google Firebase).</li>
-      <li>No rastreamos su historial de navegación general ni vendemos ningún tipo de información a terceros.</li>
-    </ul>
+      <h2>1. Responsable del Tratamiento y Contacto</h2>
+      <p>El responsable de la extensión de navegador <strong>MyNovelSystem</strong> es su desarrollador independiente. Para cualquier consulta, ejercicio de derechos o aclaración referente a esta política de privacidad, puede contactar en: <strong>mynovelsystem@gmail.com</strong>.</p>
 
-    <h2>3. Permisos de Navegador Solicitados y Justificación</h2>
-    <p>La extensión solicita únicamente los permisos indispensables para cumplir sus funciones técnicas:</p>
-    <ul>
-      <li><code>storage</code>: Imprescindible para guardar en la memoria local de su navegador los capítulos leídos, sus estadísticas de cultivo y sus ajustes personalizados.</li>
-      <li><code>tabs</code>: Utilizado exclusivamente para identificar la pestaña de lectura activa, detectar el capítulo actual en sitios web de novelas o cómics y actualizar el icono del navegador.</li>
-      <li><code>alarms</code>: Utilizado para programar el temporizador local que verifica la inactividad de lectura (para los avisos de WhatsApp opcionales) y la sincronización periódica con la nube.</li>
-    </ul>
+      <h2>2. Filosofía de Privacidad y Ejecución en la Web</h2>
+      <p>MyNovelSystem está diseñada bajo el principio de <strong>minimización de datos y privacidad desde el diseño</strong>:</p>
+      <ul>
+        <li>La extensión puede utilizarse de forma <strong>100% local</strong> sin necesidad de registrarse ni crear ninguna cuenta.</li>
+        <li><strong>Navegación Privada y Modo Incógnito:</strong> En pestañas o ventanas en modo incógnito, la extensión desactiva por completo su ejecución: no rastrea lectura, no escribe en memoria ni en la nube, no programa alarmas ni notificaciones, y jamás transmite información de pestañas privadas en los reportes de error.</li>
+        <li><strong>Páginas que NO son novelas:</strong> En sitios que no corresponden a plataformas de lectura o en páginas donde no se detectan patrones de capítulos, la extensión <strong>NO almacena ningún dato, NO recopila información personal, NO rastrea la navegación y NO envía ninguna petición a servidores externos</strong>. El análisis heurístico se realiza exclusivamente en la memoria volátil del navegador y se descarta de inmediato.</li>
+        <li><strong>Lista Negra y Dominios Excluidos:</strong> La extensión bloquea por diseño y por defecto la ejecución de cualquier observador en buscadores (Google, Bing, Yahoo), redes sociales (X, Facebook, Instagram, Reddit), servicios de streaming (YouTube, Twitch, Netflix), plataformas de desarrollo (GitHub, StackOverflow), almacenamiento y productividad. Asimismo, el usuario puede añadir cualquier dominio a su lista negra local para detener toda inspección con 0 consumo y 0 interferencia.</li>
+        <li>No recopilamos contraseñas en servidores propios (la autenticación se delega exclusivamente en Google Firebase).</li>
+        <li>No rastreamos su historial de navegación general ni vendemos ningún tipo de información a terceros.</li>
+      </ul>
 
-    <h2>4. Datos Almacenados Localmente (en su Dispositivo)</h2>
-    <p>La extensión guarda en el almacenamiento local de su navegador (<code>chrome.storage.local</code>):</p>
-    <ul>
-      <li><strong>Biblioteca de lectura:</strong> Título de la obra, último capítulo leído, porcentaje de scroll vertical, fecha de actualización, URL del capítulo y estado manual (leyendo, pausada, completada, etc.).</li>
-      <li><strong>Progreso de cultivo y logros:</strong> Capítulos leídos acumulados, Qi obtenido, logros desbloqueados, recompensas reclamadas y logro equipado.</li>
-      <li><strong>Preferencias del usuario:</strong> Idioma activo (Español o Inglés), umbrales de días para estados inactivos, modo de rendimiento y lista de dominios bloqueados.</li>
-      <li><strong>Configuración de WhatsApp (CallMeBot):</strong> Teléfono y API Key de CallMeBot. <strong>Estos datos se conservan EXCLUSIVAMENTE en el almacenamiento local del dispositivo</strong> y nunca se envían ni se sincronizan con Firebase.</li>
-    </ul>
+      <h2>3. Permisos de Navegador Solicitados y Justificación</h2>
+      <p>La extensión solicita únicamente los permisos indispensables para cumplir sus funciones técnicas:</p>
+      <ul>
+        <li><code>storage</code>: Imprescindible para guardar en la memoria local de su navegador los capítulos leídos, sus estadísticas de cultivo y sus ajustes personalizados.</li>
+        <li><code>tabs</code>: Utilizado exclusivamente para identificar la pestaña de lectura activa, detectar el capítulo actual en sitios web de novelas o cómics y actualizar el icono del navegador.</li>
+        <li><code>alarms</code>: Utilizado para programar el temporizador local que verifica la inactividad de lectura (para los avisos de WhatsApp opcionales) y la sincronización periódica con la nube.</li>
+      </ul>
 
-    <h2>5. Datos Enviados a Servicios de Terceros</h2>
-    <p>La extensión realiza comunicaciones externas únicamente con los siguientes dos servicios y bajo las siguientes condiciones:</p>
+      <h2>4. Datos Almacenados Localmente (en su Dispositivo)</h2>
+      <p>La extensión guarda en el almacenamiento local de su navegador (<code>chrome.storage.local</code>):</p>
+      <ul>
+        <li><strong>Biblioteca de lectura:</strong> Título de la obra, último capítulo leído, porcentaje de scroll vertical, fecha de actualización, URL del capítulo y estado manual (leyendo, pausada, completada, etc.).</li>
+        <li><strong>Progreso de cultivo y logros:</strong> Capítulos leídos acumulados, Qi obtenido, logros desbloqueados, recompensas reclamadas y logro equipado.</li>
+        <li><strong>Preferencias del usuario:</strong> Idioma activo (Español o Inglés), umbrales de días para estados inactivos, modo de rendimiento y lista de dominios bloqueados.</li>
+        <li><strong>Configuración de WhatsApp (CallMeBot):</strong> Teléfono y API Key de CallMeBot. <strong>Estos datos se conservan EXCLUSIVAMENTE en el almacenamiento local del dispositivo</strong> y nunca se envían ni se sincronizan con Firebase.</li>
+      </ul>
 
-    <h3>A. Google Firebase (Servicio de Nube — Opcional)</h3>
-    <p>Solo si el usuario decide voluntariamente registrarse o iniciar sesión con una cuenta para la sincronización entre dispositivos:</p>
-    <ul>
-      <li><strong>Datos enviados:</strong> Dirección de correo electrónico del usuario, copia de la biblioteca de novelas (título, capítulo, enlace, progreso), estadísticas de lectura (Qi, logros desbloqueados) y lista negra de dominios.</li>
-      <li><strong>Servidor de destino:</strong> Firebase Realtime Database (<code>https://novel-tracker-1d134-default-rtdb.firebaseio.com</code>) y Google Identity Toolkit sobre HTTPS cifrado.</li>
-    </ul>
+      <h2>5. Datos Enviados a Servicios de Terceros</h2>
+      <p>La extensión realiza comunicaciones externas únicamente con los siguientes dos servicios y bajo las siguientes condiciones:</p>
 
-    <h3>B. CallMeBot (Avisos de WhatsApp — Opcional)</h3>
-    <p>Solo si el usuario activa conscientemente las notificaciones de WhatsApp en los ajustes e introduce su teléfono y API Key:</p>
-    <ul>
-      <li><strong>Datos enviados:</strong> Número de teléfono (saneado a dígitos exclusivamente), API Key personal de CallMeBot, título de la novela pausada y URL de reanudación de lectura.</li>
-      <li><strong>Servidor de destino:</strong> <code>https://api.callmebot.com/whatsapp.php</code> mediante petición GET sobre HTTPS cifrado al cumplirse el temporizador de pausa o al pulsar "Probar".</li>
-    </ul>
+      <h3>A. Google Firebase (Servicio de Nube — Opcional)</h3>
+      <p>Solo si el usuario decide voluntariamente registrarse o iniciar sesión con una cuenta para la sincronización entre dispositivos:</p>
+      <ul>
+        <li><strong>Datos enviados:</strong> Dirección de correo electrónico del usuario, copia de la biblioteca de novelas (título, capítulo, enlace, progreso), estadísticas de lectura (Qi, logros desbloqueados) y lista negra de dominios.</li>
+        <li><strong>Servidor de destino:</strong> Firebase Realtime Database (<code>https://novel-tracker-1d134-default-rtdb.firebaseio.com</code>) y Google Identity Toolkit sobre HTTPS cifrado.</li>
+      </ul>
 
-    <h2>6. Finalidad del Tratamiento y Conservación</h2>
-    <ul>
-      <li><strong>Finalidad:</strong> Permitir al usuario continuar la lectura exactamente donde la dejó, registrar sus estadísticas personales de progreso lúdico y recibir recordatorios opcionales en su propio WhatsApp.</li>
-      <li><strong>Conservación:</strong> Los datos locales persisten hasta que el usuario borra la extensión o limpia los datos del navegador. Los datos en la nube persisten mientras la cuenta permanezca activa.</li>
-    </ul>
+      <h3>B. CallMeBot (Avisos de WhatsApp — Opcional)</h3>
+      <p>Solo si el usuario activa conscientemente las notificaciones de WhatsApp en los ajustes e introduce su teléfono y API Key:</p>
+      <ul>
+        <li><strong>Datos enviados:</strong> Número de teléfono (saneado a dígitos exclusivamente), API Key personal de CallMeBot, título de la novela pausada y URL de reanudación de lectura.</li>
+        <li><strong>Servidor de destino:</strong> <code>https://api.callmebot.com/whatsapp.php</code> mediante petición GET sobre HTTPS cifrado al cumplirse el temporizador de pausa o al pulsar "Probar".</li>
+      </ul>
 
-    <h2>7. Política de No Venta de Datos y Cero Publicidad</h2>
-    <p>MyNovelSystem está diseñado bajo un modelo estricto de privacidad y utilidad para el lector:</p>
-    <ul>
-      <li><strong>No venta ni cesión comercial:</strong> La extensión <strong>NO vende, NO alquila, NO comercializa ni transfiere</strong> ningún dato personal, de navegación o de lectura a terceros, empresas de publicidad ni intermediarios de datos.</li>
-      <li><strong>Sin publicidad de terceros ni rastreadores de anuncios:</strong> La extensión no contiene librerías publicitarias externas, cookies de seguimiento ni redes o píxeles de anuncios de terceros. Los únicos elementos visuales rotativos presentes en la interfaz corresponden exclusivamente a banners locales de ficción temática Xianxia («Píldoras de Qi Celestial», «Subasta Bafang»), empaquetados dentro de la extensión a modo de parodia y ambientación lúdica, sin conexión comercial ni rastreo de red.</li>
-      <li><strong>Uso limitado y exclusivo:</strong> Cualquier comunicación de red se limita exclusivamente a las funcionalidades solicitadas voluntariamente por el usuario (sincronización con Google Firebase, alertas de CallMeBot o envío de reportes de diagnóstico).</li>
-    </ul>
+      <h2>6. Finalidad del Tratamiento y Conservación</h2>
+      <ul>
+        <li><strong>Finalidad:</strong> Permitir al usuario continuar la lectura exactamente donde la dejó, registrar sus estadísticas personales de progreso lúdico y recibir recordatorios opcionales en su propio WhatsApp.</li>
+        <li><strong>Conservación:</strong> Los datos locales persisten hasta que el usuario borra la extensión o limpia los datos del navegador. Los datos en la nube persisten mientras la cuenta permanezca activa.</li>
+      </ul>
 
-    <h2>8. Derechos del Usuario (RGPD) y Eliminación de Datos</h2>
-    <p>Como usuario, le asisten los derechos de acceso, rectificación, portabilidad y supresión de sus datos:</p>
-    <ul>
-      <li><strong>Exportación y portabilidad:</strong> Puede exportar en cualquier momento toda su biblioteca y estadísticas en formato JSON desde el apartado «Copia de Seguridad» de los ajustes.</li>
-      <li><strong>Eliminación de cuenta desde la propia extensión:</strong> Si utiliza sincronización en la nube, la extensión dispone de una opción directa e integrada para eliminar su cuenta en la ventana de Cuenta («Eliminar cuenta»). Al confirmar esta acción:
-        <ul>
-          <li>Se elimina de inmediato su cuenta de autenticación en <strong>Google Firebase Authentication</strong>.</li>
-          <li>Se suprimen íntegramente sus datos de biblioteca, estadísticas y configuraciones almacenados en <strong>Firebase Realtime Database</strong> (<code>/users/&lt;uid&gt;</code>).</li>
-          <li>Se purgan de forma definitiva todos los registros locales de bóveda y avatares asociados a dicha cuenta en el almacenamiento de su navegador, revirtiendo la extensión a modo local.</li>
-          <li><em>Reautenticación por seguridad:</em> Si la sesión de autenticación requiere confirmación reciente, el sistema le solicitará iniciar sesión nuevamente antes de proceder con el borrado definitivo.</li>
-        </ul>
-      </li>
-      <li><strong>Eliminación local:</strong> Al desinstalar la extensión o limpiar los datos del navegador, toda la información local se elimina permanentemente.</li>
-      <li><strong>Solicitud por correo electrónico:</strong> Alternativamente, puede solicitar el borrado manual de su cuenta y sus datos en Firebase enviando un mensaje a <code>mynovelsystem@gmail.com</code> indicando el correo de su cuenta.</li>
-    </ul>
+      <h2>7. Política de No Venta de Datos y Cero Publicidad</h2>
+      <p>MyNovelSystem está diseñado bajo un modelo estricto de privacidad y utilidad para el lector:</p>
+      <ul>
+        <li><strong>No venta ni cesión comercial:</strong> La extensión <strong>NO vende, NO alquila, NO comercializa ni transfiere</strong> ningún dato personal, de navegación o de lectura a terceros, empresas de publicidad ni intermediarios de datos.</li>
+        <li><strong>Sin publicidad de terceros ni rastreadores de anuncios:</strong> La extensión no contiene librerías publicitarias externas, cookies de seguimiento ni redes o píxeles de anuncios de terceros. Los únicos elementos visuales rotativos presentes en la interfaz corresponden exclusivamente a banners locales de ficción temática Xianxia («Píldoras de Qi Celestial», «Subasta Bafang»), empaquetados dentro de la extensión a modo de parodia y ambientación lúdica, sin conexión comercial ni rastreo de red.</li>
+        <li><strong>Uso limitado y exclusivo:</strong> Cualquier comunicación de red se limita exclusivamente a las funcionalidades solicitadas voluntariamente por el usuario (sincronización con Google Firebase, alertas de CallMeBot o envío de reportes de diagnóstico).</li>
+      </ul>
 
-    <h2>9. Reportes de Errores y Diagnóstico Técnico</h2>
-    <p>La extensión incluye una funcionalidad opcional para enviar reportes de errores técnicos al desarrollador con el fin de resolver fallos o incompatibilidades en sitios web de lectura.</p>
-    <ul>
-      <li><strong>Requisito de sesión autenticada:</strong> Para prevenir abusos, proteger la infraestructura y garantizar el origen legítimo de los reportes, <strong>los reportes solo se aceptan de usuarios con sesión iniciada</strong> en una cuenta de la extensión. Los usuarios sin sesión no pueden enviar reportes desde el formulario integrado; si no dispone de cuenta o prefiere no iniciar sesión, puede remitir su consulta o reporte directamente por correo a <strong>mynovelsystem@gmail.com</strong>.</li>
-      <li><strong>Carácter voluntario y anónimo por defecto:</strong> El envío de un reporte solo ocurre cuando el usuario pulsa deliberadamente el botón «Enviar reporte». Por defecto, todos los reportes son completamente <strong>anónimos</strong> (se identifican como <code>anonymous</code>) y no transmiten el correo de la cuenta del usuario ni información personal identificable.</li>
-      <li><strong>Consentimiento específico e independiente para el correo:</strong> La casilla «Incluir mi correo de contacto» se encuentra desmarcada por defecto. Solo si el usuario decide activarla conscientemente, se adjuntará el correo de su cuenta para recibir respuesta del desarrollador (dicho correo identifica la cuenta autenticada en Firebase Authentication pero no requiere verificación formal previa de titularidad por correo electrónico).</li>
-      <li><strong>Datos técnicos y URL de pestaña (opcional y desmarcado por defecto):</strong> La casilla «Adjuntar URL actual y registro técnico (logs)» se encuentra desmarcada por defecto. La URL y título de la pestaña activa, así como los eventos técnicos recientes de depuración (hasta un máximo de los últimos 8 registros locales saneados a nombre de host), <strong>solo se incluyen si el usuario marca deliberadamente dicha casilla</strong>. Si no se marca, no se envía ninguna URL ni registro de logs (valor nulo). Si la pestaña activa es una ventana en modo incógnito o privada, la URL y el título nunca se capturan ni se transmiten.</li>
-      <li><strong>Transparencia previa:</strong> El usuario puede revisar previamente estos registros mediante el visor desplegable antes de enviarlos.</li>
-      <li><strong>Privacidad y minimización:</strong> Los reportes técnicos se transmiten de forma segura a Firebase Realtime Database bajo la ruta <code>/reports/</code> para uso exclusivo de diagnóstico técnico por el desarrollador.</li>
-      <li><strong>Contacto directo:</strong> Para cualquier cuestión relativa a un reporte de error o para solicitar la supresión de cualquier dato enviado, puede contactar directamente a: <strong>mynovelsystem@gmail.com</strong>.</li>
-    </ul>
+      <h2>8. Derechos del Usuario (RGPD) y Eliminación de Datos</h2>
+      <p>Como usuario, le asisten los derechos de acceso, rectificación, portabilidad y supresión de sus datos:</p>
+      <ul>
+        <li><strong>Exportación y portabilidad:</strong> Puede exportar en cualquier momento toda su biblioteca y estadísticas en formato JSON desde el apartado «Copia de Seguridad» de los ajustes.</li>
+        <li><strong>Eliminación de cuenta desde la propia extensión:</strong> Si utiliza sincronización en la nube, la extensión dispone de una opción directa e integrada para eliminar su cuenta en la ventana de Cuenta («Eliminar cuenta»). Al confirmar esta acción:
+          <ul>
+            <li>Se elimina de inmediato su cuenta de autenticación en <strong>Google Firebase Authentication</strong>.</li>
+            <li>Se suprimen íntegramente sus datos de biblioteca, estadísticas y configuraciones almacenados en <strong>Firebase Realtime Database</strong> (<code>/users/&lt;uid&gt;</code>).</li>
+            <li>Se purgan de forma definitiva todos los registros locales de bóveda y avatares asociados a dicha cuenta en el almacenamiento de su navegador, revirtiendo la extensión a modo local.</li>
+            <li><em>Reautenticación por seguridad:</em> Si la sesión de autenticación requiere confirmación reciente, el sistema le solicitará iniciar sesión nuevamente antes de proceder con el borrado definitivo.</li>
+          </ul>
+        </li>
+        <li><strong>Eliminación local:</strong> Al desinstalar la extensión o limpiar los datos del navegador, toda la información local se elimina permanentemente.</li>
+        <li><strong>Solicitud por correo electrónico:</strong> Alternativamente, puede solicitar el borrado manual de su cuenta y sus datos en Firebase enviando un mensaje a <code>mynovelsystem@gmail.com</code> indicando el correo de su cuenta.</li>
+      </ul>
 
-    <h2>10. Compatibilidad de Plataforma y Navegadores</h2>
-    <p>La extensión ha sido desarrollada conforme a la especificación estándar <strong>Manifest V3</strong> y está diseñada para funcionar en navegadores basados en Chromium (incluidos Google Chrome, Brave, Microsoft Edge, Opera y Vivaldi). Su publicación oficial principal se gestiona a través de la Chrome Web Store y plataformas compatibles con extensiones Chromium.</p>
+      <h2>9. Reportes de Errores y Diagnóstico Técnico</h2>
+      <p>La extensión incluye una funcionalidad opcional para enviar reportes de errores técnicos al desarrollador con el fin de resolver fallos o incompatibilidades en sitios web de lectura.</p>
+      <ul>
+        <li><strong>Requisito de sesión autenticada:</strong> Para prevenir abusos, proteger la infraestructura y garantizar el origen legítimo de los reportes, <strong>los reportes solo se aceptan de usuarios con sesión iniciada</strong> en una cuenta de la extensión. Los usuarios sin sesión no pueden enviar reportes desde el formulario integrado; si no dispone de cuenta o prefiere no iniciar sesión, puede remitir su consulta o reporte directamente por correo a <strong>mynovelsystem@gmail.com</strong>.</li>
+        <li><strong>Carácter voluntario y anónimo por defecto:</strong> El envío de un reporte solo ocurre cuando el usuario pulsa deliberadamente el botón «Enviar reporte». Por defecto, todos los reportes son completamente <strong>anónimos</strong> (se identifican como <code>anonymous</code>) y no transmiten el correo de la cuenta del usuario ni información personal identificable.</li>
+        <li><strong>Consentimiento específico e independiente para el correo:</strong> La casilla «Incluir mi correo de contacto» se encuentra desmarcada por defecto. Solo si el usuario decide activarla conscientemente, se adjuntará el correo de su cuenta para recibir respuesta del desarrollador (dicho correo identifica la cuenta autenticada en Firebase Authentication pero no requiere verificación formal previa de titularidad por correo electrónico).</li>
+        <li><strong>Datos técnicos y URL de pestaña (opcional y desmarcado por defecto):</strong> La casilla «Adjuntar URL actual y registro técnico (logs)» se encuentra desmarcada por defecto. La URL y título de la pestaña activa, así como los eventos técnicos recientes de depuración (hasta un máximo de los últimos 8 registros locales saneados a nombre de host), <strong>solo se incluyen si el usuario marca deliberadamente dicha casilla</strong>. Si no se marca, no se envía ninguna URL ni registro de logs (valor nulo). Si la pestaña activa es una ventana en modo incógnito o privada, la URL y el título nunca se capturan ni se transmiten.</li>
+        <li><strong>Transparencia previa:</strong> El usuario puede revisar previamente estos registros mediante el visor desplegable antes de enviarlos.</li>
+        <li><strong>Privacidad y minimización:</strong> Los reportes técnicos se transmiten de forma segura a Firebase Realtime Database bajo la ruta <code>/reports/</code> para uso exclusivo de diagnóstico técnico por el desarrollador.</li>
+        <li><strong>Contacto directo:</strong> Para cualquier cuestión relativa a un reporte de error o para solicitar la supresión de cualquier dato enviado, puede contactar directamente a: <strong>mynovelsystem@gmail.com</strong>.</li>
+      </ul>
 
-    <footer>
-      <p>© 2026 MyNovelSystem. Todos los derechos reservados. Desarrollado para lectores de novelas web y cómic.</p>
-    </footer>
+      <h2>10. Compatibilidad de Plataforma y Navegadores</h2>
+      <p>La extensión ha sido desarrollada conforme a la especificación estándar <strong>Manifest V3</strong> y está diseñada para funcionar en navegadores basados en Chromium (incluidos Google Chrome, Brave, Microsoft Edge, Opera y Vivaldi). Su publicación oficial principal se gestiona a través de la Chrome Web Store y plataformas compatibles con extensiones Chromium.</p>
+
+      <footer>
+        <p>© 2026 MyNovelSystem. Todos los derechos reservados. Desarrollado para lectores de novelas web y cómic.</p>
+      </footer>
+    </div>
+
+    <!-- SECCIÓN EN INGLÉS -->
+    <div id="lang-en" style="display: none;">
+      <h1>MyNovelSystem Privacy Policy</h1>
+      <p><strong>Last Updated:</strong> October 17, 2026</p>
+
+      <h2>1. Data Controller and Contact</h2>
+      <p>The data controller responsible for the <strong>MyNovelSystem</strong> browser extension is its independent developer. For any inquiries, exercise of privacy rights, or clarification regarding this privacy policy, you may contact: <strong>mynovelsystem@gmail.com</strong>.</p>
+
+      <h2>2. Privacy Philosophy and Web Execution</h2>
+      <p>MyNovelSystem is designed following the core principles of <strong>data minimization and privacy by design</strong>:</p>
+      <ul>
+        <li>The extension can be used <strong>100% locally</strong> without requiring any registration or user account.</li>
+        <li><strong>Private Browsing and Incognito Mode:</strong> In private or incognito tabs/windows, the extension completely suspends its execution: it does not track reading, does not write to local memory or the cloud, does not schedule alarms or notifications, and never transmits information from private tabs in bug reports.</li>
+        <li><strong>Non-Novel Webpages:</strong> On websites that do not correspond to reading platforms or on pages where chapter patterns are not detected, the extension <strong>DOES NOT store any data, DOES NOT collect personal information, DOES NOT track browsing, and DOES NOT send any requests to external servers</strong>. Heuristic analysis takes place exclusively in volatile browser memory and is discarded immediately.</li>
+        <li><strong>Blacklist and Excluded Domains:</strong> The extension blocks by default and by design any observer on search engines (Google, Bing, Yahoo), social networks (X, Facebook, Instagram, Reddit), streaming platforms (YouTube, Twitch, Netflix), developer tools (GitHub, StackOverflow), storage, and productivity services. Users can also add any custom domain to their local blacklist to halt all inspection with 0 resource consumption and 0 interference.</li>
+        <li>We never collect passwords on proprietary servers (authentication is delegated exclusively to Google Firebase).</li>
+        <li>We do not track your general browsing history and never sell any personal information to third parties.</li>
+      </ul>
+
+      <h2>3. Requested Browser Permissions and Justification</h2>
+      <p>The extension requests only the strictly necessary permissions required to fulfill its technical features:</p>
+      <ul>
+        <li><code>storage</code>: Essential to store read chapters, cultivation stats, and user preferences in local browser memory.</li>
+        <li><code>tabs</code>: Used exclusively to identify the active reading tab, detect the current chapter on supported novel/comic websites, and update the extension toolbar icon.</li>
+        <li><code>alarms</code>: Used to schedule local periodic timers that check reading inactivity (for optional WhatsApp reminders) and periodic background cloud synchronization.</li>
+      </ul>
+
+      <h2>4. Locally Stored Data (On Your Device)</h2>
+      <p>The extension stores in your browser's local memory (<code>chrome.storage.local</code>):</p>
+      <ul>
+        <li><strong>Reading Library:</strong> Work title, last read chapter, vertical scroll percentage, update timestamp, chapter URL, and manual status (reading, paused, completed, etc.).</li>
+        <li><strong>Cultivation Progress and Achievements:</strong> Accumulated chapters read, Qi earned, unlocked achievements, claimed rewards, and currently equipped badge.</li>
+        <li><strong>User Preferences:</strong> Active language (Spanish or English), inactivity day thresholds, performance mode, and custom domain blacklist.</li>
+        <li><strong>WhatsApp Configuration (CallMeBot):</strong> Phone number and CallMeBot API Key. <strong>These credentials are kept EXCLUSIVELY in your device's local storage</strong> and are never sent to or synchronized with Firebase.</li>
+      </ul>
+
+      <h2>5. Data Transmitted to Third-Party Services</h2>
+      <p>The extension communicates externally only with the following two services under strict conditions:</p>
+
+      <h3>A. Google Firebase (Cloud Sync Service — Optional)</h3>
+      <p>Only if the user voluntarily decides to sign up or log in with an account for cross-device synchronization:</p>
+      <ul>
+        <li><strong>Data sent:</strong> User's email address, copy of the novel reading library (title, chapter, URL, progress), reading stats (Qi, unlocked achievements), and domain blacklist.</li>
+        <li><strong>Destination server:</strong> Firebase Realtime Database (<code>https://novel-tracker-1d134-default-rtdb.firebaseio.com</code>) and Google Identity Toolkit over encrypted HTTPS.</li>
+      </ul>
+
+      <h3>B. CallMeBot (WhatsApp Notifications — Optional)</h3>
+      <p>Only if the user consciously enables WhatsApp notifications in settings and provides their phone number and API Key:</p>
+      <ul>
+        <li><strong>Data sent:</strong> Phone number (sanitized to digits only), personal CallMeBot API Key, paused novel title, and reading resume URL.</li>
+        <li><strong>Destination server:</strong> <code>https://api.callmebot.com/whatsapp.php</code> via GET request over encrypted HTTPS upon inactivity alarm trigger or when clicking "Test".</li>
+      </ul>
+
+      <h2>6. Purpose of Processing and Retention</h2>
+      <ul>
+        <li><strong>Purpose:</strong> Allow the user to resume reading exactly where they left off, track their personal gamified cultivation progress, and receive optional reminders via WhatsApp.</li>
+        <li><strong>Retention:</strong> Local data persists until the user uninstalls the extension or clears browser storage. Cloud data persists while the user account remains active.</li>
+      </ul>
+
+      <h2>7. Strict Policy: No Sale of Data and Zero Advertising</h2>
+      <p>MyNovelSystem is engineered under a strict model of user privacy and utility:</p>
+      <ul>
+        <li><strong>No Commercial Sale or Transfer:</strong> The extension <strong>DOES NOT sell, rent, commercialize, or transfer</strong> any personal, browsing, or reading data to third parties, advertising companies, or data brokers.</li>
+        <li><strong>No Third-Party Advertising or Ad Trackers:</strong> The extension contains no third-party advertising libraries, tracking cookies, or external ad pixels. The rotating visual cards in the interface are purely fictional, offline Xianxia parody items ("Celestial Qi Pills", "Bafang Auction") bundled locally inside the extension for world-building, with zero commercial affiliation and zero network requests.</li>
+        <li><strong>Limited & Purpose-Bound Use:</strong> All network activity is strictly confined to features explicitly requested by the user (Google Firebase sync, CallMeBot alerts, or optional bug diagnostic submissions).</li>
+      </ul>
+
+      <h2>8. User Rights (GDPR) and Data Deletion</h2>
+      <p>As a user, you have the right to access, rectify, export, and delete your data:</p>
+      <ul>
+        <li><strong>Export and Portability:</strong> You can export your entire library and stats in JSON format at any time from the "Backup" section in Settings.</li>
+        <li><strong>In-App Account Deletion:</strong> If you use cloud sync, the extension provides a direct, integrated option to permanently delete your account from the Account panel ("Delete account"). Upon confirmation:
+          <ul>
+            <li>Your authentication account in <strong>Google Firebase Authentication</strong> is deleted immediately.</li>
+            <li>All library records, stats, and configurations stored in <strong>Firebase Realtime Database</strong> (<code>/users/&lt;uid&gt;</code>) are permanently erased.</li>
+            <li>All local vault records and avatars linked to that account in browser storage are completely purged, returning the extension to local guest mode.</li>
+            <li><em>Security Re-authentication:</em> If the session requires recent credential verification, the system will prompt you to log in again before proceeding with permanent deletion.</li>
+          </ul>
+        </li>
+        <li><strong>Local Deletion:</strong> Uninstalling the extension or clearing browser site data permanently removes all local information.</li>
+        <li><strong>Email Request:</strong> Alternatively, you may request manual deletion of your account and cloud data by emailing <code>mynovelsystem@gmail.com</code> with your account email address.</li>
+      </ul>
+
+      <h2>9. Bug Reports and Technical Diagnostics</h2>
+      <p>The extension includes an optional feature to send technical bug reports to the developer to resolve issues or compatibility defects on reading websites.</p>
+      <ul>
+        <li><strong>Authenticated Session Requirement:</strong> To prevent abuse, safeguard infrastructure, and guarantee legitimate origin, <strong>bug reports are only accepted from logged-in users</strong>. Unauthenticated users cannot submit reports via the in-app form; if you do not have an account, you can email your inquiry directly to <strong>mynovelsystem@gmail.com</strong>.</li>
+        <li><strong>Voluntary and Anonymous by Default:</strong> Sending a report only happens when the user deliberately clicks "Submit report". By default, all reports are completely <strong>anonymous</strong> (identified as <code>anonymous</code>) and do not transmit the user's email address or personal identifiable information.</li>
+        <li><strong>Specific and Independent Email Consent:</strong> The "Include my contact email" checkbox is unchecked by default. Only if the user consciously checks it will their account email be attached so the developer can follow up.</li>
+        <li><strong>Technical Logs & Tab URL (Optional, Unchecked by Default):</strong> The "Attach current URL and technical log" checkbox is unchecked by default. The active tab's URL and title, along with recent technical debug events (up to a maximum of 8 entries, strictly sanitized to hostnames), <strong>are only included if the user explicitly checks this box</strong>. If left unchecked, no URL or logs are sent. If the active tab is in incognito or private mode, the URL and title are never captured or transmitted.</li>
+        <li><strong>Prior Transparency:</strong> Users can inspect the exact payload using the expandable viewer before submitting.</li>
+        <li><strong>Privacy & Minimization:</strong> Reports are securely transmitted to Firebase Realtime Database under <code>/reports/</code> solely for technical debugging by the developer.</li>
+        <li><strong>Direct Contact:</strong> For any inquiries or to request deletion of submitted reports, contact: <strong>mynovelsystem@gmail.com</strong>.</li>
+      </ul>
+
+      <h2>10. Platform Compatibility & Supported Browsers</h2>
+      <p>The extension is built in compliance with the standard <strong>Manifest V3</strong> specification and is designed for Chromium-based browsers (including Google Chrome, Brave, Microsoft Edge, Opera, and Vivaldi). Official distribution is managed through the Chrome Web Store and Chromium extension platforms.</p>
+
+      <footer>
+        <p>© 2026 MyNovelSystem. All rights reserved. Built for web novel and comic readers.</p>
+      </footer>
+    </div>
   </div>
+
+  <script>
+    (function () {
+      const btnEs = document.getElementById("btnLangEs");
+      const btnEn = document.getElementById("btnLangEn");
+      const secEs = document.getElementById("lang-es");
+      const secEn = document.getElementById("lang-en");
+      const pageTitle = document.getElementById("pageTitle");
+      const metaDescription = document.getElementById("metaDescription");
+      const versionBadge = document.getElementById("versionBadge");
+
+      function updateLanguage(lang) {
+        const isEn = lang === "en";
+        secEs.style.display = isEn ? "none" : "block";
+        secEn.style.display = isEn ? "block" : "none";
+        btnEs.classList.toggle("active", !isEn);
+        btnEn.classList.toggle("active", isEn);
+        btnEs.setAttribute("aria-pressed", !isEn);
+        btnEn.setAttribute("aria-pressed", isEn);
+        document.documentElement.lang = isEn ? "en" : "es";
+        pageTitle.textContent = isEn ? "Privacy Policy — MyNovelSystem" : "Política de Privacidad — MyNovelSystem";
+        versionBadge.textContent = isEn ? "Chrome Web Store — Version 4.0.0" : "Chrome Web Store — Versión 4.0.0";
+        if (metaDescription) {
+          metaDescription.setAttribute("content", isEn
+            ? "Official Privacy Policy of MyNovelSystem v4.0.0 for Chrome Web Store. Detailed information on data processing, Firebase, minimization, and GDPR rights."
+            : "Política de Privacidad oficial de MyNovelSystem v4.0.0 para Chrome Web Store. Información detallada sobre tratamiento de datos, Firebase, minimización y derechos RGPD."
+          );
+        }
+        try {
+          localStorage.setItem("mynovelsystem_public_lang", lang);
+        } catch (e) {}
+      }
+
+      btnEs.addEventListener("click", function () {
+        updateLanguage("es");
+      });
+
+      btnEn.addEventListener("click", function () {
+        updateLanguage("en");
+      });
+
+      // Detection: Query param -> Hash -> LocalStorage -> Browser language
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get("lang");
+        const hash = (window.location.hash || "").toLowerCase();
+
+        if (langParam === "en" || hash.includes("en")) {
+          updateLanguage("en");
+          return;
+        }
+        if (langParam === "es" || hash.includes("es")) {
+          updateLanguage("es");
+          return;
+        }
+
+        const storedLang = localStorage.getItem("mynovelsystem_public_lang");
+        if (storedLang === "en" || storedLang === "es") {
+          updateLanguage(storedLang);
+          return;
+        }
+
+        const userLang = (navigator.language || navigator.userLanguage || "").toLowerCase();
+        if (userLang.startsWith("en")) {
+          updateLanguage("en");
+        } else {
+          updateLanguage("es");
+        }
+      } catch (e) {
+        updateLanguage("es");
+      }
+    })();
+  </script>
 </body>
 </html>

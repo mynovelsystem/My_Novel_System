@@ -214,6 +214,7 @@
   let lastScrollSentAt = 0;
   let lastScrollPctSent = -1;
   let scrollThrottleTimer = null;
+  let pollUrlIntervalTimer = null;
   let restoredForSignature = "";
 
   function fnv1aHex(str) {
@@ -320,8 +321,10 @@
     return CHAPTER_EXPLICIT_REGEX.test(s) || VOLUME_FALLBACK_REGEX.test(s);
   }
 
+  function safeDecode(s) { try { return decodeURIComponent(s); } catch { return String(s); } }
+
   function canonicalizeSeriesPathForId(pathname) {
-    const segments = decodeURIComponent(pathname)
+    const segments = safeDecode(pathname)
       .toLowerCase()
       .replace(/\/+$/, "")
       .split("/")
@@ -1161,6 +1164,57 @@
     return Math.min(100, Math.max(0, Math.round((window.scrollY / maxScroll) * 100)));
   }
 
+  function stopBodyObserver() {
+    if (bodyObserver) {
+      bodyObserver.disconnect();
+      bodyObserver = null;
+    }
+    if (bodyObserverTimeout) {
+      clearTimeout(bodyObserverTimeout);
+      bodyObserverTimeout = null;
+    }
+  }
+
+  function cleanupOnInvalidated() {
+    stopBodyObserver();
+    if (titleObserver) {
+      try { titleObserver.disconnect(); } catch {}
+      titleObserver = null;
+    }
+    window.removeEventListener("scroll", onScrollHandler);
+    window.removeEventListener("popstate", onPopstateHandler);
+    if (window.navigation && typeof window.navigation.removeEventListener === "function") {
+      try { window.navigation.removeEventListener("navigate", onNavigateHandler); } catch {}
+      try { window.navigation.removeEventListener("navigatesuccess", onNavigateHandler); } catch {}
+    }
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+    if (scrollThrottleTimer) {
+      clearTimeout(scrollThrottleTimer);
+      scrollThrottleTimer = null;
+    }
+    if (pollUrlIntervalTimer) {
+      clearInterval(pollUrlIntervalTimer);
+      pollUrlIntervalTimer = null;
+    }
+  }
+
+  function sendToBackground(msg) {
+    try {
+      if (!chrome.runtime?.id) throw new Error("ctx invalidated");
+      return chrome.runtime.sendMessage(msg);
+    } catch (e) {
+      cleanupOnInvalidated();
+      return Promise.reject(e);
+    }
+  }
+
   function sendScrollUpdate() {
     if (document.visibilityState !== "visible") return;
     if (!activeSeriesId || !activeChapter) return;
@@ -1171,7 +1225,7 @@
     lastScrollPctSent = pct;
     lastScrollSentAt = Date.now();
 
-    chrome.runtime.sendMessage({
+    sendToBackground({
       type: "SCROLL_UPDATED",
       data: {
         seriesId: activeSeriesId,
@@ -1202,36 +1256,23 @@
     }
   }
 
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (document.visibilityState !== "visible") return;
-      checkVisibleChapterOnScroll();
-      if (!activeSeriesId) return;
-      const now = Date.now();
-      const elapsed = now - lastScrollSentAt;
-      if (elapsed >= 2000) {
+  const onScrollHandler = () => {
+    if (document.visibilityState !== "visible") return;
+    checkVisibleChapterOnScroll();
+    if (!activeSeriesId) return;
+    const now = Date.now();
+    const elapsed = now - lastScrollSentAt;
+    if (elapsed >= 2000) {
+      sendScrollUpdate();
+    } else if (!scrollThrottleTimer) {
+      scrollThrottleTimer = setTimeout(() => {
+        scrollThrottleTimer = null;
         sendScrollUpdate();
-      } else if (!scrollThrottleTimer) {
-        scrollThrottleTimer = setTimeout(() => {
-          scrollThrottleTimer = null;
-          sendScrollUpdate();
-        }, 2000 - elapsed);
-      }
-    },
-    { passive: true }
-  );
+      }, 2000 - elapsed);
+    }
+  };
 
-  function stopBodyObserver() {
-    if (bodyObserver) {
-      bodyObserver.disconnect();
-      bodyObserver = null;
-    }
-    if (bodyObserverTimeout) {
-      clearTimeout(bodyObserverTimeout);
-      bodyObserverTimeout = null;
-    }
-  }
+  window.addEventListener("scroll", onScrollHandler, { passive: true });
 
   // Observador temporal para SPAs (como SkyNovels) que tardan varios segundos en renderizar el capítulo nuevo
   function startTemporaryBodyObserver() {
@@ -1458,7 +1499,7 @@
         try {
           if (derivedNovelUrl) safeDerivedHost = new URL(derivedNovelUrl).hostname;
         } catch {}
-        chrome.runtime.sendMessage({
+        sendToBackground({
           type: "DIAGNOSTIC_LOG",
           entry: {
             event: "NO_CHAPTER_DETECTED",
@@ -1499,7 +1540,7 @@
     }
     retryCount = 0;
 
-    chrome.runtime.sendMessage({
+    sendToBackground({
       type: "NOVEL_DETECTED",
       confident,
       data: {
@@ -1582,19 +1623,22 @@
     return result;
   };
 
-  window.addEventListener("popstate", () => {
+  const onPopstateHandler = () => {
     triggerNavigationDetection();
-  });
+  };
+
+  const onNavigateHandler = () => {
+    triggerNavigationDetection();
+  };
+
+  window.addEventListener("popstate", onPopstateHandler);
 
   if (window.navigation && typeof window.navigation.addEventListener === "function") {
-    window.navigation.addEventListener("navigate", () => {
-      triggerNavigationDetection();
-    });
+    window.navigation.addEventListener("navigate", onNavigateHandler);
   }
 
   function escapeHtml(str) {
-    if (str == null) return "";
-    return String(str)
+    return String(str ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
@@ -1613,9 +1657,60 @@
     }
   }
 
-  function showInPagePrompt(payload) {
+  const INLINE_I18N = {
+    es: {
+      novel_detected: "Novela detectada",
+      chap_prefix: "Cap.",
+      prompt_aria_label: "Aviso de MyNovelSystem",
+      close_aria_label: "Cerrar aviso",
+      close_title: "Cerrar (Esc)",
+      btn_add: "+ Añadir",
+      btn_blacklist_title: "Excluir este sitio en MyNovelSystem",
+      feedback_added: "✓ ¡Obra añadida a la biblioteca!",
+      feedback_blocked: "🚫 Dominio bloqueado",
+      feedback_undo: "Deshacer"
+    },
+    en: {
+      novel_detected: "Novel detected",
+      chap_prefix: "Ch.",
+      prompt_aria_label: "MyNovelSystem notification",
+      close_aria_label: "Close notification",
+      close_title: "Close (Esc)",
+      btn_add: "+ Add",
+      btn_blacklist_title: "Exclude this site in MyNovelSystem",
+      feedback_added: "✓ Added to library!",
+      feedback_blocked: "🚫 Domain blocked",
+      feedback_undo: "Undo"
+    }
+  };
+
+  let contentScriptLang = (chrome.i18n?.getUILanguage?.() || (typeof navigator !== "undefined" ? navigator.language : null) || "es").toLowerCase().startsWith("en") ? "en" : "es";
+  try {
+    if (chrome.storage?.local?.get) {
+      chrome.storage.local.get(["settings"], (res) => {
+        if (res?.settings?.language === "en" || res?.settings?.language === "es") {
+          contentScriptLang = res.settings.language;
+        }
+      });
+    }
+  } catch {}
+
+  async function showInPagePrompt(payload) {
     if (isCurrentDomainBlacklisted()) return;
     if (document.querySelector("mynovelsystem-prompt, noveltrack-prompt")) return;
+
+    let lang = contentScriptLang || "es";
+    try {
+      if (chrome.storage?.local?.get) {
+        const stored = await chrome.storage.local.get(["settings"]);
+        if (stored?.settings?.language === "en" || stored?.settings?.language === "es") {
+          lang = stored.settings.language;
+          contentScriptLang = lang;
+        }
+      }
+    } catch {}
+
+    const t = (k) => (INLINE_I18N[lang] && INLINE_I18N[lang][k]) || INLINE_I18N.es[k] || k;
 
     const host = document.createElement("mynovelsystem-prompt");
     inPagePromptHost = host;
@@ -1623,9 +1718,9 @@
     inPagePromptShadow = shadow;
 
     const rawDomain = location.hostname.toLowerCase().replace(/^www\./, "");
-    const displayTitle = payload?.novelName || document.title || "Novela detectada";
+    const displayTitle = payload?.novelName || document.title || t("novel_detected");
     const chapVal = payload?.chapter;
-    const displayChapter = chapVal && chapVal !== "AUTO_NEXT" ? `Cap. ${chapVal}` : "Cap. 1";
+    const displayChapter = chapVal && chapVal !== "AUTO_NEXT" ? `${t("chap_prefix")} ${chapVal}` : `${t("chap_prefix")} 1`;
 
     const style = document.createElement("style");
     style.textContent = `
@@ -1825,7 +1920,7 @@
     card.className = "nt-card";
     card.setAttribute("role", "dialog");
     card.setAttribute("aria-modal", "false");
-    card.setAttribute("aria-label", "Aviso de MyNovelSystem");
+    card.setAttribute("aria-label", t("prompt_aria_label"));
 
     card.innerHTML = `
       <div class="nt-header">
@@ -1833,7 +1928,7 @@
           <div class="nt-crest">N</div>
           <span class="nt-title-lbl">MyNovelSystem</span>
         </div>
-        <button type="button" class="nt-btn-close" aria-label="Cerrar aviso" title="Cerrar (Esc)">&times;</button>
+        <button type="button" class="nt-btn-close" aria-label="${escapeHtml(t("close_aria_label"))}" title="${escapeHtml(t("close_title"))}">&times;</button>
       </div>
       <div class="nt-body">
         <div class="nt-novel-title" id="ntNovelTitle"></div>
@@ -1843,9 +1938,9 @@
         </div>
       </div>
       <div class="nt-actions" id="ntActionsRow">
-        <button type="button" class="nt-btn nt-btn-primary" id="ntBtnAdd">+ Añadir</button>
+        <button type="button" class="nt-btn nt-btn-primary" id="ntBtnAdd">${escapeHtml(t("btn_add"))}</button>
         <button type="button" class="nt-btn nt-btn-secondary" id="ntBtnDismiss">✕</button>
-        <button type="button" class="nt-btn nt-btn-blacklist" id="ntBtnBlacklist" title="Excluir este sitio en MyNovelSystem">🚫 BlackList</button>
+        <button type="button" class="nt-btn nt-btn-blacklist" id="ntBtnBlacklist" title="${escapeHtml(t("btn_blacklist_title"))}">🚫 BlackList</button>
       </div>
       <div class="nt-feedback" id="ntFeedback" style="display:none;"></div>
     `;
@@ -1882,7 +1977,7 @@
 
     const closeHandler = (e) => {
       if (e && e.type === "click" && !e.isTrusted) return;
-      chrome.runtime.sendMessage({ type: "DISCARD_UNCONFIRMED_TAB" }).catch(() => {});
+      sendToBackground({ type: "DISCARD_UNCONFIRMED_TAB" }).catch(() => {});
       dismissInPagePrompt();
     };
 
@@ -1893,7 +1988,7 @@
       if (e && !e.isTrusted) return;
       btnAdd.disabled = true;
       try {
-        await chrome.runtime.sendMessage({
+        await sendToBackground({
           type: "CONFIRM_UNCONFIRMED_TAB",
           novelName: displayTitle,
           chapter: chapVal || "1",
@@ -1902,7 +1997,7 @@
           novelUrl: payload?.novelUrl
         });
         actionsRow.style.display = "none";
-        feedbackEl.textContent = "✓ ¡Obra añadida a la biblioteca!";
+        feedbackEl.textContent = t("feedback_added");
         feedbackEl.style.display = "block";
         setTimeout(() => {
           dismissInPagePrompt();
@@ -1916,7 +2011,7 @@
       if (e && !e.isTrusted) return;
       btnBlacklist.disabled = true;
       try {
-        await chrome.runtime.sendMessage({
+        await sendToBackground({
           type: "ADD_DOMAIN_BLACKLIST",
           domain: rawDomain
         });
@@ -1925,11 +2020,11 @@
           feedbackEl.removeChild(feedbackEl.firstChild);
         }
         const spanBlocked = document.createElement("span");
-        spanBlocked.textContent = "🚫 Dominio bloqueado";
+        spanBlocked.textContent = t("feedback_blocked");
         const undoBtn = document.createElement("button");
         undoBtn.type = "button";
         undoBtn.id = "ntBtnUndo";
-        undoBtn.textContent = "Deshacer";
+        undoBtn.textContent = t("feedback_undo");
         undoBtn.style.cssText = "background:transparent; border:1px solid #fda4af; color:#fda4af; border-radius:4px; padding:2px 8px; font-size:11px; margin-left:8px; cursor:pointer;";
         feedbackEl.appendChild(spanBlocked);
         feedbackEl.appendChild(undoBtn);
@@ -1946,7 +2041,7 @@
           if (ev && !ev.isTrusted) return;
           clearTimeout(undoTimer);
           try {
-            await chrome.runtime.sendMessage({
+            await sendToBackground({
               type: "REMOVE_DOMAIN_BLACKLIST",
               domain: rawDomain
             });
@@ -1991,7 +2086,7 @@
     if (msg && msg.type === "CHECK_BLACKLIST_AND_DISMISS") {
       if (msg.blockedDomain && matchesDomainPattern(window.location.hostname, msg.blockedDomain)) {
         dismissInPagePrompt();
-        chrome.runtime.sendMessage({ type: "DISMISS_TAB_PROMPT" }).catch(() => {});
+        sendToBackground({ type: "DISMISS_TAB_PROMPT" }).catch(() => {});
       }
     }
     if (msg && msg.type === "SPA_URL_CHANGED") {
@@ -2001,12 +2096,10 @@
   });
 
   if (window.navigation && typeof window.navigation.addEventListener === "function") {
-    window.navigation.addEventListener("navigatesuccess", () => {
-      triggerNavigationDetection();
-    });
+    window.navigation.addEventListener("navigatesuccess", onNavigateHandler);
   }
 
-  setInterval(() => {
+  pollUrlIntervalTimer = setInterval(() => {
     if (location.href !== lastCheckedHref) {
       lastCheckedHref = location.href;
       triggerNavigationDetection();

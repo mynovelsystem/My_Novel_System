@@ -4227,7 +4227,7 @@ function initAccountEvents() {
           if (loggedInBox) loggedInBox.style.display = "none";
           if (loggedOutBox) loggedOutBox.style.display = "flex";
           switchModalView("login");
-          showModalStatusMsg(t("account_err_too_many") || "Esta operación requiere autenticación reciente. Inicia sesión de nuevo para confirmar.", true);
+          showModalStatusMsg(t("account_err_recent_login"), true);
           const passInput = document.getElementById("modalLoginPassword");
           if (passInput) passInput.focus();
         } else {
@@ -4456,6 +4456,14 @@ async function executeFirebaseAuth(email, password, mode, isModal = false) {
     };
 
     await chrome.storage.local.set({ auth: authData });
+
+    if (mode === "signUp" && data.idToken) {
+      fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FIREBASE_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestType: "VERIFY_EMAIL", idToken: data.idToken })
+      }).catch(() => {});
+    }
 
     // Transferir avatar personalizado de invitado si la cuenta logueada no tiene avatar previo
     try {

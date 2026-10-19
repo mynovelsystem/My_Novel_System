@@ -26,6 +26,8 @@ const requiredCoreFiles = [
   "welcome.js",
   "locales/es.json",
   "locales/en.json",
+  "LICENSE_ES",
+  "LICENSE_EN",
   "assets/icon16.png",
   "assets/icon32.png",
   "assets/icon48.png",
@@ -70,7 +72,7 @@ for (const bf of badgeFiles) {
 console.log(`  [PASS] All 53 badge SVGs verified.`);
 
 // 4. Excluded Patterns Check (Ensure dev folders are never bundled)
-const excludedFolders = [".git", "tests", "preview", "scratch", "node_modules", "scripts"];
+const excludedFolders = [".git", "tests", "preview", "scratch", "node_modules", "scripts", "docs"];
 for (const ef of excludedFolders) {
   console.log(`  - Excluded from ZIP: ${ef}/`);
 }

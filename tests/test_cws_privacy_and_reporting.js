@@ -208,8 +208,8 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
       assert.strictEqual(result.ok, true, "Report submission returns ok: true");
       const payload = testEnv.getLastPayload();
       assert.strictEqual(payload.userEmail, "anonymous", "Email MUST BE anonymous when includeEmail is false");
-      assert.strictEqual(payload.activeTab, null, "activeTab MUST BE null when attachLogs is false");
-      assert.strictEqual(payload.recentLogs, null, "recentLogs MUST BE null when attachLogs is false");
+      assert.strictEqual(payload.activeTab, undefined, "activeTab MUST BE undefined (omitted) when attachLogs is false");
+      assert.strictEqual(payload.recentLogs, undefined, "recentLogs MUST BE undefined (omitted) when attachLogs is false");
       assert.strictEqual(testEnv.wasTabsQueried(), false, "tabs.query MUST NOT be called when attachLogs is false");
       console.log("  [PASS] Case A: Authenticated user report with false consent remains 100% anonymous without logs/tabs.");
     }
@@ -255,7 +255,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
       assert.strictEqual(result.ok, true, "Report submission returns ok: true");
       const payload = testEnv.getLastPayload();
       assert.strictEqual(payload.userEmail, "willing_contact@test.com", "User email included when explicitly authorized");
-      assert.strictEqual(payload.activeTab, null, "activeTab null since attachLogs was false");
+      assert.strictEqual(payload.activeTab, undefined, "activeTab undefined (omitted) since attachLogs was false");
       console.log("  [PASS] Case C: includeEmail=true correctly conveys email upon explicit user consent.");
     }
 

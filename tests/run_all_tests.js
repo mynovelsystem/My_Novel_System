@@ -36,11 +36,12 @@ const suites = [
   { name: "Account Isolation & Security Hardening", file: "test_account_isolation_sec2.js" },
   { name: "Security Audit Sec2 Hardening (Import, URLs, Permissions)", file: "test_security_audit_sec2_hardening.js" },
   { name: "Firebase RTDB Security Rules Simulation", file: "test_firebase_rules_simulation.js" },
-  { name: "V4.0.0 Audit & Hardening Suite (Incognito, Passwords, Sync)", file: "test_audit_v4_comprehensive_hardening.js" }
+  { name: "V4.0.0 Audit & Hardening Suite (Incognito, Passwords, Sync)", file: "test_audit_v4_comprehensive_hardening.js" },
+  { name: "Sync Concurrency, ETags, Pull Cache & Rules Hardening", file: "test_sync_concurrency_and_rules_hardening.js" }
 ];
 
 console.log("====================================================================");
-console.log("       MYNOVELSYSTEM MASTER TEST RUNNER — ALL 30 SUITES            ");
+console.log("       MYNOVELSYSTEM MASTER TEST RUNNER — ALL 31 SUITES            ");
 console.log("====================================================================\n");
 
 let passedCount = 0;

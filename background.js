@@ -1,7 +1,9 @@
 importScripts("i18n.js");
 try {
   importScripts("achievements_data.js");
-} catch (_e) {}
+} catch (_e) {
+  console.error("[Background] Error cargando achievements_data.js:", _e);
+}
 
 // ================= CONFIGURACIÓN DE NUBE (FIREBASE) =================
 const FIREBASE_API_KEY = "AIzaSyCBLWg72OnEmDUUxhc_33MQ9bXdu9rnSTU";
@@ -201,16 +203,27 @@ async function addDomainToBlacklist(rawDomain, customAddedAt = null) {
     return { ok: false, error: "invalid_domain" };
   }
 
-  const currentList = await getStoredDomainBlacklist();
-  const exists = currentList.some((item) => normalizeDomain(item.domain) === domain);
-  if (exists) {
-    return { ok: true, alreadyExists: true, domainBlacklist: currentList };
-  }
+  let alreadyExists = false;
+  let updatedList = [];
 
-  const addedAt = typeof customAddedAt === "number" ? customAddedAt : Date.now();
-  const updatedList = [{ domain, addedAt }, ...currentList];
-  cachedDomainBlacklist = updatedList;
-  await chrome.storage.local.set({ domainBlacklist: updatedList });
+  await withStorageLock(async () => {
+    const currentList = await getStoredDomainBlacklist();
+    const exists = currentList.some((item) => normalizeDomain(item.domain) === domain);
+    if (exists) {
+      alreadyExists = true;
+      updatedList = currentList;
+      return;
+    }
+
+    const addedAt = typeof customAddedAt === "number" ? customAddedAt : Date.now();
+    updatedList = [{ domain, addedAt }, ...currentList];
+    cachedDomainBlacklist = updatedList;
+    await chrome.storage.local.set({ domainBlacklist: updatedList });
+  });
+
+  if (alreadyExists) {
+    return { ok: true, alreadyExists: true, domainBlacklist: updatedList };
+  }
 
   try {
     const tabs = await chrome.tabs.query({});
@@ -232,17 +245,22 @@ async function addDomainToBlacklist(rawDomain, customAddedAt = null) {
 
 async function removeDomainFromBlacklist(rawDomain) {
   const domain = normalizeDomain(rawDomain);
-  const currentList = await getStoredDomainBlacklist();
-  const updatedList = currentList.filter((item) => normalizeDomain(item.domain) !== domain);
-  cachedDomainBlacklist = updatedList;
-  await chrome.storage.local.set({ domainBlacklist: updatedList });
+  let updatedList = [];
+  await withStorageLock(async () => {
+    const currentList = await getStoredDomainBlacklist();
+    updatedList = currentList.filter((item) => normalizeDomain(item.domain) !== domain);
+    cachedDomainBlacklist = updatedList;
+    await chrome.storage.local.set({ domainBlacklist: updatedList });
+  });
   await pushDomainBlacklistToCloud(updatedList);
   return { ok: true, domainBlacklist: updatedList };
 }
 
 async function clearDomainBlacklist() {
-  cachedDomainBlacklist = [];
-  await chrome.storage.local.set({ domainBlacklist: [] });
+  await withStorageLock(async () => {
+    cachedDomainBlacklist = [];
+    await chrome.storage.local.set({ domainBlacklist: [] });
+  });
   await pushDomainBlacklistToCloud([]);
   return { ok: true, domainBlacklist: [] };
 }
@@ -473,7 +491,7 @@ async function handleSubmitBugReport(payload) {
 
   let activeAuth = null;
   try {
-    activeAuth = typeof getValidAuth === "function" ? await getValidAuth() : storage.auth;
+    activeAuth = typeof getValidAuth === "function" ? await getValidAuth(true) : storage.auth;
   } catch {
     activeAuth = storage.auth;
   }
@@ -494,7 +512,6 @@ async function handleSubmitBugReport(payload) {
 
   const userEmail = (includeEmail && activeAuth?.email) ? String(activeAuth.email).trim() : "anonymous";
   const sanitizedRecentLogs = attachLogs ? sanitizeLogsForReport(storage.diagnosticLogs) : null;
-  const recentLogsPayload = (sanitizedRecentLogs && sanitizedRecentLogs.length > 0) ? sanitizedRecentLogs : null;
 
   const reportData = {
     category,
@@ -502,10 +519,15 @@ async function handleSubmitBugReport(payload) {
     createdAt: Date.now(),
     createdIso: new Date().toISOString(),
     version: chrome.runtime.getManifest().version,
-    userEmail,
-    activeTab: attachLogs ? activeTabInfo : null,
-    recentLogs: recentLogsPayload
+    userEmail
   };
+
+  if (attachLogs && activeTabInfo && Object.keys(activeTabInfo).length > 0) {
+    reportData.activeTab = activeTabInfo;
+  }
+  if (attachLogs && Array.isArray(sanitizedRecentLogs) && sanitizedRecentLogs.length > 0) {
+    reportData.recentLogs = sanitizedRecentLogs.slice(0, 8);
+  }
 
   const reportsEndpoint = getFirebaseUrl("/reports.json", activeAuth.idToken);
 
@@ -857,8 +879,10 @@ function isValidSeriesPath(pathname) {
   return true;
 }
 
+function safeDecode(s) { try { return decodeURIComponent(s); } catch { return String(s); } }
+
 function canonicalizeSeriesPathForId(pathname) {
-  const segments = decodeURIComponent(String(pathname || ""))
+  const segments = safeDecode(String(pathname || ""))
     .toLowerCase()
     .replace(/\/+$/, "")
     .split("/")
@@ -1504,6 +1528,120 @@ function mergeStatsObjects(localStats, cloudStats) {
   }
   merged.bonusQi = calculateBonusQi(merged);
   return merged;
+}
+
+function mergeNovelsMaps(localMap, cloudMap, allowRewind = true, now = Date.now()) {
+  const lMap = localMap && typeof localMap === "object" ? localMap : {};
+  const cMap = cloudMap && typeof cloudMap === "object" ? cloudMap : {};
+
+  const allKeys = new Set([...Object.keys(lMap), ...Object.keys(cMap)]);
+  const preMerged = {};
+  let shouldPush = false;
+
+  for (const key of allKeys) {
+    const lItem = lMap[key];
+    const cItem = cMap[key];
+
+    let winner = null;
+    let older = null;
+
+    if (cItem && lItem) {
+      const cChap = parseFloat(cItem.chapter) || 0;
+      const lChap = parseFloat(lItem.chapter) || 0;
+      if (!allowRewind && cChap !== lChap) {
+        winner = cChap > lChap ? cItem : lItem;
+        older = winner === cItem ? lItem : cItem;
+        if (winner === lItem) shouldPush = true;
+      } else if ((lItem.updatedAt || 0) > (cItem.updatedAt || 0)) {
+        winner = lItem;
+        older = cItem;
+        shouldPush = true;
+      } else {
+        winner = cItem;
+        older = lItem;
+      }
+    } else if (lItem) {
+      winner = lItem;
+      shouldPush = true;
+    } else if (cItem) {
+      winner = cItem;
+    }
+
+    if (!winner) continue;
+
+    if (winner.deleted === true) {
+      // Tombstone de eliminación: mantener si tiene <= 30 días
+      if (now - (winner.updatedAt || 0) <= THIRTY_DAYS_MS) {
+        preMerged[key] = {
+          seriesId: key,
+          deleted: true,
+          updatedAt: winner.updatedAt || now
+        };
+      } else {
+        shouldPush = true;
+      }
+      continue;
+    }
+
+    const refUrl = winner.novelUrl || older?.novelUrl || winner.url || "";
+    const customName =
+      (winner.customName && !isBogusNovelName(winner.customName, refUrl) ? stripChapterFromTitle(winner.customName) : "") ||
+      (older?.customName && !isBogusNovelName(older.customName, refUrl) ? stripChapterFromTitle(older.customName) : "");
+
+    const validWinnerName = !isBogusNovelName(winner.novelName, refUrl) ? stripChapterFromTitle(winner.novelName) : "";
+    const validOlderName = older && !isBogusNovelName(older.novelName, refUrl) ? stripChapterFromTitle(older.novelName) : "";
+    let bestName = customName || validWinnerName || validOlderName;
+    if (!customName && validOlderName && hasRicherFormatting(validOlderName, bestName)) {
+      bestName = validOlderName;
+    }
+
+    const maxCounted = Math.max(
+      parseFloat(winner.maxCounted ?? winner.chapter) || 0,
+      parseFloat(older?.maxCounted ?? older?.chapter) || 0
+    );
+
+    const finalEntry = {
+      ...winner,
+      seriesId: key,
+      novelName: bestName || humanizeSlugFromNovelUrl(refUrl),
+      novelUrl: winner.novelUrl || older?.novelUrl || "",
+      maxCounted,
+      completedCounted: Boolean(winner.completedCounted || older?.completedCounted)
+    };
+    if (customName) {
+      finalEntry.customName = customName;
+    }
+
+    preMerged[key] = finalEntry;
+  }
+
+  const finalPass = deduplicateAndMigrateMap(preMerged);
+  return {
+    mergedNovels: finalPass.migratedNovels,
+    shouldPush: shouldPush || finalPass.changed
+  };
+}
+
+async function getCloudSyncMeta(uid) {
+  if (!uid) return { lastPullAt: 0, novelsETag: null };
+  try {
+    const key = `cloud_sync_meta_${uid}`;
+    const storage = await chrome.storage.local.get([key]);
+    return storage[key] || { lastPullAt: 0, novelsETag: null };
+  } catch {
+    return { lastPullAt: 0, novelsETag: null };
+  }
+}
+
+async function setCloudSyncMeta(uid, meta) {
+  if (!uid || !meta) return;
+  try {
+    const key = `cloud_sync_meta_${uid}`;
+    const current = await getCloudSyncMeta(uid);
+    await chrome.storage.local.set({
+      [key]: { ...current, ...meta }
+    });
+  } catch {}
 }
 
 async function migrateLocalStorageNow() {
@@ -2837,34 +2975,46 @@ function buildCallMeBotUrl(phone, apiKey, textMsg) {
 async function handleTestWhatsapp(data) {
   await initI18n();
   const storage = await chrome.storage.local.get(["settings"]);
-  const settings = { ...(storage.settings || {}), ...(data || {}) };
-  const waUrl = buildCallMeBotUrl(settings.phone, settings.apiKey, t("wa_msg_test"));
+  const initialSettings = { ...(storage.settings || {}), ...(data || {}) };
+  const waUrl = buildCallMeBotUrl(initialSettings.phone, initialSettings.apiKey, t("wa_msg_test"));
 
   if (!waUrl) {
-    settings.whatsappStatus = "unconfigured";
-    await chrome.storage.local.set({ settings });
+    await withStorageLock(async () => {
+      const cur = (await chrome.storage.local.get(["settings"])).settings || {};
+      cur.whatsappStatus = "unconfigured";
+      await chrome.storage.local.set({ settings: cur });
+    });
     return { ok: false, status: "unconfigured" };
   }
+
+  let finalStatus = "error";
+  let ok = false;
 
   try {
     const res = await fetch(waUrl);
     const bodyText = await res.text().catch(() => "");
     const isErrorBody = /error|invalid|not activated/i.test(bodyText);
     if (res.ok && !isErrorBody) {
-      settings.whatsappStatus = "working";
-      await chrome.storage.local.set({ settings });
-      return { ok: true, status: "working" };
+      finalStatus = "working";
+      ok = true;
+    } else {
+      finalStatus = "error";
+      await appendDiagnosticLog({ event: "WHATSAPP_TEST_FAIL", status: res.status });
     }
-    settings.whatsappStatus = "error";
-    await chrome.storage.local.set({ settings });
-    await appendDiagnosticLog({ event: "WHATSAPP_TEST_FAIL", status: res.status });
-    return { ok: false, status: "error" };
   } catch (err) {
-    settings.whatsappStatus = "error";
-    await chrome.storage.local.set({ settings });
+    finalStatus = "error";
     await appendDiagnosticLog({ event: "WHATSAPP_NETWORK_ERROR", error: String(err) });
-    return { ok: false, status: "error" };
   }
+
+  await withStorageLock(async () => {
+    const cur = (await chrome.storage.local.get(["settings"])).settings || {};
+    cur.whatsappStatus = finalStatus;
+    if (data?.phone !== undefined) cur.phone = data.phone;
+    if (data?.apiKey !== undefined) cur.apiKey = data.apiKey;
+    await chrome.storage.local.set({ settings: cur });
+  });
+
+  return { ok, status: finalStatus };
 }
 
 async function handleImportData(payload) {
@@ -3161,20 +3311,26 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   const waUrl = buildCallMeBotUrl(settings.phone, settings.apiKey, textMsg);
   if (!waUrl) return;
 
+  let isWorking = false;
   try {
     const res = await fetch(waUrl);
-    if (res.ok) {
-      history[historyKey] = String(currentSaved.chapter);
-      settings.whatsappStatus = "working";
-      await chrome.storage.local.set({ notifiedHistory: history, settings });
-    } else {
-      settings.whatsappStatus = "error";
-      await chrome.storage.local.set({ settings });
-    }
-  } catch (err) {
-    settings.whatsappStatus = "error";
-    await chrome.storage.local.set({ settings });
+    isWorking = res.ok;
+  } catch {
+    isWorking = false;
   }
+
+  await withStorageLock(async () => {
+    const fresh = await chrome.storage.local.get(["notifiedHistory", "settings"]);
+    const curSettings = fresh.settings || {};
+    curSettings.whatsappStatus = isWorking ? "working" : "error";
+    const updates = { settings: curSettings };
+    if (isWorking) {
+      const curHistory = fresh.notifiedHistory || {};
+      curHistory[historyKey] = String(currentSaved.chapter);
+      updates.notifiedHistory = curHistory;
+    }
+    await chrome.storage.local.set(updates);
+  });
 });
 
 chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
@@ -3247,11 +3403,11 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 });
 
-async function getValidAuth() {
+async function getValidAuth(forceRefresh = false) {
   const { auth } = await chrome.storage.local.get(["auth"]);
   if (!auth) return null;
 
-  if (auth.idToken && auth.expiresAt && Date.now() < auth.expiresAt - 300000) {
+  if (!forceRefresh && auth.idToken && auth.expiresAt && Date.now() < auth.expiresAt - 300000) {
     return auth;
   }
 
@@ -3290,48 +3446,121 @@ async function getValidAuth() {
 
 async function pushToCloudUnlocked(novelsMap, statsObj, blacklistArr) {
   const auth = await getValidAuth();
-  if (!auth) return;
+  if (!auth) return { ok: false, error: "NO_AUTH" };
 
-  const safePayload = {};
-  for (const [k, v] of Object.entries(novelsMap || {})) {
-    const safeKey = sanitizeRtdbKey(k);
-    safePayload[safeKey] = v;
-  }
+  const MAX_RETRIES = 3;
+  let lastError = null;
 
-  try {
-    const promises = [
-      fetch(getFirebaseUrl(`/users/${auth.uid}/novels.json`, auth.idToken), {
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      // 1. Obtener estado actual de la nube y su ETag para control de concurrencia
+      const getRes = await fetch(
+        getFirebaseUrl(`/users/${auth.uid}/novels.json`, auth.idToken),
+        { headers: { "X-Firebase-ETag": "true" } }
+      );
+      if (!getRes.ok) {
+        throw new Error(`GET_NOVELS_${getRes.status}`);
+      }
+      const remoteNovels = (await getRes.json()) || {};
+      const remoteETag = getRes.headers?.get?.("ETag") || null;
+
+      // 2. Fusionar concurrentemente lo remoto con lo local para no borrar novelas de otro equipo
+      const { settings } = await chrome.storage.local.get(["settings"]);
+      const allowRewind = settings?.allowRewind !== false;
+      const localMig = deduplicateAndMigrateMap(novelsMap || {});
+      const cloudMig = deduplicateAndMigrateMap(remoteNovels || {});
+      const { mergedNovels } = mergeNovelsMaps(localMig.migratedNovels, cloudMig.migratedNovels, allowRewind);
+
+      const safePayload = {};
+      for (const [k, v] of Object.entries(mergedNovels)) {
+        const safeKey = sanitizeRtdbKey(k);
+        safePayload[safeKey] = v;
+      }
+
+      // 3. Preparar encabezados con If-Match si hay un ETag conocido
+      const putHeaders = { "Content-Type": "application/json" };
+      if (remoteETag) {
+        putHeaders["If-Match"] = remoteETag;
+      }
+
+      const putRes = await fetch(getFirebaseUrl(`/users/${auth.uid}/novels.json`, auth.idToken), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: putHeaders,
         body: JSON.stringify(safePayload)
-      })
-    ];
+      });
 
-    if (statsObj) {
-      promises.push(
-        fetch(getFirebaseUrl(`/users/${auth.uid}/stats.json`, auth.idToken), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(statsObj)
-        })
-      );
+      // 4. Si hay conflicto de concurrencia (412 Precondition Failed), reintentar tras breve espera
+      if (putRes.status === 412) {
+        console.warn(`[Background] Conflicto de concurrencia ETag (412). Reintento ${attempt + 1}/${MAX_RETRIES}...`);
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt)));
+        continue;
+      }
+
+      if (!putRes.ok) {
+        const errMsg = `HTTP_${putRes.status}`;
+        lastError = errMsg;
+        await appendDiagnosticLog({ event: "CLOUD_PUSH_NOVELS_ERROR", error: errMsg });
+        await chrome.storage.local.set({ lastSyncError: { at: Date.now(), error: errMsg } });
+        return { ok: false, error: errMsg };
+      }
+
+      // Escritura de novelas exitosa: capturar nuevo ETag
+      const newETag = putRes.headers?.get?.("ETag") || null;
+
+      // 5. Actualizar la copia local con la versión consolidada
+      await chrome.storage.local.set({ savedNovels: mergedNovels });
+
+      // 6. Push de stats y blacklist
+      const promises = [];
+
+      let cleanStats = statsObj;
+      if (cleanStats) {
+        if (!cleanStats.updatedAt || cleanStats.updatedAt <= 0) {
+          cleanStats = { ...cleanStats, updatedAt: Date.now() };
+        }
+        promises.push(
+          fetch(getFirebaseUrl(`/users/${auth.uid}/stats.json`, auth.idToken), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cleanStats)
+          })
+        );
+      }
+
+      const currentBl = blacklistArr !== undefined ? blacklistArr : cachedDomainBlacklist;
+      if (Array.isArray(currentBl)) {
+        promises.push(
+          fetch(getFirebaseUrl(`/users/${auth.uid}/domainBlacklist.json`, auth.idToken), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(currentBl)
+          })
+        );
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+
+      // 7. Persistir metadatos de sincronización exitosa
+      await setCloudSyncMeta(auth.uid, {
+        lastPullAt: Date.now(),
+        novelsETag: newETag || remoteETag
+      });
+
+      await chrome.storage.local.remove(["lastSyncError"]);
+      return { ok: true, retries: attempt, mergedCount: Object.keys(mergedNovels).length };
+    } catch (e) {
+      lastError = String(e);
+      await appendDiagnosticLog({ event: "CLOUD_PUSH_ERROR", error: String(e) });
+      await chrome.storage.local.set({ lastSyncError: { at: Date.now(), error: String(e) } });
+      return { ok: false, error: String(e) };
     }
-
-    const currentBl = blacklistArr !== undefined ? blacklistArr : cachedDomainBlacklist;
-    if (Array.isArray(currentBl)) {
-      promises.push(
-        fetch(getFirebaseUrl(`/users/${auth.uid}/domainBlacklist.json`, auth.idToken), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(currentBl)
-        })
-      );
-    }
-
-    await Promise.all(promises);
-  } catch (e) {
-    await appendDiagnosticLog({ event: "CLOUD_PUSH_ERROR", error: String(e) });
   }
+
+  const finalErr = lastError || "SYNC_CONFLICT_LIMIT_EXCEEDED";
+  await chrome.storage.local.set({ lastSyncError: { at: Date.now(), error: finalErr } });
+  return { ok: false, error: finalErr };
 }
 
 async function switchAccountProfile(targetUid, mergeGuestData = false) {
@@ -3462,7 +3691,6 @@ async function switchAccountProfile(targetUid, mergeGuestData = false) {
 }
 
 const CLOUD_SYNC_CACHE_MS = 10 * 60 * 1000;
-const lastCloudPullTimestamps = {};
 let inFlightCloudPullPromise = null;
 
 async function pullFromCloud(force = false) {
@@ -3488,8 +3716,9 @@ async function pullFromCloud(force = false) {
       return { ok: false, error: "OFFLINE_AUTH_FAILED" };
     }
 
-    // P1-3: Política de caché de sincronización (10 minutos para lecturas pasivas)
-    const lastPull = lastCloudPullTimestamps[auth.uid] || 0;
+    // P1-3: Política de caché de sincronización persistente por UID (10 minutos para lecturas pasivas)
+    const syncMeta = await getCloudSyncMeta(auth.uid);
+    const lastPull = syncMeta?.lastPullAt || 0;
     if (!force && lastPull > 0 && Date.now() - lastPull < CLOUD_SYNC_CACHE_MS) {
       return { ok: true, cached: true, lastSyncAt: lastPull };
     }
@@ -3549,113 +3778,41 @@ async function pullFromCloud(force = false) {
         }
       }
 
+      const novelsETag = novelsRes.headers?.get?.("ETag") || null;
       const rawCloudNovels = novelsRes.ok ? (await novelsRes.json()) || {} : {};
       const rawCloudStats = statsRes.ok ? (await statsRes.json()) || null : null;
 
       const cloudMig = deduplicateAndMigrateMap(rawCloudNovels);
-      const cloudMap = cloudMig.migratedNovels;
-      const localMap = localMig.migratedNovels;
+      const { mergedNovels, shouldPush: novelsShouldPush } = mergeNovelsMaps(
+        localMig.migratedNovels,
+        cloudMig.migratedNovels,
+        allowRewind
+      );
+      let shouldPush = novelsShouldPush || cloudMig.changed || localMig.changed;
 
-      const allKeys = new Set([...Object.keys(cloudMap), ...Object.keys(localMap)]);
-      const preMerged = {};
-      const now = Date.now();
-      let shouldPush = cloudMig.changed || localMig.changed;
-
-      for (const key of allKeys) {
-        const cItem = cloudMap[key];
-        const lItem = localMap[key];
-
-        let winner = null;
-        let older = null;
-
-        if (cItem && lItem) {
-          const cChap = parseFloat(cItem.chapter) || 0;
-          const lChap = parseFloat(lItem.chapter) || 0;
-          if (!allowRewind && cChap !== lChap) {
-            winner = cChap > lChap ? cItem : lItem;
-            older = winner === cItem ? lItem : cItem;
-            if (winner === lItem) shouldPush = true;
-          } else if ((lItem.updatedAt || 0) > (cItem.updatedAt || 0)) {
-            winner = lItem;
-            older = cItem;
-            shouldPush = true;
-          } else {
-            winner = cItem;
-            older = lItem;
-          }
-        } else if (lItem) {
-          winner = lItem;
-          shouldPush = true;
-        } else if (cItem) {
-          winner = cItem;
-        }
-
-        if (!winner) continue;
-
-        if (winner.deleted === true) {
-          if (now - (winner.updatedAt || 0) <= THIRTY_DAYS_MS) {
-            preMerged[key] = {
-              seriesId: key,
-              deleted: true,
-              updatedAt: winner.updatedAt || now
-            };
-          } else {
-            shouldPush = true;
-          }
-          continue;
-        }
-
-        const refUrl = winner.novelUrl || older?.novelUrl || winner.url || "";
-        const customName =
-          (winner.customName && !isBogusNovelName(winner.customName, refUrl) ? stripChapterFromTitle(winner.customName) : "") ||
-          (older?.customName && !isBogusNovelName(older.customName, refUrl) ? stripChapterFromTitle(older.customName) : "");
-
-        const validWinnerName = !isBogusNovelName(winner.novelName, refUrl) ? stripChapterFromTitle(winner.novelName) : "";
-        const validOlderName = older && !isBogusNovelName(older.novelName, refUrl) ? stripChapterFromTitle(older.novelName) : "";
-        let bestName = customName || validWinnerName || validOlderName;
-        if (!customName && validOlderName && hasRicherFormatting(validOlderName, bestName)) {
-          bestName = validOlderName;
-        }
-
-        const maxCounted = Math.max(
-          parseFloat(winner.maxCounted ?? winner.chapter) || 0,
-          parseFloat(older?.maxCounted ?? older?.chapter) || 0
-        );
-
-        const finalEntry = {
-          ...winner,
-          seriesId: key,
-          novelName: bestName || humanizeSlugFromNovelUrl(refUrl),
-          novelUrl: winner.novelUrl || older?.novelUrl || "",
-          maxCounted,
-          completedCounted: Boolean(winner.completedCounted || older?.completedCounted)
-        };
-        if (customName) {
-          finalEntry.customName = customName;
-        }
-
-        preMerged[key] = finalEntry;
-      }
-
-      const finalPass = deduplicateAndMigrateMap(preMerged);
       const mergedStats = rawCloudStats ? mergeStatsObjects(localStats, rawCloudStats) : localStats;
-
       if (!rawCloudStats || (mergedStats.updatedAt || 0) > (rawCloudStats.updatedAt || 0)) {
         shouldPush = true;
       }
 
       await chrome.storage.local.set({
-        savedNovels: finalPass.migratedNovels,
+        savedNovels: mergedNovels,
         stats: mergedStats
       });
 
       await refreshBrowserActionAppearance();
 
-      if (shouldPush || finalPass.changed) {
-        await pushToCloudUnlocked(finalPass.migratedNovels, mergedStats);
+      if (shouldPush) {
+        await pushToCloudUnlocked(mergedNovels, mergedStats);
       }
-      lastCloudPullTimestamps[auth.uid] = Date.now();
-      return { ok: true, cached: false, lastSyncAt: lastCloudPullTimestamps[auth.uid] };
+
+      const nowSuccess = Date.now();
+      await setCloudSyncMeta(auth.uid, {
+        lastPullAt: nowSuccess,
+        novelsETag
+      });
+
+      return { ok: true, cached: false, lastSyncAt: nowSuccess };
     } catch (e) {
       await appendDiagnosticLog({ event: "CLOUD_PULL_ERROR", error: String(e) });
       return { ok: false, error: String(e) };
@@ -3701,6 +3858,11 @@ if (typeof globalThis !== "undefined") {
   globalThis.getHostnameFromUrl = getHostnameFromUrl;
   globalThis.getFirebaseUrl = getFirebaseUrl;
   globalThis.verifyExportIntegrity = verifyExportIntegrity;
+  globalThis.mergeNovelsMaps = mergeNovelsMaps;
+  globalThis.getCloudSyncMeta = getCloudSyncMeta;
+  globalThis.setCloudSyncMeta = setCloudSyncMeta;
+  globalThis.pushToCloudUnlocked = pushToCloudUnlocked;
+  globalThis.pullFromCloud = pullFromCloud;
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -3719,6 +3881,11 @@ if (typeof module !== "undefined" && module.exports) {
     isSameDomainOrSubdomain,
     deduplicateAndMigrateMap,
     mergeStatsObjects,
+    mergeNovelsMaps,
+    getCloudSyncMeta,
+    setCloudSyncMeta,
+    pushToCloudUnlocked,
+    pullFromCloud,
     refreshBrowserActionAppearance,
     switchAccountProfile,
     handleImportData,

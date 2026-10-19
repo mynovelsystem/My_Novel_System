@@ -48,14 +48,23 @@ const RULES = {
           }
           if (typeof newData.chaptersRead !== "number" || typeof newData.novelsStarted !== "number" || typeof newData.novelsCompleted !== "number") return false;
           if (typeof newData.updatedAt !== "number" || !Number.isFinite(newData.updatedAt)) return false;
-          if (newData.updatedAt <= 0 || newData.updatedAt > now + 86400000) return false;
+          if (newData.updatedAt < 0 || newData.updatedAt > now + 86400000) return false;
           return true;
         }
       },
       domainBlacklist: {
         $index: {
-          validate: (val) => {
-            return typeof val === "string" && val.length <= 255;
+          validate: (val, now = Date.now()) => {
+            if (typeof val === "string") return val.length <= 255;
+            if (val && typeof val === "object" && !Array.isArray(val)) {
+              if (typeof val.domain !== "string" || val.domain.length > 255) return false;
+              if ("addedAt" in val) {
+                if (typeof val.addedAt !== "number" || !Number.isFinite(val.addedAt)) return false;
+                if (val.addedAt < 0 || val.addedAt > now + 86400000) return false;
+              }
+              return true;
+            }
+            return false;
           }
         }
       }
@@ -422,6 +431,15 @@ console.log("\n[Test 8] User Stats Schema & Validation:");
   };
   assert.strictEqual(RULES.users.$uid.stats.validate(validStats, now), true, "Valid stats must pass");
 
+  // Stats with zero updatedAt (initial state)
+  const zeroStats = {
+    chaptersRead: 0,
+    novelsStarted: 0,
+    novelsCompleted: 0,
+    updatedAt: 0
+  };
+  assert.strictEqual(RULES.users.$uid.stats.validate(zeroStats, now), true, "Stats with 0 updatedAt must pass");
+
   // Stats missing required field
   const incompleteStats = {
     chaptersRead: 42,
@@ -438,11 +456,14 @@ console.log("\n[Test 9] Domain Blacklist Syncing & Element Type Enforcement:");
 {
   assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate("example.com"), true, "Valid domain string passes");
   assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate("readnovelfull.com"), true, "Valid second domain string passes");
+  assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate({ domain: "skynovels.net", addedAt: Date.now() }), true, "Valid domain object with addedAt passes");
+  assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate({ domain: "novelupdates.com" }), true, "Valid domain object without addedAt passes");
   assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate(12345), false, "Numeric domain must be rejected");
-  assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate({ evil: "object" }), false, "Object domain must be rejected");
+  assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate({ evil: "object" }), false, "Object without domain property must be rejected");
+  assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate({ domain: 123 }), false, "Object with non-string domain must be rejected");
   assert.strictEqual(RULES.users.$uid.domainBlacklist.$index.validate("a".repeat(256)), false, "Domain exceeding 255 chars must be rejected");
 
-  console.log("  [PASS] Domain blacklist validates each element as bounded string, rejecting corrupt/nested objects.");
+  console.log("  [PASS] Domain blacklist validates both legacy strings and modern objects, rejecting corrupt entries.");
 }
 
 // 10. Timestamp Boundary Enforcement

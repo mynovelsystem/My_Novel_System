@@ -8,15 +8,15 @@
         ".write": "auth != null && auth.uid === $uid",
         "novels": {
           "$novelKey": {
-            ".validate": "newData.child('deleted').val() === true ? (newData.hasChildren(['seriesId', 'updatedAt']) && newData.child('seriesId').isString() && newData.child('seriesId').val().length <= 200 && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0) : (newData.hasChildren(['seriesId', 'novelName', 'chapter', 'url', 'updatedAt']) && newData.child('seriesId').isString() && newData.child('seriesId').val().length <= 200 && newData.child('novelName').isString() && newData.child('novelName').val().length <= 300 && (newData.child('chapter').isString() || newData.child('chapter').isNumber()) && newData.child('url').isString() && newData.child('url').val().length <= 2048 && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0)"
+            ".validate": "newData.child('deleted').val() === true ? (newData.hasChildren(['seriesId', 'updatedAt']) && newData.child('seriesId').isString() && newData.child('seriesId').val().length <= 200 && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0) : (newData.hasChildren(['seriesId', 'novelName', 'chapter', 'url', 'updatedAt']) && newData.child('seriesId').isString() && newData.child('seriesId').val().length <= 200 && newData.child('novelName').isString() && newData.child('novelName').val().length <= 500 && (newData.child('chapter').isString() || newData.child('chapter').isNumber()) && newData.child('url').isString() && newData.child('url').val().length <= 2048 && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0 && (!newData.child('customName').exists() || (newData.child('customName').isString() && newData.child('customName').val().length <= 500)) && (!newData.child('title').exists() || (newData.child('title').isString() && newData.child('title').val().length <= 500)) && (!newData.child('novelUrl').exists() || (newData.child('novelUrl').isString() && newData.child('novelUrl').val().length <= 2048)))"
           }
         },
         "stats": {
-          ".validate": "newData.hasChildren(['chaptersRead', 'novelsStarted', 'novelsCompleted', 'updatedAt']) && newData.child('chaptersRead').isNumber() && newData.child('novelsStarted').isNumber() && newData.child('novelsCompleted').isNumber() && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0"
+          ".validate": "newData.hasChildren(['chaptersRead', 'novelsStarted', 'novelsCompleted', 'updatedAt']) && newData.child('chaptersRead').isNumber() && newData.child('novelsStarted').isNumber() && newData.child('novelsCompleted').isNumber() && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() >= 0"
         },
         "domainBlacklist": {
           "$index": {
-            ".validate": "newData.isString() && newData.val().length <= 255"
+            ".validate": "newData.isString() ? (newData.val().length <= 255) : (newData.hasChildren(['domain']) && newData.child('domain').isString() && newData.child('domain').val().length <= 255 && (!newData.child('addedAt').exists() || (newData.child('addedAt').isNumber() && newData.child('addedAt').val() >= 0 && newData.child('addedAt').val() <= now + 86400000)))"
           }
         },
         "$other": {
