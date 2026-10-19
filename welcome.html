@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="welcome_page_title">Bienvenido a MyNovelSystem — Guía de Inicio</title>
+  <link rel="icon" type="image/png" href="assets/icon32.png">
+  <style>
+    :root {
+      --bg-base: #070709;
+      --bg-surface: rgba(17, 24, 39, 0.72);
+      --bg-surface-hover: rgba(30, 41, 59, 0.85);
+      --bg-surface-elevated: rgba(30, 41, 59, 0.55);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(99, 102, 241, 0.4);
+      --border-cyan: rgba(6, 182, 212, 0.4);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+      --accent-cyan: #06b6d4;
+      --accent-gold: #f59e0b;
+      --accent-purple: #a855f7;
+      --accent-emerald: #10b981;
+      --gradient-brand: linear-gradient(135deg, #06b6d4 0%, #6366f1 50%, #d946ef 100%);
+      --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+      --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
+      --glow-brand: rgba(99, 102, 241, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(ellipse 90% 55% at 20% -10%, rgba(6, 182, 212, 0.14), transparent 70%),
+        radial-gradient(ellipse 90% 55% at 80% -10%, rgba(217, 70, 239, 0.14), transparent 70%),
+        radial-gradient(circle 700px at 50% 40%, rgba(99, 102, 241, 0.06), transparent 70%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    .navbar {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(7, 7, 9, 0.75);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      box-shadow: 0 0 16px var(--glow-brand);
+    }
+
+    .brand-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .version-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.18);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #a5b4fc;
+      margin-left: 4px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Language Switcher */
+    .lang-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn:hover {
+      color: #ffffff;
+    }
+
+    .lang-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .nav-link-privacy {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-link-privacy:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 56px 0 40px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 40px;
+      font-weight: 850;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 720px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    /* Feature Pills */
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 44px;
+    }
+
+    .pill-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.25s ease;
+    }
+
+    .pill-item:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.2);
+    }
+
+    .pill-clickable {
+      cursor: pointer;
+    }
+
+    /* Glass Cards */
+    .glass-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      border-color: var(--border-highlight);
+    }
+
+    .section-title-cluster {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+      font-size: 14.5px;
+      color: var(--text-secondary);
+    }
+
+    /* Section: What is MyNovelSystem */
+    .what-section {
+      margin-bottom: 40px;
+    }
+
+    .what-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .what-text p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .what-text p strong {
+      color: #ffffff;
+    }
+
+    /* Mock Reader Preview Card */
+    .mock-preview-box {
+      background: rgba(10, 14, 23, 0.85);
+      border: 1px solid var(--border-cyan);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.15);
+      position: relative;
+    }
+
+    .mock-preview-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mock-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .mock-qi-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fbbf24;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mock-novel-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mock-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .mock-progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .mock-progress-fill {
+      height: 100%;
+      width: 78%;
+      background: var(--gradient-brand);
+      border-radius: 999px;
+    }
+
+    .mock-footer-note {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Pillars Grid (How It Works) */
+    .pillars-section {
+      margin-bottom: 40px;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .pillar-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 24px;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pillar-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .pillar-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+    }
+
+    .pillar-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .pillar-desc {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* 4 Steps Guide */
+    .guide-section {
+      margin-bottom: 40px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .step-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 24px 20px;
+      position: relative;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-3px);
+    }
+
+    .step-badge {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .step-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .step-code {
+      display: inline-block;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Privacy Section */
+    .privacy-section {
+      margin-bottom: 40px;
+    }
+
+    .privacy-card {
+      border-left: 4px solid var(--accent-emerald);
+    }
+
+    .privacy-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .privacy-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .privacy-item-icon {
+      font-size: 18px;
+      margin-top: 2px;
+    }
+
+    .privacy-item-content h4 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 3px;
+    }
+
+    .privacy-item-content p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* Transfer Section (100% Local Device Transfer) */
+    .transfer-section {
+      margin-bottom: 40px;
+      scroll-margin-top: 86px;
+    }
+
+    .guide-section,
+    .privacy-section,
+    .what-section,
+    .pillars-section {
+      scroll-margin-top: 86px;
+    }
+
+    .transfer-card {
+      border-left: 4px solid var(--accent-cyan);
+    }
+
+    .transfer-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+      margin-bottom: 28px;
+    }
+
+    .transfer-step-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .transfer-step-card:hover {
+      border-color: var(--border-cyan);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.15);
+    }
+
+    .transfer-step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .transfer-step-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.18);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .transfer-step-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .transfer-step-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .transfer-step-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Contrast Box: Local vs Cloud */
+    .contrast-box {
+      background: rgba(10, 14, 23, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 22px;
+    }
+
+    .contrast-title {
+      font-size: 15px;
+      font-weight: 750;
+      color: #ffffff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .contrast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .contrast-card {
+      padding: 16px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .contrast-card.contrast-local {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .contrast-card.contrast-local:hover {
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .contrast-card.contrast-cloud {
+      border-color: rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .contrast-card.contrast-cloud:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .contrast-card-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .contrast-card-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .transfer-tip-box {
+      margin-top: 18px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      font-size: 12.5px;
+      color: #fde68a;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* CTA Banner */
+    .cta-banner {
+      text-align: center;
+      padding: 40px 24px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(99, 102, 241, 0.18) 50%, rgba(217, 70, 239, 0.12) 100%);
+      border: 1px solid var(--border-highlight);
+      border-radius: 16px;
+      margin-bottom: 50px;
+    }
+
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-cta-primary {
+      background: var(--gradient-brand);
+      color: #ffffff;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn-cta-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      border: 1px solid var(--border-subtle);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 11px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-cta-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 30px 0;
+      margin-top: auto;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer p {
+      margin-bottom: 4px;
+    }
+
+    /* Highlight Pulse Animation */
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); border-color: #6366f1; }
+      70% { box-shadow: 0 0 0 14px rgba(99, 102, 241, 0); border-color: #818cf8; }
+      100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+
+    .highlight-pulse {
+      animation: pulseGlow 1.2s ease-out 2;
+    }
+
+    /* Toast */
+    .welcome-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--accent);
+      color: #ffffff;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+
+    .welcome-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .transfer-steps-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 30px; }
+      .what-grid { grid-template-columns: 1fr; }
+      .pillars-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .transfer-steps-grid { grid-template-columns: 1fr; }
+      .contrast-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <div class="brand-link">
+        <img src="assets/icon48.png" alt="MyNovelSystem Logo" class="brand-logo">
+        <span class="brand-title">MyNovelSystem</span>
+        <span class="version-pill">v4.0.0</span>
+      </div>
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <div class="lang-switcher" role="group" aria-label="Language">
+          <button type="button" id="btnLangEs" class="lang-btn active">ES</button>
+          <button type="button" id="btnLangEn" class="lang-btn">EN</button>
+        </div>
+        <a href="privacy.html" class="nav-link-privacy" data-i18n="welcome_nav_privacy">Política de Privacidad</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-badge" data-i18n="welcome_brand_subtitle">Sistema de Cultivo y Seguimiento de Lectura</div>
+      <h1 class="hero-title" data-i18n="welcome_hero_title">¡Bienvenido a MyNovelSystem!</h1>
+      <p class="hero-subtitle" data-i18n="welcome_hero_subtitle">
+        Tu compañero definitivo para webnovels, novelas ligeras, manga y cómics. Lee sin preocuparte por recordar capítulos, guarda tu progreso automáticamente y asciende en los reinos espirituales del cultivo.
+      </p>
+
+      <!-- Highlight Pills -->
+      <div class="hero-pills">
+        <div class="pill-item">
+          <span data-i18n="welcome_badge_auto">⚡ Detección Automática</span>
+        </div>
+        <div class="pill-item">
+          <span data-i18n="welcome_badge_cultivation">🏔️ Cultivo y Qi</span>
+        </div>
+        <div class="pill-item">
+          <span data-i18n="welcome_badge_offline">🛡️ 100% Local y Privado</span>
+        </div>
+        <div class="pill-item pill-clickable" id="transferNavPill" role="button" tabindex="0" data-i18n-title="welcome_transfer_pill_title" title="Ver cómo transferir tu cuenta sin servidor">
+          <span data-i18n="welcome_badge_transfer">📦 Traspaso sin Servidor</span>
+        </div>
+        <div class="pill-item pill-clickable" id="shortcutCopyPill" role="button" tabindex="0" data-i18n-title="welcome_shortcut_copy_title" title="Haz clic para copiar el atajo al portapapeles">
+          <span data-i18n="welcome_badge_shortcut">⌨️ Atajo: Alt+Shift+N</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: What is MyNovelSystem -->
+    <section class="what-section">
+      <div class="glass-card">
+        <div class="what-grid">
+          <div class="what-text">
+            <div class="section-title-cluster">
+              <h2 class="section-title" data-i18n="welcome_what_title">¿Qué es MyNovelSystem?</h2>
+            </div>
+            <p data-i18n="welcome_what_p1">
+              MyNovelSystem es una extensión de navegador de última generación creada por y para lectores devoradores de novelas web, manga, manhwa y novelas ligeras. Olvídate de recordar en qué capítulo o párrafo te quedaste o de actualizar marcadores manualmente.
+            </p>
+            <p data-i18n="welcome_what_p2">
+              Transforma tu hábito de lectura en una aventura inmersiva: cada página que lees alimenta tu reserva de Qi espiritual, desbloquea logros ilustrados únicos, equipa títulos legendarios y te permite ascender desde un simple Mortal hasta la Cúspide Inmortal.
+            </p>
+          </div>
+
+          <!-- Preview Mockup Card -->
+          <div class="mock-preview-box">
+            <div class="mock-preview-badge">
+              <span class="mock-status" data-i18n="status_reading">Leyendo</span>
+              <span class="mock-qi-tag">⚡ +25 Qi</span>
+            </div>
+            <div class="mock-novel-title">Shadow Slave</div>
+            <div class="mock-meta-row">
+              <span data-i18n="welcome_mock_chapter">Capítulo 1397</span>
+              <span style="color:#38bdf8;" data-i18n="welcome_mock_progress">84% leído</span>
+            </div>
+            <div class="mock-progress-bar">
+              <div class="mock-progress-fill"></div>
+            </div>
+            <div class="mock-footer-note" data-i18n="welcome_mock_realm">Reino: Núcleo Dorado (Estadio 7/9)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: How It Works (4 Core Pillars) -->
+    <section class="pillars-section">
+      <div class="glass-card">
+        <div class="section-title-cluster">
+          <h2 class="section-title" data-i18n="welcome_how_title">¿Cómo Funciona?</h2>
+          <p class="section-subtitle" data-i18n="welcome_how_subtitle">Invisible mientras disfrutas tu lectura, potente cuando abres tu biblioteca.</p>
+        </div>
+
+        <div class="pillars-grid">
+          <!-- Pillar 1 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box">⚡</div>
+            <h3 class="pillar-title" data-i18n="welcome_card1_title">1. Detección Inteligente y Scroll</h3>
+            <p class="pillar-desc" data-i18n="welcome_card1_desc">
+              Navega con normalidad en tus portales preferidos (SkyNovels, RoyalRoad, TuNovelaLigera, MangaDex, Asura Scans y miles más). La extensión detecta el título de la obra, el número de capítulo y la posición exacta de scroll vertical en tiempo real.
+            </p>
+          </div>
+
+          <!-- Pillar 2 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box">📚</div>
+            <h3 class="pillar-title" data-i18n="welcome_card2_title">2. Biblioteca de Lectura Todo-en-Uno</h3>
+            <p class="pillar-desc" data-i18n="welcome_card2_desc">
+              Organiza tus obras en cuatro estados: Leyendo, En pausa, Completadas y Abandonadas. Filtra rápidamente por nombre, añade obras manuales o reanuda cualquier lectura con un solo clic justo donde la dejaste.
+            </p>
+          </div>
+
+          <!-- Pillar 3 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box">☯️</div>
+            <h3 class="pillar-title" data-i18n="welcome_card3_title">3. Sistema de Cultivo y Qi Espiritual</h3>
+            <p class="pillar-desc" data-i18n="welcome_card3_desc">
+              Cada capítulo completado condensa Qi espiritual en tu dantian. Supera cuellos de botella menores y mayores para romper límites a través de 10 reinos legendarios: desde Condensación de Qi hasta Inmortal.
+            </p>
+          </div>
+
+          <!-- Pillar 4 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box">🏆</div>
+            <h3 class="pillar-title" data-i18n="welcome_card4_title">4. Logros, Títulos y Personalización</h3>
+            <p class="pillar-desc" data-i18n="welcome_card4_desc">
+              Desbloquea más de 50 medallas con arte ilustrado exclusivo, viste a tu cultivador con avatares originales y ranuras de artefactos místicos, y equipa títulos que transforman dinámicamente el icono de la barra de herramientas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Usage Guide (3 Steps) -->
+    <section class="guide-section" id="guideSection">
+      <div class="glass-card">
+        <div class="section-title-cluster">
+          <h2 class="section-title" data-i18n="welcome_guide_title">Cómo Usar la Extensión en 4 Pasos</h2>
+        </div>
+
+        <div class="steps-grid">
+          <!-- Step 1 -->
+          <div class="step-card" id="step1Card">
+            <span class="step-badge" data-i18n="welcome_step1_badge">Paso 1</span>
+            <h3 class="step-title" data-i18n="welcome_step1_title">Fija el Icono en Chrome</h3>
+            <p class="step-desc" data-i18n="welcome_step1_desc">
+              Haz clic en el icono de pieza de puzzle 🧩 en la esquina superior derecha de tu navegador Chrome y pulsa la chincheta 📌 junto a MyNovelSystem. Así verás tu rango de cultivo y podrás abrir la extensión con 1 clic.
+            </p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card">
+            <span class="step-badge" data-i18n="welcome_step2_badge">Paso 2</span>
+            <h3 class="step-title" data-i18n="welcome_step2_title">Usa el Atajo Maestro (Alt + Shift + N)</h3>
+            <p class="step-desc" data-i18n="welcome_step2_desc">
+              Pulsa Alt+Shift+N en cualquier momento para abrir y reanudar de inmediato el capítulo más reciente de tu última lectura, sin perder tiempo buscando pestañas.
+            </p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card">
+            <span class="step-badge" data-i18n="welcome_step3_badge">Paso 3</span>
+            <h3 class="step-title" data-i18n="welcome_step3_title">Simplemente Lee</h3>
+            <p class="step-desc" data-i18n="welcome_step3_desc">
+              Entra a cualquier capítulo de tu novela o cómic favorito y lee a tu propio ritmo. La extensión guardará tu progreso y calculará tu Qi automáticamente en segundo plano.
+            </p>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="step-card">
+            <span class="step-badge" data-i18n="welcome_step4_badge">Paso 4</span>
+            <h3 class="step-title" data-i18n="welcome_step4_title">Personaliza tus Ajustes</h3>
+            <p class="step-desc" data-i18n="welcome_step4_desc">
+              Accede a la pestaña de Ajustes ⚙️ para personalizar el tema visual, cambiar el idioma, crear copias de seguridad de tu biblioteca o vincular la sincronización en la nube con Firebase.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Privacy & Local-First -->
+    <section class="privacy-section">
+      <div class="glass-card privacy-card">
+        <div class="section-title-cluster">
+          <h2 class="section-title">
+            <span>🛡️</span>
+            <span data-i18n="welcome_privacy_title">Privacidad y Filosofía Local-First</span>
+          </h2>
+          <p class="section-subtitle" data-i18n="welcome_privacy_subtitle">Tus datos te pertenecen a ti y a nadie más.</p>
+        </div>
+
+        <div class="privacy-list">
+          <div class="privacy-item">
+            <div class="privacy-item-icon">💾</div>
+            <div class="privacy-item-content">
+              <h4 data-i18n="welcome_privacy_item1_title">100% Offline por Defecto</h4>
+              <p data-i18n="welcome_privacy_item1_desc">
+                No necesitas registrarte ni crear una cuenta. Todos tus datos de lectura, estadísticas y preferencias se guardan exclusivamente en el almacenamiento local de tu navegador (chrome.storage.local).
+              </p>
+            </div>
+          </div>
+
+          <div class="privacy-item">
+            <div class="privacy-item-icon">🚫</div>
+            <div class="privacy-item-content">
+              <h4 data-i18n="welcome_privacy_item2_title">Cero Anuncios y Cero Rastreo</h4>
+              <p data-i18n="welcome_privacy_item2_desc">
+                No vendemos datos a intermediarios, no mostramos anuncios y no rastreamos tu historial de navegación. Los sitios que no son de lectura son ignorados por completo en memoria volátil.
+              </p>
+            </div>
+          </div>
+
+          <div class="privacy-item">
+            <div class="privacy-item-icon">☁️</div>
+            <div class="privacy-item-content">
+              <h4 data-i18n="welcome_privacy_item3_title">Sincronización en la Nube Opcional</h4>
+              <p data-i18n="welcome_privacy_item3_desc">
+                ¿Lees en varios ordenadores? Puedes activar la sincronización opcional con Google Firebase para mantener tu biblioteca y cultivo sincronizados de forma segura y cifrada.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Local Account Transfer (No Server Needed) -->
+    <section class="transfer-section" id="transferSection">
+      <div class="glass-card transfer-card">
+        <div class="section-title-cluster">
+          <h2 class="section-title">
+            <span>📦</span>
+            <span data-i18n="welcome_transfer_title">Traspaso de Cuenta 100% Local (Sin Servidor)</span>
+          </h2>
+          <p class="section-subtitle" data-i18n="welcome_transfer_subtitle">
+            Transfiere todas tus obras, capítulos leídos, Qi acumulado, reinos, logros e inventario a otro equipo de forma privada, rápida y sin registrarte.
+          </p>
+        </div>
+
+        <!-- 3 Step Transfer Flow -->
+        <div class="transfer-steps-grid">
+          <!-- Transfer Step 1 -->
+          <div class="transfer-step-card">
+            <div class="transfer-step-header">
+              <span class="transfer-step-badge" data-i18n="welcome_transfer_step1_badge">Paso 1 • Exportar</span>
+              <span class="transfer-step-icon">📤</span>
+            </div>
+            <h3 class="transfer-step-title" data-i18n="welcome_transfer_step1_title">Exporta tu Archivo JSON</h3>
+            <p class="transfer-step-desc" data-i18n="welcome_transfer_step1_desc">
+              En tu navegador actual, abre la extensión y entra en Ajustes (⚙️) -> Copia de Seguridad -> «Exportar datos (JSON)». Se generará un archivo .json sin conexión con todo tu progreso de lectura, cultivo, logros e inventario.
+            </p>
+          </div>
+
+          <!-- Transfer Step 2 -->
+          <div class="transfer-step-card">
+            <div class="transfer-step-header">
+              <span class="transfer-step-badge" data-i18n="welcome_transfer_step2_badge">Paso 2 • Transferir</span>
+              <span class="transfer-step-icon">🚀</span>
+            </div>
+            <h3 class="transfer-step-title" data-i18n="welcome_transfer_step2_title">Pasa el Archivo al Nuevo Equipo</h3>
+            <p class="transfer-step-desc" data-i18n="welcome_transfer_step2_desc">
+              Mueve el archivo .json al nuevo ordenador o navegador por el medio que prefieras: memoria USB, enviártelo por email, subirlo a tu nube personal (Drive, Dropbox) o por mensajería (Telegram, WhatsApp).
+            </p>
+          </div>
+
+          <!-- Transfer Step 3 -->
+          <div class="transfer-step-card">
+            <div class="transfer-step-header">
+              <span class="transfer-step-badge" data-i18n="welcome_transfer_step3_badge">Paso 3 • Importar</span>
+              <span class="transfer-step-icon">📥</span>
+            </div>
+            <h3 class="transfer-step-title" data-i18n="welcome_transfer_step3_title">Instala e Importa al Instante</h3>
+            <p class="transfer-step-desc" data-i18n="welcome_transfer_step3_desc">
+              En tu nuevo equipo, instala MyNovelSystem, abre Ajustes (⚙️) -> Copia de Seguridad -> «Importar datos (JSON)» y selecciona tu archivo. ¡Todo tu progreso y tu cuenta se restauran en milisegundos!
+            </p>
+          </div>
+        </div>
+
+        <!-- Comparison / Contrast Box -->
+        <div class="contrast-box">
+          <h4 class="contrast-title">
+            <span>⚖️</span>
+            <span data-i18n="welcome_transfer_contrast_title">¿Transferencia Local o Sincronización en la Nube?</span>
+          </h4>
+          <div class="contrast-grid">
+            <div class="contrast-card contrast-local">
+              <div class="contrast-card-title">
+                <span>🛡️</span>
+                <span data-i18n="welcome_transfer_contrast_local_title">Traspaso Local (Recomendado para Privacidad)</span>
+              </div>
+              <p class="contrast-card-desc" data-i18n="welcome_transfer_contrast_local_desc">
+                100% privado, sin cuentas, sin contraseñas y sin intermediarios. Tú eres el único dueño de tu archivo de datos. Ideal para cambiar de ordenador o conservar copias de seguridad de respaldo.
+              </p>
+            </div>
+            <div class="contrast-card contrast-cloud">
+              <div class="contrast-card-title">
+                <span>☁️</span>
+                <span data-i18n="welcome_transfer_contrast_cloud_title">Sincronización Firebase (Alternativa Automática)</span>
+              </div>
+              <p class="contrast-card-desc" data-i18n="welcome_transfer_contrast_cloud_desc">
+                Sincroniza tus lecturas y cultivo automáticamente en tiempo real entre múltiples dispositivos a la vez. Opcional y configurable con tu propia cuenta desde los Ajustes de la extensión.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip Box -->
+        <div class="transfer-tip-box">
+          <span>💡</span>
+          <span data-i18n="welcome_transfer_tip">Consejo Pro: Exporta una copia periódica en JSON para proteger tu cultivo espiritual ante limpiezas de datos o formateos del sistema.</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-banner">
+      <div class="cta-actions">
+        <button type="button" id="btnStartReading" class="btn-cta-primary">
+          <span>✨</span>
+          <span data-i18n="welcome_cta_start">¡Comenzar mi Camino!</span>
+        </button>
+        <a href="privacy.html" class="btn-cta-secondary" data-i18n="welcome_cta_privacy">Ver Política de Privacidad</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p data-i18n="welcome_footer_credits">MyNovelSystem v4.0.0 • Tu sistema personal de lectura y cultivo</p>
+      <p data-i18n="welcome_footer_sub">Diseñado para la comunidad de lectores de webnovels, manga y ficción web.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="i18n.js"></script>
+  <script src="welcome.js"></script>
+</body>
+</html>

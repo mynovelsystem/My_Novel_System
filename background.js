@@ -1455,11 +1455,29 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
-// Sincronización periódica cada 30 min para ahorrar ancho de banda de Firebase Spark
-chrome.runtime.onInstalled.addListener(() => {
+// Sincronización periódica cada 30 min para ahorrar ancho de banda de Firebase Spark y bienvenida inicial
+chrome.runtime.onInstalled.addListener((details) => {
   chrome.alarms.create("periodic_cloud_sync", { periodInMinutes: 30 });
   maybeMigrateLocalStorage();
   refreshBrowserActionAppearance();
+
+  if (details && details.reason === "install") {
+    try {
+      const welcomeUrl = chrome.runtime && typeof chrome.runtime.getURL === "function"
+        ? chrome.runtime.getURL("welcome.html")
+        : "welcome.html";
+      if (chrome.tabs && typeof chrome.tabs.create === "function") {
+        const createPromise = chrome.tabs.create({ url: welcomeUrl });
+        if (createPromise && typeof createPromise.catch === "function") {
+          createPromise.catch((err) => {
+            console.warn("[MyNovelSystem] Error al crear pestaña de bienvenida:", err);
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("[MyNovelSystem] Error al abrir la página de bienvenida:", err);
+    }
+  }
 });
 
 chrome.runtime.onStartup.addListener(() => {

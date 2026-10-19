@@ -22,6 +22,8 @@ const requiredCoreFiles = [
   "achievements_data.js",
   "avatars_data.js",
   "privacy.html",
+  "welcome.html",
+  "welcome.js",
   "locales/es.json",
   "locales/en.json",
   "assets/icon16.png",
@@ -85,7 +87,9 @@ const prodCodeFiles = [
   "achievements_data.js",
   "avatars_data.js",
   "popup.html",
-  "privacy.html"
+  "privacy.html",
+  "welcome.html",
+  "welcome.js"
 ];
 for (const f of prodCodeFiles) {
   const content = fs.readFileSync(path.join(rootDir, f), "utf8");
@@ -97,6 +101,15 @@ for (const f of prodCodeFiles) {
   }
 }
 console.log("  [PASS] Zero eval, zero new Function, and zero inline event handlers across all production files.");
+
+// Validate welcome.html offline transfer section integrity
+const welcomeContent = fs.readFileSync(path.join(rootDir, "welcome.html"), "utf8");
+assert.ok(welcomeContent.includes("welcome_transfer_title"), "welcome.html must include local transfer section");
+assert.ok(welcomeContent.includes("welcome_transfer_step1_title"), "welcome.html must include Step 1 export guide");
+assert.ok(welcomeContent.includes("welcome_transfer_step2_title"), "welcome.html must include Step 2 move guide");
+assert.ok(welcomeContent.includes("welcome_transfer_step3_title"), "welcome.html must include Step 3 import guide");
+assert.ok(welcomeContent.includes("welcome_transfer_contrast_title"), "welcome.html must include local vs cloud comparison");
+console.log("  [PASS] Welcome page local account transfer section integrity verified.");
 
 // 6. Automated CWS Release Package Builder & Integrity Verification
 console.log("\n[Check 6] Release Package Builder & Verification:");

@@ -3225,6 +3225,11 @@ function initSettingsAndBackupEvents() {
     await chrome.storage.local.set({ settings });
   });
 
+  document.getElementById("linkWelcomeGuide")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
+  });
+
   document.getElementById("linkPrivacyPolicy")?.addEventListener("click", (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });

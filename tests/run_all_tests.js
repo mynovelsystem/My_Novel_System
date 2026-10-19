@@ -31,11 +31,12 @@ const suites = [
   { name: "Qi Claiming, Achievement Tiers & Avatar Audit (V15)", file: "test_qi_claiming_and_avatar_v15.js" },
   { name: "Cultivation Progression Rebalance (15-20% Curve Easing)", file: "test_cultivation_progression_rebalance.js" },
   { name: "Original Preset Avatars Collection & Selection (V16)", file: "test_preset_avatars_v16.js" },
-  { name: "CWS Privacy, Consent & Reporting Audit", file: "test_cws_privacy_and_reporting.js" }
+  { name: "CWS Privacy, Consent & Reporting Audit", file: "test_cws_privacy_and_reporting.js" },
+  { name: "Onboarding Lifecycle & Welcome Experience", file: "test_onboarding_lifecycle.js" }
 ];
 
 console.log("====================================================================");
-console.log("       MYNOVELSYSTEM MASTER TEST RUNNER — ALL 25 SUITES            ");
+console.log("       MYNOVELSYSTEM MASTER TEST RUNNER — ALL 26 SUITES            ");
 console.log("====================================================================\n");
 
 let passedCount = 0;
