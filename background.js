@@ -460,7 +460,7 @@ async function handleSubmitBugReport(payload) {
   if (attachLogs) {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab) {
+      if (tab && !tab.incognito) {
         const sanitizedTabLogs = sanitizeLogsForReport([{ url: tab.url, title: tab.title }]);
         const sanitizedTab = sanitizedTabLogs[0] || {};
         activeTabInfo = {
@@ -493,6 +493,8 @@ async function handleSubmitBugReport(payload) {
   }
 
   const userEmail = (includeEmail && activeAuth?.email) ? String(activeAuth.email).trim() : "anonymous";
+  const sanitizedRecentLogs = attachLogs ? sanitizeLogsForReport(storage.diagnosticLogs) : null;
+  const recentLogsPayload = (sanitizedRecentLogs && sanitizedRecentLogs.length > 0) ? sanitizedRecentLogs : null;
 
   const reportData = {
     category,
@@ -502,7 +504,7 @@ async function handleSubmitBugReport(payload) {
     version: chrome.runtime.getManifest().version,
     userEmail,
     activeTab: attachLogs ? activeTabInfo : null,
-    recentLogs: attachLogs ? sanitizeLogsForReport(storage.diagnosticLogs) : null
+    recentLogs: recentLogsPayload
   };
 
   const reportsEndpoint = getFirebaseUrl("/reports.json", activeAuth.idToken);
@@ -1531,6 +1533,41 @@ async function migrateLocalStorageNow() {
 
 async function maybeMigrateLocalStorage() {
   chrome.storage.local.remove(["supabase_auth", "supabase_config", "pending_supabase_signup_email"]).catch(() => {});
+
+  // Migración segura desde chrome.storage.sync si existieran datos legados
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.get === "function") {
+    try {
+      const syncData = await chrome.storage.sync.get(["savedNovels"]);
+      if (syncData && syncData.savedNovels && typeof syncData.savedNovels === "object" && Object.keys(syncData.savedNovels).length > 0) {
+        const localData = await chrome.storage.local.get(["savedNovels"]);
+        const localNovels = localData.savedNovels || {};
+        let modified = false;
+        for (const [k, sEntry] of Object.entries(syncData.savedNovels)) {
+          if (!sEntry || typeof sEntry !== "object") continue;
+          const lEntry = localNovels[k];
+          if (!lEntry) {
+            localNovels[k] = sEntry;
+            modified = true;
+          } else {
+            const sChap = parseFloat(sEntry.chapter) || 0;
+            const lChap = parseFloat(lEntry.chapter) || 0;
+            if (sChap > lChap || (sChap === lChap && (sEntry.updatedAt || 0) > (lEntry.updatedAt || 0))) {
+              localNovels[k] = { ...lEntry, ...sEntry };
+              modified = true;
+            }
+          }
+        }
+        if (modified || Object.keys(localNovels).length === 0) {
+          const { migratedNovels } = deduplicateAndMigrateMap(localNovels);
+          await chrome.storage.local.set({ savedNovels: migratedNovels });
+        }
+        chrome.storage.sync.remove(["savedNovels"]).catch(() => {});
+      }
+    } catch (syncErr) {
+      console.warn("Storage sync migration notice:", syncErr?.name || "SyncReadNotice");
+    }
+  }
+
   const { schemaVersion } = await chrome.storage.local.get(["schemaVersion"]);
   if (schemaVersion === 4) return;
   await migrateLocalStorageNow();
@@ -1578,7 +1615,8 @@ chrome.runtime.onStartup.addListener(() => {
   pullFromCloud();
 });
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (tab && tab.incognito) return;
   if (changeInfo.url) {
     if (await isDomainBlacklisted(changeInfo.url)) {
       setTabQuestionBadge(tabId, false);
@@ -1702,6 +1740,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!isGroup1 && !isGroup2) {
     sendResponse({ ok: false, error: `Unknown message type: ${rawType || message.type}` });
     return true;
+  }
+
+  // SEC-PRIVACY: Rechazar cualquier mensaje de lectura proveniente de pestañas en modo incógnito
+  if (sender && sender.tab && sender.tab.incognito) {
+    if (isGroup1) {
+      sendResponse({ ok: false, incognito: true, ignored: true });
+      return true;
+    }
   }
 
   // Normalizar internamente message.type a mayúsculas canónicas para asegurar enrutamiento homogéneo
@@ -2268,6 +2314,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function handleConfirmUnconfirmedTab({ tabId, novelName, chapter, customName, url, seriesId, novelUrl }) {
+  if (tabId) {
+    try {
+      if (typeof chrome !== "undefined" && chrome.tabs && typeof chrome.tabs.get === "function") {
+        const tabInfo = await chrome.tabs.get(tabId);
+        if (tabInfo && tabInfo.incognito) {
+          return { ok: false, incognito: true, ignored: true };
+        }
+      }
+    } catch {}
+  }
   return withStorageLock(async () => {
     let tabData = null;
     if (tabId) {
@@ -2421,6 +2477,16 @@ async function handleScrollUpdated(data) {
 }
 
 async function handleNovelDetected(novelData, confident, tabId) {
+  if (tabId) {
+    try {
+      if (typeof chrome !== "undefined" && chrome.tabs && typeof chrome.tabs.get === "function") {
+        const tabInfo = await chrome.tabs.get(tabId);
+        if (tabInfo && tabInfo.incognito) {
+          return { ok: false, incognito: true, ignored: true };
+        }
+      }
+    } catch {}
+  }
   return withStorageLock(async () => {
     // 1. Descartar de inmediato si es un dominio excluido, URL inválida o subpágina informativa
     if (
@@ -2747,12 +2813,6 @@ async function handleNovelDetected(novelData, confident, tabId) {
       existing.novelName !== stableNovelName);
 
     if (hasDataChanged) {
-      if (chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.set === "function") {
-        try {
-          const syncP = chrome.storage.sync.set({ savedNovels });
-          if (syncP && typeof syncP.catch === "function") syncP.catch(() => {});
-        } catch (_e) {}
-      }
       await pushToCloudUnlocked(savedNovels, currentStats);
     }
     return {
@@ -3014,6 +3074,13 @@ async function handleImportData(payload) {
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   const currentTabId = activeInfo.tabId;
   chrome.alarms.clear(`inactive_${currentTabId}`);
+
+  try {
+    if (typeof chrome !== "undefined" && chrome.tabs && typeof chrome.tabs.get === "function") {
+      const activeTab = await chrome.tabs.get(currentTabId);
+      if (activeTab && activeTab.incognito) return;
+    }
+  } catch {}
 
   const { settings } = await chrome.storage.local.get(["settings"]);
   if (!settings || !settings.enableWhatsapp) return;

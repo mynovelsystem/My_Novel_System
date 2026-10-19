@@ -4276,7 +4276,7 @@ function initAccountEvents() {
   formLogin?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("modalAuthEmail")?.value.trim() || "";
-    const pass = document.getElementById("modalAuthPass")?.value.trim() || "";
+    const pass = document.getElementById("modalAuthPass")?.value || "";
     if (!email || !email.includes("@")) {
       showModalStatusMsg(t("cloud_msg_invalid") || "Introduce un correo válido", true);
       return;
@@ -4291,8 +4291,8 @@ function initAccountEvents() {
   formRegister?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("modalRegEmail")?.value.trim() || "";
-    const pass = document.getElementById("modalRegPass")?.value.trim() || "";
-    const confirmPass = document.getElementById("modalRegConfirmPass")?.value.trim() || "";
+    const pass = document.getElementById("modalRegPass")?.value || "";
+    const confirmPass = document.getElementById("modalRegConfirmPass")?.value || "";
 
     if (!email || !email.includes("@")) {
       showModalStatusMsg(t("cloud_msg_invalid") || "Introduce un correo válido", true);
@@ -4553,7 +4553,7 @@ async function handleAuth(mode) {
   const emailInput = document.getElementById("authEmail");
   const passInput = document.getElementById("authPass");
   const email = emailInput?.value.trim() || "";
-  const password = passInput?.value.trim() || "";
+  const password = passInput?.value || "";
 
   let hasError = false;
   if (!email || !email.includes("@")) {

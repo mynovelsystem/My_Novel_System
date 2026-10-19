@@ -1,4 +1,9 @@
 (() => {
+  // SEC-PRIVACY: Detener ejecución inmediata en contextos de navegación privada / incógnito
+  if (typeof chrome !== "undefined" && chrome.extension && chrome.extension.inIncognitoContext) {
+    return;
+  }
+
   const BLACKLIST_DOMAINS = [
     // Buscadores
     "google.", "bing.com", "duckduckgo.com", "yahoo.com", "baidu.com", "yandex.",

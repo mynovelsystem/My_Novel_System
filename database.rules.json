@@ -1,0 +1,48 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "novels": {
+          "$novelKey": {
+            ".validate": "newData.child('deleted').val() === true ? (newData.hasChildren(['seriesId', 'updatedAt']) && newData.child('seriesId').isString() && newData.child('seriesId').val().length <= 200 && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0) : (newData.hasChildren(['seriesId', 'novelName', 'chapter', 'url', 'updatedAt']) && newData.child('seriesId').isString() && newData.child('seriesId').val().length <= 200 && newData.child('novelName').isString() && newData.child('novelName').val().length <= 300 && (newData.child('chapter').isString() || newData.child('chapter').isNumber()) && newData.child('url').isString() && newData.child('url').val().length <= 2048 && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0)"
+          }
+        },
+        "stats": {
+          ".validate": "newData.hasChildren(['chaptersRead', 'novelsStarted', 'novelsCompleted', 'updatedAt']) && newData.child('chaptersRead').isNumber() && newData.child('novelsStarted').isNumber() && newData.child('novelsCompleted').isNumber() && newData.child('updatedAt').isNumber() && newData.child('updatedAt').val() <= now + 86400000 && newData.child('updatedAt').val() > 0"
+        },
+        "domainBlacklist": {
+          "$index": {
+            ".validate": "newData.isString() && newData.val().length <= 255"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "reports": {
+      ".read": false,
+      "$reportId": {
+        ".write": "auth != null && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['category', 'message', 'createdAt']) && newData.child('category').isString() && newData.child('category').val().length <= 50 && newData.child('message').isString() && newData.child('message').val().length <= 1500 && newData.child('createdAt').isNumber() && newData.child('createdAt').val() <= now + 86400000 && newData.child('createdAt').val() > 1700000000000 && (!newData.child('createdIso').exists() || (newData.child('createdIso').isString() && newData.child('createdIso').val().length <= 40)) && (!newData.child('version').exists() || (newData.child('version').isString() && newData.child('version').val().length <= 20)) && (!newData.child('userEmail').exists() || (newData.child('userEmail').isString() && newData.child('userEmail').val().length <= 320 && (newData.child('userEmail').val() === 'anonymous' || newData.child('userEmail').val() === auth.token.email))) && (!newData.child('activeTab').exists() || (newData.child('activeTab').hasChildren(['url', 'title']) && newData.child('activeTab/url').isString() && newData.child('activeTab/url').val().length <= 2048 && newData.child('activeTab/title').isString() && newData.child('activeTab/title').val().length <= 300)) && (!newData.child('recentLogs').exists() || newData.child('recentLogs').hasChildren())",
+        "activeTab": {
+          "$other": {
+            ".validate": false
+          }
+        },
+        "recentLogs": {
+          "$logIndex": {
+            ".validate": "$logIndex.matches(/^[0-7]$/)"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
