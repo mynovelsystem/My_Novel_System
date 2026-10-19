@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipAlchemist">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgAlchemist" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="60%" stop-color="#022c22"/>
+      <stop offset="100%" stop-color="#01140e"/>
+    </radialGradient>
+    <radialGradient id="elixirGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipAlchemist)">
+    <rect width="128" height="128" fill="url(#bgAlchemist)"/>
+
+    <!-- Alchemical Geometric Diagram in Background -->
+    <circle cx="64" cy="54" r="44" fill="none" stroke="#34d399" stroke-width="0.8" stroke-opacity="0.3"/>
+    <polygon points="64,14 98,74 30,74" fill="none" stroke="#34d399" stroke-width="0.8" stroke-opacity="0.25"/>
+
+    <!-- Dark Jade Scholar Robes & Bandolier -->
+    <path d="M 18 128 L 24 100 C 28 88 40 84 50 82 L 64 94 L 78 82 C 88 84 100 88 104 100 L 110 128 Z" fill="#065f46"/>
+    <!-- Leather Potion Bandolier Strap -->
+    <line x1="28" y1="88" x2="84" y2="128" stroke="#78350f" stroke-width="4"/>
+    <!-- Small Potion Vials in Strap -->
+    <rect x="44" y="96" width="4" height="8" rx="1.5" fill="#38bdf8"/>
+    <rect x="54" y="104" width="4" height="8" rx="1.5" fill="#f43f5e"/>
+    <rect x="64" y="112" width="4" height="8" rx="1.5" fill="#facc15"/>
+
+    <!-- Neck -->
+    <path d="M 54 70 L 54 84 Q 64 88 74 84 L 74 70 Z" fill="#fed7aa"/>
+
+    <!-- Face -->
+    <path d="M 45 44 C 45 32 83 32 83 44 C 83 64 75 75 64 76 C 53 75 45 64 45 44 Z" fill="#fed7aa"/>
+    <!-- Neat Goatee -->
+    <polygon points="64,68 62,74 66,74" fill="#18181b"/>
+
+    <!-- Ornate Brass Multi-lens Monocle over Right Eye -->
+    <circle cx="74" cy="50" r="7.5" fill="#34d399" fill-opacity="0.4" stroke="#d97706" stroke-width="1.6"/>
+    <circle cx="77" cy="47" r="3" fill="none" stroke="#d97706" stroke-width="1"/>
+    <line x1="74" y1="42.5" x2="80" y2="34" stroke="#d97706" stroke-width="1.2"/>
+
+    <!-- Left Eye (Focused Amber) -->
+    <ellipse cx="54" cy="50" rx="3.8" ry="2.2" fill="#0f172a"/>
+    <circle cx="54" cy="50" r="1.8" fill="#f59e0b"/>
+    <circle cx="55" cy="49" r="0.8" fill="#ffffff"/>
+    <!-- Right Eye Behind Lens -->
+    <circle cx="74" cy="50" r="1.8" fill="#10b981"/>
+    <circle cx="75" cy="49" r="0.8" fill="#ffffff"/>
+
+    <!-- Hair (Dark Scholar Topknot) -->
+    <ellipse cx="64" cy="24" rx="9" ry="8" fill="#18181b"/>
+    <line x1="52" y1="24" x2="76" y2="24" stroke="#d97706" stroke-width="2.2"/>
+    <path d="M 45 42 C 48 30 80 30 83 42 C 75 35 65 37 64 40 C 63 37 53 35 45 42 Z" fill="#18181b"/>
+
+    <!-- Bubbling Alchemical Flask at Bottom Foreground -->
+    <circle cx="64" cy="104" r="12" fill="#047857" stroke="#34d399" stroke-width="1.5"/>
+    <circle cx="64" cy="104" r="10" fill="url(#elixirGlow)"/>
+    <rect x="61" y="88" width="6" height="6" fill="#cbd5e1"/>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#10b981" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#facc15" stroke-width="1" stroke-opacity="0.6"/>
+</svg>

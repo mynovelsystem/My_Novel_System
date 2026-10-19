@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <title>MyNovelSystem</title>
   <style>
     :root {
       --bg-base: #070709;
@@ -51,20 +52,23 @@
     .header-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
     }
 
     .brand-cluster {
       display: flex;
       flex-direction: column;
       gap: 5px;
+      min-width: 0;
+      flex: 1 1 auto;
     }
 
     .brand {
       display: flex;
       align-items: center;
       gap: 10px;
+      min-width: 0;
     }
 
     .brand-crest {
@@ -123,16 +127,20 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
+      min-width: 0;
     }
 
     .brand-title {
-      font-size: 15px;
+      font-size: 13.5px;
       font-weight: 800;
       letter-spacing: -0.4px;
       background: linear-gradient(90deg, #ffffff 0%, #bae6fd 50%, #f5d0fe 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      line-height: 1.1;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .achievement-under-n {
@@ -148,9 +156,12 @@
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(168, 85, 247, 0.18) 100%);
       border: 1px solid rgba(251, 191, 36, 0.45);
       color: #fde68a;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
       width: fit-content;
-      max-width: 220px;
     }
 
     .achievement-under-n:hover {
@@ -415,6 +426,8 @@
       color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.2s ease;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .sync-pill:hover {
@@ -445,6 +458,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .profile-avatar-btn {
@@ -474,44 +488,434 @@
     .avatar-portrait {
       font-size: 15px;
       line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-    .avatar-mini-slots {
-      position: absolute;
-      inset: -4px;
-      pointer-events: none;
-    }
-    .avatar-mini-dot {
-      position: absolute;
-      width: 12px;
-      height: 12px;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
-      background: #0f172a;
-      border: 1.5px solid #64748b;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 7.5px;
+      pointer-events: none;
+      position: relative;
+      z-index: 2;
+    }
+    .avatar-custom-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+    }
+    .avatar-item-slots {
+      position: absolute;
+      inset: -6px;
+      pointer-events: none;
+      z-index: 4;
+    }
+    .avatar-item-node {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
       line-height: 1;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
       pointer-events: auto;
       cursor: help;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.85));
       transition: transform 0.15s ease;
     }
-    .avatar-mini-dot:hover {
-      transform: scale(1.25);
-      z-index: 10;
+    .avatar-item-node:hover {
+      z-index: 15 !important;
     }
-    .avatar-mini-dot.slot-0 { top: -3px; right: -3px; }
-    .avatar-mini-dot.slot-1 { bottom: -3px; right: -2px; }
-    .avatar-mini-dot.slot-2 { bottom: -3px; left: -2px; }
-    .avatar-mini-dot.rarity-common { border-color: #d97706; box-shadow: 0 0 5px rgba(217,119,6,0.6); }
-    .avatar-mini-dot.rarity-rare { border-color: #06b6d4; box-shadow: 0 0 6px rgba(6,182,212,0.7); }
-    .avatar-mini-dot.rarity-epic { border-color: #c084fc; box-shadow: 0 0 7px rgba(192,132,252,0.8); }
-    .avatar-mini-dot.rarity-legendary { border-color: #fbbf24; box-shadow: 0 0 9px rgba(251,191,36,0.9); }
+    .avatar-item-node.pos-hat:hover,
+    .avatar-item-node.pos-necklace:hover,
+    .avatar-item-node.pos-armor:hover,
+    .avatar-item-node.pos-glasses:hover {
+      transform: translateX(-50%) scale(1.28) !important;
+    }
+    .avatar-item-node.pos-sword:hover {
+      transform: rotate(-25deg) scale(1.28) !important;
+    }
+    .avatar-item-node.pos-earrings-left:hover,
+    .avatar-item-node.pos-earrings-right:hover,
+    .avatar-item-node.pos-earrings:hover,
+    .avatar-item-node.pos-cape:hover,
+    .avatar-item-node.pos-ring:hover,
+    .avatar-item-node.pos-relic:hover,
+    .avatar-item-node.pos-aura:hover,
+    .avatar-item-node.pos-pill:hover,
+    .avatar-item-node.pos-seal:hover {
+      transform: scale(1.28) !important;
+    }
+
+    /* Posiciones orientativas orbitales por categoria (Perímetro exterior - Fase 2) */
+    .avatar-item-slots {
+      position: absolute;
+      inset: -6px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .avatar-item-node {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: auto;
+    }
+    .item-img-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+    }
+    .avatar-item-node.pos-hat { top: -11px; left: 50%; transform: translateX(-50%); z-index: 6; font-size: 11px; width: 14px; height: 14px; }
+    .avatar-item-node.pos-glasses { top: 6px; left: 50%; transform: translateX(-50%); z-index: 5; font-size: 9px; width: 15px; height: 10px; }
+    .avatar-item-node.pos-earrings { top: 11px; z-index: 5; font-size: 8px; width: 8px; height: 15px; }
+    .avatar-item-node.pos-earrings-left { left: -6px; }
+    .avatar-item-node.pos-earrings-right { right: -6px; }
+    .earring-single-right { transform: scaleX(-1); }
+    .avatar-item-node.pos-necklace { bottom: -9px; left: 50%; transform: translateX(-50%); z-index: 4; font-size: 9px; width: 14px; height: 14px; }
+    .avatar-item-node.pos-armor { bottom: -8px; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 11px; width: 16px; height: 16px; }
+    .avatar-item-node.pos-cape { bottom: 4px; left: -9px; z-index: 1; font-size: 9.5px; width: 14px; height: 14px; }
+    .avatar-item-node.pos-sword { bottom: -3px; right: -9px; transform: rotate(-25deg); z-index: 5; font-size: 11px; width: 15px; height: 15px; }
+    .avatar-item-node.pos-ring { bottom: -7px; right: 0px; z-index: 5; font-size: 8.5px; width: 12px; height: 12px; }
+    .avatar-item-node.pos-relic { top: -4px; left: -7px; z-index: 4; font-size: 9.5px; width: 14px; height: 14px; }
+    .avatar-item-node.pos-aura { inset: -5px; z-index: 0; font-size: 15px; opacity: 0.75; animation: aura-pulse 2.5s infinite alternate; pointer-events: none; }
+    .avatar-item-node.pos-pill { bottom: -8px; left: 3px; z-index: 4; font-size: 9px; width: 13px; height: 13px; }
+    .avatar-item-node.pos-seal { top: -8px; right: 2px; z-index: 4; font-size: 9.5px; width: 13px; height: 13px; }
+
+    /* Ajustes anti-colision para ranuras multiples del mismo tipo */
+    .avatar-item-node.slot-idx-1.pos-relic { top: 6px; right: -9px; }
+    .avatar-item-node.slot-idx-2.pos-relic { top: -7px; left: -7px; }
+    .avatar-item-node.slot-idx-1.pos-ring { bottom: 8px; left: -9px; }
+    .avatar-item-node.slot-idx-2.pos-ring { bottom: -7px; right: -9px; }
+    .avatar-item-node.slot-idx-1.pos-necklace { bottom: -11px; left: 40%; }
+    .avatar-item-node.slot-idx-2.pos-necklace { bottom: -11px; left: 60%; }
+    .avatar-item-node.slot-idx-1.pos-armor { bottom: -9px; left: -9px; }
+
+    /* Avatar grande en modal de perfil */
+    .account-profile-avatar-large {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      margin: 4px auto;
+    }
+    .account-portrait-ring {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(99, 102, 241, 0.4), rgba(15, 15, 25, 0.95));
+      border: 2px solid rgba(139, 92, 246, 0.7);
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .avatar-portrait-inner {
+      font-size: 38px;
+      line-height: 1;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+    .avatar-item-slots.large {
+      inset: -14px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .avatar-item-slots.large .avatar-item-node {
+      font-size: 16px;
+      pointer-events: auto;
+    }
+    .avatar-item-slots.large .avatar-item-node.pos-hat { top: -16px; left: 50%; transform: translateX(-50%); font-size: 22px; width: 26px; height: 26px; }
+    .avatar-item-slots.large .avatar-item-node.pos-glasses { top: 16px; left: 50%; transform: translateX(-50%); font-size: 18px; width: 30px; height: 18px; }
+    .avatar-item-slots.large .avatar-item-node.pos-earrings { top: 25px; font-size: 14px; width: 14px; height: 26px; }
+    .avatar-item-slots.large .avatar-item-node.pos-earrings-left { left: -11px; }
+    .avatar-item-slots.large .avatar-item-node.pos-earrings-right { right: -11px; }
+    .avatar-item-slots.large .avatar-item-node.pos-necklace { bottom: -15px; top: auto; left: 50%; transform: translateX(-50%); font-size: 18px; width: 22px; height: 22px; }
+    .avatar-item-slots.large .avatar-item-node.pos-armor { bottom: -14px; left: 50%; transform: translateX(-50%); font-size: 20px; width: 26px; height: 26px; }
+    .avatar-item-slots.large .avatar-item-node.pos-cape { bottom: 8px; left: -15px; font-size: 20px; width: 24px; height: 24px; }
+    .avatar-item-slots.large .avatar-item-node.pos-sword { bottom: -8px; right: -15px; font-size: 24px; width: 28px; height: 28px; }
+    .avatar-item-slots.large .avatar-item-node.pos-ring { bottom: -12px; right: 4px; font-size: 16px; width: 20px; height: 20px; }
+    .avatar-item-slots.large .avatar-item-node.pos-relic { top: -2px; left: -14px; font-size: 20px; width: 24px; height: 24px; }
+    .avatar-item-slots.large .avatar-item-node.pos-aura { inset: -10px; font-size: 34px; pointer-events: none; }
+    .avatar-item-slots.large .avatar-item-node.pos-pill { bottom: -14px; left: 8px; font-size: 18px; width: 22px; height: 22px; }
+    .avatar-item-slots.large .avatar-item-node.pos-seal { top: -14px; right: 6px; font-size: 20px; width: 24px; height: 24px; }
+    .avatar-item-slots.large .avatar-item-node.slot-idx-1.pos-relic { top: 16px; right: -16px; }
+    .avatar-item-slots.large .avatar-item-node.slot-idx-2.pos-relic { top: -14px; left: -14px; }
+    .avatar-item-slots.large .avatar-item-node.slot-idx-1.pos-ring { bottom: 16px; left: -16px; }
+    .avatar-item-slots.large .avatar-item-node.slot-idx-2.pos-ring { bottom: -14px; right: -14px; }
+
+    @keyframes aura-pulse {
+      0% { transform: scale(0.96); opacity: 0.45; }
+      100% { transform: scale(1.06); opacity: 0.85; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8)); }
+    }
+
+    /* GALERÍA DE AVATARES PREDETERMINADOS (v4.0.0) */
+    .avatar-gallery-dialog {
+      max-width: 380px;
+      width: 94%;
+      max-height: 530px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .avatar-gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .avatar-filter-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 2px 8px 2px;
+      scrollbar-width: none;
+    }
+    .avatar-filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .avatar-filter-pill {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .avatar-filter-pill:hover {
+      color: #f1f5f9;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .avatar-filter-pill.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #ffffff;
+      border-color: #a5b4fc;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    }
+    .avatar-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 240px;
+      padding: 4px 2px;
+      scrollbar-width: thin;
+    }
+    .avatar-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 4px;
+      border-radius: 10px;
+      background: rgba(30, 41, 59, 0.55);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      user-select: none;
+    }
+    .avatar-card:hover {
+      border-color: #818cf8;
+      background: rgba(99, 102, 241, 0.16);
+      transform: translateY(-2px);
+    }
+    .avatar-card.selected {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.18);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+    }
+    .avatar-card-portrait {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      transition: border-color 0.2s;
+    }
+    .avatar-card.selected .avatar-card-portrait {
+      border-color: #38bdf8;
+    }
+    .avatar-card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .avatar-card-name {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.2;
+      max-width: 90px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .avatar-card-check {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      color: #020617;
+      font-size: 10px;
+      font-weight: 900;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+    .avatar-card.selected .avatar-card-check {
+      display: flex;
+    }
+    .avatar-gallery-preview-panel {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .avatar-gallery-preview-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar-gallery-preview-img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #8b5cf6;
+      flex-shrink: 0;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Sublinea informativa de Qi restante (Fase 8) */
+    .qi-remaining-subline {
+      font-size: 9.5px;
+      color: #94a3b8;
+      margin-top: 3px;
+      text-align: right;
+      letter-spacing: 0.2px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .qi-remaining-subline.bottleneck {
+      color: #fde047;
+      font-weight: 600;
+    }
+    .qi-remaining-subline.peak {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    /* Indicador de recompensa de objeto en insignias (Fase 7.2) */
+    .title-item-reward-box {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 10px;
+    }
+    .title-item-reward-box.reward-obtained {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(6, 78, 59, 0.25);
+    }
+    .title-item-reward-box.reward-pending {
+      border-color: rgba(245, 158, 11, 0.25);
+      background: rgba(30, 27, 75, 0.35);
+    }
+    .reward-box-icon {
+      font-size: 15px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .reward-box-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+      flex: 1;
+    }
+    .reward-box-head {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .reward-box-label {
+      font-size: 9px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-weight: 600;
+    }
+    .reward-box-name {
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .reward-box-pill {
+      font-size: 8.5px;
+      padding: 0.5px 4.5px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .reward-box-pill.obtained {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+    .reward-box-pill.pending {
+      background: rgba(100, 116, 139, 0.25);
+      color: #94a3b8;
+      border: 1px solid rgba(100, 116, 139, 0.4);
+    }
+    .reward-box-desc {
+      font-size: 9.5px;
+      color: #cbd5e1;
+      line-height: 1.25;
+    }
 
     /* DIFFICULTY TAGS (PHASE 2) */
     .title-diff-tag {
@@ -579,6 +983,12 @@
       gap: 4px;
       position: relative;
       transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .equipped-slot-card.slot-selected {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45) !important;
+      transform: translateY(-1px);
     }
     .equipped-slot-card.slot-filled {
       border-color: rgba(99, 102, 241, 0.4);
@@ -1037,6 +1447,57 @@
     @keyframes ascensionFlash {
       0% { filter: brightness(2.2) drop-shadow(0 0 20px #facc15); transform: scale(1.02); }
       50% { filter: brightness(1.5) drop-shadow(0 0 12px #60a5fa); }
+      100% { filter: brightness(1); transform: scale(1); }
+    }
+
+    /* ESTILOS Y ANIMACIONES ESPECÍFICOS POR TEMÁTICA */
+    .bottleneck-card.theme-hunter {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(139, 92, 246, 0.18) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.6);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    }
+    .bottleneck-card.theme-hunter .bottleneck-title {
+      color: #fca5a5;
+    }
+    .bottleneck-card.theme-hunter .btn-breakthrough {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #7c3aed 100%);
+      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.5);
+    }
+
+    .bottleneck-card.theme-legendary_novels {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(168, 85, 247, 0.18) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.6);
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+    }
+    .bottleneck-card.theme-legendary_novels .bottleneck-title {
+      color: #e9d5ff;
+    }
+    .bottleneck-card.theme-legendary_novels .btn-breakthrough {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #f59e0b 100%);
+      box-shadow: 0 2px 10px rgba(168, 85, 247, 0.5);
+    }
+
+    .cultivation-bar.theme-switching {
+      opacity: 0.65;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+    }
+
+    .hunter-burst {
+      animation: hunterFlash 0.9s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+    @keyframes hunterFlash {
+      0% { filter: brightness(2.2) drop-shadow(0 0 20px #ef4444); transform: scale(1.02); }
+      50% { filter: brightness(1.5) drop-shadow(0 0 14px #8b5cf6); }
+      100% { filter: brightness(1); transform: scale(1); }
+    }
+
+    .lore-burst {
+      animation: loreFlash 0.9s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+    @keyframes loreFlash {
+      0% { filter: brightness(2.2) drop-shadow(0 0 20px #a855f7); transform: scale(1.02); }
+      50% { filter: brightness(1.5) drop-shadow(0 0 14px #f59e0b); }
       100% { filter: brightness(1); transform: scale(1); }
     }
 
@@ -2669,6 +3130,236 @@
       transform: translateY(-1px);
     }
 
+    /* FASE 2 STYLES: PAGINATION, GENRES, ITEM GRAPHICS, SPONSORED ADS & DANGER ZONE */
+    .library-pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.28);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pagination-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pagination-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .pagination-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .pagination-info {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      min-width: 80px;
+      text-align: center;
+    }
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      font-size: 10px;
+    }
+    .page-size-select {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .ach-cat-tag {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+    .ach-cat-tag.cat-library {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .ach-cat-tag.cat-reading {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .ach-cat-tag.cat-streak {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .ach-cat-tag.cat-mastery {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    .ach-cat-tag.cat-special {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+      }
+      50% {
+        box-shadow: 0 0 18px rgba(251, 191, 36, 0.55);
+      }
+    }
+    .title-item.rarity-legendary.unlocked {
+      animation: pulseGlow 3s infinite ease-in-out;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .title-item.rarity-legendary.unlocked {
+        animation: none;
+      }
+    }
+
+    .item-visual-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+      display: block;
+    }
+    .item-visual-img.item-visual-sm {
+      width: 16px;
+      height: 16px;
+    }
+    .item-visual-img.item-visual-md {
+      width: 28px;
+      height: 28px;
+    }
+    .item-visual-emoji {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sponsored-card {
+      width: 100%;
+      max-width: 360px;
+      background: linear-gradient(135deg, rgba(24, 24, 29, 0.92) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 8px;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+    .sponsored-img-thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+      background: #000;
+    }
+    .sponsored-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .sponsored-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .sponsored-tag {
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(245, 158, 11, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fde047;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .sponsored-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #f8fafc;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sponsored-desc {
+      font-size: 8.5px;
+      color: #94a3b8;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .sponsored-nav-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 11px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      transition: all 0.15s;
+      line-height: 1;
+    }
+    .sponsored-nav-btn:hover {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .sponsored-cta-btn {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: filter 0.2s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    .sponsored-cta-btn:hover {
+      filter: brightness(1.15);
+      transform: translateY(-0.5px);
+    }
+
     /* Respeto estricto a prefers-reduced-motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -2711,7 +3402,7 @@
         </button>
         <div id="btnUserProfile" class="profile-avatar-btn" role="button" tabindex="0" data-i18n-title="account_profile_btn" aria-label="Perfil y Cuenta">
           <div class="avatar-portrait" id="userAvatarPortrait">👤</div>
-          <div id="avatarMiniSlots" class="avatar-mini-slots" aria-label="Objetos equipados"></div>
+          <div id="avatarMiniSlots" class="avatar-item-slots" aria-label="Objetos equipados"></div>
         </div>
       </div>
     </div>
@@ -2727,6 +3418,7 @@
       <div class="progress-track">
         <div id="headerProgressFill" class="progress-fill"></div>
       </div>
+      <div id="headerQiRemainingText" class="qi-remaining-subline"></div>
     </div>
   </header>
 
@@ -2821,6 +3513,22 @@
         <button type="button" id="btnConfirmManual" class="btn-primary" data-i18n="btn_save_reading" style="margin-top:4px;"></button>
       </div>
 
+      <div id="libraryPaginationBar" class="library-pagination-bar">
+        <div class="pagination-controls">
+          <button type="button" id="btnPrevPage" class="pagination-btn" data-i18n="pagination_prev" disabled>&larr; Anterior</button>
+          <span id="pageIndicator" class="pagination-info">Página 1 de 1</span>
+          <button type="button" id="btnNextPage" class="pagination-btn" data-i18n="pagination_next" disabled>Siguiente &rarr;</button>
+        </div>
+        <div class="page-size-selector">
+          <span data-i18n="pagination_per_page">Por pág:</span>
+          <select id="libraryPageSize" class="page-size-select" aria-label="Elementos por página">
+            <option value="10">10</option>
+            <option value="15" selected>15</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+      </div>
+
       <div id="novelList" class="novel-list"></div>
     </section>
 
@@ -2856,7 +3564,7 @@
         <div class="stats-grid">
           <div class="stat-box">
             <div id="statQi" class="stat-val">0</div>
-            <div class="stat-lbl" data-i18n="cult_qi_total"></div>
+            <div id="statResourceLbl" class="stat-lbl" data-i18n="cult_qi_total"></div>
           </div>
           <div class="stat-box">
             <div id="statChapters" class="stat-val">0</div>
@@ -2895,6 +3603,14 @@
       <div class="glass-card">
         <div id="titlesHeading" class="card-heading"></div>
         <div id="titlesList" class="titles-list"></div>
+      </div>
+
+      <div class="glass-card" id="systemAchievementsCard">
+        <div class="card-heading-cluster">
+          <div class="card-heading" data-i18n="system_achievements_heading">Grandes Hazañas y Logros</div>
+          <span class="system-tag-accent" id="systemAchievementsCount">0 / 15</span>
+        </div>
+        <div id="systemAchievementsList" class="titles-list"></div>
       </div>
     </section>
 
@@ -3031,7 +3747,23 @@
         <div id="prefsMsg" class="feedback-msg ok"></div>
       </div>
 
-      <!-- 1b. Modo Rendimiento (Bajo Consumo) -->
+      <!-- 1b. Seguimiento de Lectura -->
+      <div class="glass-card">
+        <div class="card-heading" data-i18n="settings_reading_title">Seguimiento de Lectura</div>
+        <p style="font-size:10.5px; color:var(--text-secondary); line-height:1.35;" data-i18n="settings_reading_desc">Configura cómo se actualiza el progreso al detectar capítulos en la web.</p>
+        <div class="switch-row" style="margin-top:2px;">
+          <div style="display:flex; flex-direction:column; gap:2px; flex:1; padding-right:8px;">
+            <span class="switch-label" data-i18n="settings_allow_rewind_label" style="font-size:11.5px; font-weight:600;">Permitir retroceder capítulos</span>
+            <span style="font-size:10px; color:var(--text-secondary); line-height:1.25;" data-i18n="settings_allow_rewind_desc">Permite que la lectura automática actualice el progreso si visitas un capítulo anterior.</span>
+          </div>
+          <label class="ios-switch">
+            <input type="checkbox" id="allowChapterRewind" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 1c. Modo Rendimiento (Bajo Consumo) -->
       <div class="glass-card">
         <div class="card-heading" data-i18n="settings_perf_title"></div>
         <p style="font-size:10.5px; color:var(--text-secondary); line-height:1.35;" data-i18n="settings_perf_desc"></p>
@@ -3048,6 +3780,21 @@
             <input type="checkbox" id="showTierOnIcon">
             <span class="slider"></span>
           </label>
+        </div>
+      </div>
+
+      <!-- 1d. Personalización de Perfil (v4.0.0) -->
+      <div class="glass-card" id="profilePersonalizationCard">
+        <div class="card-heading" data-i18n="avatar_settings_title">Personalización de Perfil</div>
+        <p style="font-size:10.5px; color:var(--text-secondary); line-height:1.35;" data-i18n="avatar_settings_desc">Personaliza tu imagen eligiendo uno de nuestros 21 avatares originales o sube tu propia fotografía.</p>
+        <div style="display:flex; align-items:center; gap:12px; margin-top:10px; background:rgba(0,0,0,0.25); padding:10px; border-radius:8px; border:1px solid var(--border-subtle);">
+          <div class="account-portrait-ring" style="width:48px; height:48px; flex-shrink:0;">
+            <div id="settingsAvatarPreview" class="avatar-portrait-inner" style="width:48px; height:48px; font-size:22px;">🧙‍♂️</div>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+            <button type="button" id="btnSettingsChooseAvatar" class="btn-primary" style="font-size:11px; padding:5px 10px;" data-i18n="avatar_choose_btn">🎨 Elegir avatar</button>
+            <button type="button" id="btnSettingsRestoreAvatar" class="btn-secondary" style="font-size:10.5px; padding:4px 8px;" data-i18n="avatar_restore_btn">Restaurar predeterminado</button>
+          </div>
         </div>
       </div>
 
@@ -3098,8 +3845,13 @@
         </div>
 
         <label style="display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--text-secondary); cursor:pointer;">
-          <input type="checkbox" id="reportAttachLogs" checked style="accent-color:#6366f1;">
+          <input type="checkbox" id="reportAttachLogs" style="accent-color:#6366f1;">
           <span data-i18n="report_attach_logs"></span>
+        </label>
+
+        <label style="display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--text-secondary); cursor:pointer; margin-top:2px;">
+          <input type="checkbox" id="reportIncludeEmail" style="accent-color:#6366f1;">
+          <span data-i18n="report_include_email"></span>
         </label>
 
         <button type="button" id="btnSendReport" class="btn-primary" data-i18n="report_btn_send"></button>
@@ -3140,7 +3892,6 @@
             <div style="font-size:10px; color:var(--text-secondary);" data-i18n="cloud_connected_as"></div>
             <div id="userEmailDisplay" style="font-size:12px; font-weight:600; margin-top:2px; color:#fff;"></div>
           </div>
-          <button type="button" id="btnSyncNow" class="btn-primary" data-i18n="cloud_btn_sync_now"></button>
           <button type="button" id="btnLogout" class="btn-danger-outline" data-i18n="cloud_btn_logout"></button>
         </div>
 
@@ -3165,19 +3916,46 @@
           <span>🔒</span> <span data-i18n="settings_privacy_policy">Política de Privacidad</span>
         </a>
       </div>
+
+      <!-- 6. Zona de Peligro / Danger Zone (Fase 2) -->
+      <div class="glass-card danger-zone-card" style="border: 1px solid rgba(244, 63, 94, 0.35); background: rgba(244, 63, 94, 0.04);">
+        <div class="card-heading" style="color: #fb7185;" data-i18n="danger_zone_title">Zona de Peligro</div>
+        <p style="font-size:10.5px; color:var(--text-secondary); line-height:1.35; margin-bottom:8px;" data-i18n="danger_zone_desc"></p>
+        
+        <div class="danger-action-box" style="margin-bottom:8px; padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <div style="font-size:11px; font-weight:700; color:#fff;" data-i18n="btn_clear_cache">Borrar caché</div>
+          <p style="font-size:9.5px; color:var(--text-secondary); margin:2px 0 6px;" data-i18n="btn_clear_cache_desc"></p>
+          <button type="button" id="btnClearCache" class="btn-secondary" style="width:100%; font-size:11px; padding:5px 8px;" data-i18n="btn_clear_cache">Borrar caché</button>
+        </div>
+
+        <div class="danger-action-box" style="padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(244,63,94,0.25);">
+          <div style="font-size:11px; font-weight:700; color:#f87171;" data-i18n="btn_reset_local_data">Reiniciar datos locales</div>
+          <p style="font-size:9.5px; color:var(--text-secondary); margin:2px 0 6px;" data-i18n="btn_reset_local_data_desc"></p>
+          <button type="button" id="btnOpenResetLocalModal" class="btn-danger-outline" style="width:100%; font-size:11px; padding:5px 8px; border-color:#f43f5e; color:#f43f5e; font-weight:700;" data-i18n="btn_reset_local_data">Reiniciar datos locales</button>
+        </div>
+      </div>
     </section>
 
   </main>
 
-  <footer class="ad-footer">
-    <span class="ad-label" data-i18n="ad_sponsored"></span>
-    <div class="ad-frame-wrapper">
-      <iframe
-        data-aa="0000000"
-        src="https://acceptable.a-ads.com/0000000?size=320x50&background_color=0f0f14&text_color=f8fafc&title_color=818cf8&link_color=94a3b8"
-        scrolling="no"
-        loading="lazy">
-      </iframe>
+  <footer class="ad-footer" id="sponsoredFooter">
+    <div class="sponsored-header-row" style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:360px; padding:0 2px 2px;">
+      <span class="ad-label" data-i18n="sponsored_label">Evento del Dao Celestial</span>
+      <div class="sponsored-nav-arrows" style="display:flex; gap:4px;">
+        <button type="button" id="btnSponsoredPrev" class="sponsored-nav-btn" aria-label="Evento anterior">&larr;</button>
+        <button type="button" id="btnSponsoredNext" class="sponsored-nav-btn" aria-label="Siguiente evento">&rarr;</button>
+      </div>
+    </div>
+    <div id="sponsoredCard" class="sponsored-card" role="region" aria-label="Evento Celestial">
+      <img id="sponsoredImg" class="sponsored-img-thumb" src="assets/sponsored/ad_qi_pills.webp" alt="Evento">
+      <div class="sponsored-content">
+        <div class="sponsored-title-row">
+          <span id="sponsoredTitle" class="sponsored-title">Píldoras de Qi Celestial</span>
+          <span id="sponsoredTag" class="sponsored-tag">Alquimia</span>
+        </div>
+        <p id="sponsoredDesc" class="sponsored-desc">Rompe tus cuellos de botella en 3 respiraciones.</p>
+      </div>
+      <button type="button" id="btnSponsoredCta" class="sponsored-cta-btn">Ver</button>
     </div>
   </footer>
 
@@ -3238,20 +4016,41 @@
       <!-- ESTADO: INICIADO SESIÓN -->
       <div id="accountModalLoggedIn" style="display:none; flex-direction:column; gap:12px; align-items:center; width:100%;">
         <div class="account-profile-avatar-large">
-          <div class="account-portrait-ring">
-            <span id="accountLargeAvatar" style="font-size:32px;">🧙‍♂️</span>
+          <div class="account-portrait-ring" id="accountLargePortraitRing">
+            <div id="accountLargeAvatar" class="avatar-portrait-inner">🧙‍♂️</div>
+            <div id="accountLargeItemSlots" class="avatar-item-slots large"></div>
           </div>
         </div>
+
+        <!-- Acciones de Personalización de Avatar (v4.0.0) -->
+        <div class="avatar-custom-actions" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:100%;">
+          <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" style="display:none;">
+          <button type="button" id="btnChooseAvatar" class="btn-primary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_choose_btn">🎨 Elegir avatar</button>
+          <button type="button" id="btnChangeAvatar" class="btn-secondary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_upload_btn">📷 Subir foto</button>
+          <button type="button" id="btnRestoreAvatar" class="btn-secondary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_restore_btn">Restaurar predeterminado</button>
+        </div>
+
+        <!-- Vista previa de confirmación de avatar (Fase 6) -->
+        <div id="avatarPreviewBox" class="avatar-preview-box" style="display:none; width:100%; flex-direction:column; align-items:center; gap:8px; background:rgba(15,23,42,0.6); padding:10px; border-radius:8px; border:1px dashed #6366f1;">
+          <div style="font-size:11px; font-weight:600; color:#cbd5e1;" data-i18n="avatar_confirm_title">Vista previa de tu avatar</div>
+          <img id="avatarPreviewImg" style="width:54px; height:54px; border-radius:50%; object-fit:cover; border:2px solid #8b5cf6;" alt="Preview">
+          <div style="display:flex; gap:6px; width:100%;">
+            <button type="button" id="btnCancelAvatar" class="btn-secondary" style="flex:1; font-size:10.5px; padding:4px;" data-i18n="avatar_cancel_btn">Cancelar</button>
+            <button type="button" id="btnSaveAvatar" class="btn-primary" style="flex:1; font-size:10.5px; padding:4px;" data-i18n="avatar_save_btn">Guardar avatar</button>
+          </div>
+        </div>
+
         <div style="text-align:center;">
           <div id="accountModalUserEmail" style="font-size:13px; font-weight:700; color:#fff; word-break:break-all;"></div>
-          <div style="font-size:11px; color:#a5b4fc; margin-top:2px;">
+          <div id="accountSyncStatusIndicator" style="font-size:11px; color:#a5b4fc; margin-top:2px;">
             <span class="status-dot online" style="display:inline-block; vertical-align:middle; margin-right:4px;"></span>
-            <span data-i18n="account_logged_in_as">Cuenta sincronizada con la nube</span>
+            <span id="accountSyncStatusText" data-i18n="account_logged_in_as">Cuenta sincronizada con la nube</span>
           </div>
         </div>
-        <div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:6px;">
+        <div style="display:flex; flex-direction:column; gap:7px; width:100%; margin-top:4px;">
           <button type="button" id="btnAccountModalSync" class="btn-primary" style="width:100%;" data-i18n="account_btn_sync_now">Sincronizar ahora</button>
-          <button type="button" id="btnAccountModalLogout" class="btn-danger-outline" style="width:100%;" data-i18n="account_btn_logout">Cerrar sesión</button>
+          <button type="button" id="btnAccountModalLogout" class="btn-secondary" style="width:100%;" data-i18n="account_btn_logout">Cerrar sesión</button>
+          <button type="button" id="btnAccountModalDelete" class="btn-danger-outline" style="width:100%; margin-top:2px;" data-i18n="account_btn_delete">Eliminar cuenta</button>
         </div>
       </div>
 
@@ -3318,11 +4117,108 @@
     </div>
   </div>
 
+  <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR CUENTA (FASE 5) -->
+  <div id="deleteAccountConfirmModal" class="celebration-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalTitle">
+    <div class="celebration-modal-dialog" style="max-width:320px; text-align:center; padding:18px;">
+      <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
+      <div id="deleteAccountModalTitle" style="font-size:14px; font-weight:800; color:#f43f5e; margin-bottom:8px;" data-i18n="account_delete_confirm_title">¿Eliminar cuenta definitivamente?</div>
+      <p id="deleteAccountModalMsg" style="font-size:11px; color:#cbd5e1; line-height:1.45; margin-bottom:14px;" data-i18n="account_delete_confirm_msg">¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es permanente y se perderán los datos asociados a tu cuenta en la nube. No podrás recuperarlos después de completar la eliminación.</p>
+      <div style="display:flex; gap:8px; width:100%;">
+        <button type="button" id="btnCancelDeleteAccount" class="btn-secondary" style="flex:1;" data-i18n="avatar_cancel_btn">Cancelar</button>
+        <button type="button" id="btnConfirmDeleteAccount" class="btn-danger-outline" style="flex:1; border-color:#f43f5e; color:#f43f5e; font-weight:700;" data-i18n="account_btn_confirm_delete">Eliminar definitivamente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE CIERRE DE SESIÓN CON BORRADO LOCAL OPCIONAL (FASE 8) -->
+  <div id="logoutConfirmModal" class="celebration-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+    <div class="celebration-modal-dialog" style="max-width:320px; text-align:center; padding:18px;">
+      <div style="font-size:32px; margin-bottom:8px;">🚪</div>
+      <div id="logoutModalTitle" style="font-size:14px; font-weight:800; color:#38bdf8; margin-bottom:8px;" data-i18n="account_logout_dialog_title">¿Cerrar sesión?</div>
+      <p id="logoutModalDesc" style="font-size:11px; color:#cbd5e1; line-height:1.45; margin-bottom:14px;" data-i18n="account_logout_dialog_desc">¿Estás seguro de que deseas cerrar sesión? Tus datos en la nube seguirán sincronizados la próxima vez que inicies sesión.</p>
+      
+      <label style="display:flex; align-items:center; gap:8px; font-size:10.5px; color:#cbd5e1; margin-bottom:14px; text-align:left; cursor:pointer; background:rgba(255,255,255,0.04); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.08);">
+        <input type="checkbox" id="logoutClearLocalData" style="accent-color:#ef4444; width:14px; height:14px; cursor:pointer;">
+        <span data-i18n="account_logout_clear_local">Borrar también los datos de esta cuenta en este dispositivo</span>
+      </label>
+
+      <div style="display:flex; gap:8px; width:100%;">
+        <button type="button" id="btnCancelLogout" class="btn-secondary" style="flex:1;" data-i18n="avatar_cancel_btn">Cancelar</button>
+        <button type="button" id="btnConfirmLogout" class="btn-primary" style="flex:1;" data-i18n="account_btn_logout">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DECISIÓN DE TRANSFERENCIA DE DATOS DE INVITADO (P0-2) -->
+  <div id="guestTransferModal" class="celebration-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="guestTransferModalTitle">
+    <div class="celebration-modal-dialog" style="max-width:320px; text-align:center; padding:18px;">
+      <div style="font-size:32px; margin-bottom:8px;">📥</div>
+      <div id="guestTransferModalTitle" style="font-size:14px; font-weight:800; color:#38bdf8; margin-bottom:8px;" data-i18n="account_guest_transfer_title">¿Transferir datos de invitado?</div>
+      <p id="guestTransferModalMsg" style="font-size:11px; color:#cbd5e1; line-height:1.45; margin-bottom:14px;" data-i18n="account_guest_transfer_msg">Tienes una biblioteca local como invitado. ¿Deseas transferir y fusionar tu progreso actual con tu cuenta registrada o prefieres mantenerlos separados?</p>
+      <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+        <button type="button" id="btnConfirmGuestTransfer" class="btn-primary" style="width:100%;" data-i18n="account_btn_transfer_guest">Transferir a mi cuenta</button>
+        <button type="button" id="btnDiscardGuestTransfer" class="btn-secondary" style="width:100%;" data-i18n="account_btn_discard_guest">No transferir (mantener separados)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE REINICIAR DATOS LOCALES (FASE 2) -->
+  <div id="modalResetLocalData" class="celebration-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="resetLocalModalTitle">
+    <div class="celebration-modal-dialog" style="max-width:320px; text-align:center; padding:18px;">
+      <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
+      <div id="resetLocalModalTitle" style="font-size:14px; font-weight:800; color:#f43f5e; margin-bottom:8px;" data-i18n="reset_local_modal_title">¿Reiniciar datos locales?</div>
+      <p id="resetLocalModalDesc" style="font-size:11px; color:#cbd5e1; line-height:1.45; margin-bottom:14px;" data-i18n="reset_local_modal_warning">Esta acción borrará todas las novelas y estadísticas guardadas localmente en este navegador. Si tienes sesión iniciada en la nube, tus datos remotos permanecerán intactos y podrás sincronizarlos de nuevo.</p>
+      <div style="display:flex; gap:8px; width:100%;">
+        <button type="button" id="btnCancelResetLocal" class="btn-secondary" style="flex:1;" data-i18n="reset_local_modal_cancel">Cancelar</button>
+        <button type="button" id="btnConfirmResetLocal" class="btn-danger-outline" style="flex:1; border-color:#f43f5e; color:#f43f5e; font-weight:700;" data-i18n="reset_local_modal_confirm">Sí, reiniciar datos locales</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE GALERÍA DE AVATARES PREDETERMINADOS (v4.0.0) -->
+  <div id="avatarGalleryModal" class="celebration-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="avatarGalleryTitle">
+    <div class="celebration-modal-dialog avatar-gallery-dialog">
+      <div class="avatar-gallery-header">
+        <div>
+          <div id="avatarGalleryTitle" style="font-size:14px; font-weight:800; color:#38bdf8;" data-i18n="avatar_gallery_title">Galería de Avatares</div>
+          <p style="font-size:10.5px; color:#94a3b8; margin:2px 0 0 0;" data-i18n="avatar_gallery_desc">Selecciona un avatar original para personalizar tu perfil en MyNovelSystem.</p>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseAvatarGallery" aria-label="Cerrar">&times;</button>
+      </div>
+
+      <!-- Barra de Filtro de Categorías -->
+      <div id="avatarGalleryFilterBar" class="avatar-filter-bar">
+        <!-- Generado dinámicamente -->
+      </div>
+
+      <!-- Rejilla de Avatares -->
+      <div id="avatarGalleryGrid" class="avatar-gallery-grid">
+        <!-- Generado dinámicamente -->
+      </div>
+
+      <!-- Panel de Previsualización y Confirmación -->
+      <div id="avatarGalleryPreviewPanel" class="avatar-gallery-preview-panel">
+        <div class="avatar-gallery-preview-info">
+          <img id="avatarGalleryPreviewImg" class="avatar-gallery-preview-img" src="assets/avatars/cultivator_qi.svg" alt="Preview">
+          <div style="flex:1; min-width:0; text-align:left;">
+            <div id="avatarGalleryPreviewName" style="font-size:12px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Cultivador de Qi</div>
+            <div id="avatarGalleryPreviewDesc" style="font-size:10px; color:#94a3b8; line-height:1.25; margin-top:2px;">Joven prodigio en armonía con las corrientes espirituales.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; width:100%;">
+          <button type="button" id="btnCancelAvatarGallery" class="btn-secondary" style="flex:1; font-size:11px; padding:5px;" data-i18n="avatar_cancel_btn">Cancelar</button>
+          <button type="button" id="btnConfirmAvatarGallery" class="btn-primary" style="flex:1; font-size:11px; padding:5px;" data-i18n="avatar_confirm_selection">Confirmar avatar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- CONTENEDOR GLOBAL DE TOASTS -->
   <div id="toastContainer" class="toast-container" role="status" aria-live="polite"></div>
 
   <script src="i18n.js"></script>
   <script src="achievements_data.js"></script>
+  <script src="avatars_data.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

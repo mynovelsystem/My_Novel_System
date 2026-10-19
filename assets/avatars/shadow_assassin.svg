@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipAssassin">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgAssassin" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#2e1065"/>
+      <stop offset="55%" stop-color="#17072b"/>
+      <stop offset="100%" stop-color="#05010a"/>
+    </radialGradient>
+    <radialGradient id="amethystEye" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#d8b4fe"/>
+      <stop offset="80%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#6b21a8"/>
+    </radialGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipAssassin)">
+    <rect width="128" height="128" fill="url(#bgAssassin)"/>
+
+    <!-- Shadow Mist Wisps in Background -->
+    <path d="M 10 40 Q 30 20 64 30 Q 98 40 118 20 Q 98 60 64 50 Q 30 60 10 40 Z" fill="#3b0764" opacity="0.5"/>
+    <circle cx="64" cy="54" r="44" fill="none" stroke="#c084fc" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="4 6"/>
+
+    <!-- Cowl / Cloak Shoulders -->
+    <path d="M 16 128 L 22 96 C 26 84 38 78 50 76 L 64 88 L 78 76 C 90 78 102 84 106 96 L 112 128 Z" fill="#090514"/>
+    <path d="M 32 94 L 64 120 L 96 94" fill="none" stroke="#581c87" stroke-width="2"/>
+
+    <!-- Deep Hood (Obsidian Fabric) -->
+    <path d="M 36 50 C 36 22 92 22 92 50 C 92 78 86 86 64 88 C 42 86 36 78 36 50 Z" fill="#0f0728"/>
+    <!-- Hood Inner Shadow -->
+    <path d="M 42 52 C 42 30 86 30 86 52 C 86 74 80 80 64 82 C 48 80 42 74 42 52 Z" fill="#05010e"/>
+
+    <!-- Mask Covering Lower Face -->
+    <path d="M 46 56 C 48 54 80 54 82 56 L 80 76 C 76 80 64 84 64 84 C 64 84 52 80 48 76 Z" fill="#1e103a"/>
+    <path d="M 48 64 Q 64 70 80 64" fill="none" stroke="#7e22ce" stroke-width="1.2"/>
+
+    <!-- Glowing Amethyst Eyes Piercing the Darkness -->
+    <ellipse cx="53" cy="50" rx="4.5" ry="2.4" fill="url(#amethystEye)"/>
+    <circle cx="54" cy="50" r="1" fill="#ffffff"/>
+    <ellipse cx="75" cy="50" rx="4.5" ry="2.4" fill="url(#amethystEye)"/>
+    <circle cx="76" cy="50" r="1" fill="#ffffff"/>
+
+    <!-- Violet Eye Vapor Trail -->
+    <path d="M 50 50 Q 38 48 30 42" stroke="#c084fc" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.8"/>
+    <path d="M 78 50 Q 90 48 98 42" stroke="#c084fc" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.8"/>
+
+    <!-- Amethyst Dagger Hilt on Shoulder -->
+    <polygon points="26,88 32,82 36,86 30,92" fill="#c084fc"/>
+    <line x1="22" y1="94" x2="28" y2="88" stroke="#f3e8ff" stroke-width="2"/>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#a855f7" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#e9d5ff" stroke-width="1" stroke-opacity="0.5"/>
+</svg>

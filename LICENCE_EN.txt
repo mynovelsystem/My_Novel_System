@@ -1,0 +1,19 @@
+Copyright (c) 2026 System_Master. All rights reserved.
+
+This software and its associated resources (code, images, icons, text,
+data and documentation; hereinafter, ‘the Software’) are the exclusive property
+of the copyright holder. No licence, express or implied, is granted, except for
+the right of users to install and use the extension officially distributed
+on the Chrome Web Store, for personal and non-commercial use.
+
+Without the prior written authorisation of the owner, it is prohibited to:
+- copy, modify, merge, publish, distribute or sub-license the Software;
+- sell, rent or use the Software or its derivative works for commercial purposes;
+- decompile, reverse engineer or create derivative works, except to the extent
+  that applicable law expressly permits it;
+- reusing the name, icons or illustrations of the Software.
+
+THE SOFTWARE IS PROVIDED ‘AS IS’, WITHOUT WARRANTY OF ANY KIND. THE OWNER
+SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM ITS USE.
+
+Contact for permissions: mynovelsystem@gmail.com

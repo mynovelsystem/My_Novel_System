@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <defs>
+    <radialGradient id="spiritJade" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="45%" stop-color="#10b981"/>
+      <stop offset="85%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </radialGradient>
+    <linearGradient id="silverEarring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+  </defs>
+  <!-- Earring 1 (Main Left) -->
+  <!-- Top Ear Loop / Hook -->
+  <path d="M 24 8 C 24 4, 30 4, 30 9 L 28 14" fill="none" stroke="url(#silverEarring)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Lotus Clasp Cap -->
+  <path d="M 22 15 Q 28 19 34 15 L 32 20 Q 28 22 24 20 Z" fill="#fde047" stroke="#b45309" stroke-width="1"/>
+  <circle cx="28" cy="18" r="2" fill="#ef4444"/>
+  <!-- Hanging Teardrop / Crescent Jade Gem -->
+  <path d="M 28 20 C 35 30, 36 44, 28 52 C 20 44, 21 30, 28 20 Z" 
+        fill="url(#spiritJade)" stroke="#6ee7b7" stroke-width="1.5"/>
+  <!-- Jade Inner Luster -->
+  <path d="M 28 25 Q 31 34 29 44" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  <circle cx="28" cy="46" r="2.5" fill="#a7f3d0" opacity="0.9"/>
+  <!-- Earring 2 (Smaller Right background pair) -->
+  <path d="M 44 14 C 44 10, 48 10, 48 14 L 46 18" fill="none" stroke="url(#silverEarring)" stroke-width="1.8" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 46 22 C 51 30, 52 40, 46 46 C 40 40, 41 30, 46 22 Z" 
+        fill="url(#spiritJade)" stroke="#6ee7b7" stroke-width="1.2" opacity="0.85"/>
+  <circle cx="46" cy="42" r="2" fill="#ffffff" opacity="0.8"/>
+</svg>

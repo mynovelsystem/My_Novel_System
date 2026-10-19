@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipReaderM">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgReaderM" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#0f2b38"/>
+      <stop offset="60%" stop-color="#081820"/>
+      <stop offset="100%" stop-color="#02080c"/>
+    </radialGradient>
+    <linearGradient id="screenGlow" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipReaderM)">
+    <rect width="128" height="128" fill="url(#bgReaderM)"/>
+
+    <!-- Subtle Floating Novel Text Matrix Stream in Background -->
+    <text x="20" y="28" font-size="6" fill="#38bdf8" opacity="0.3" font-family="monospace">Cap. 1420: Ascensión...</text>
+    <text x="36" y="40" font-size="6" fill="#2dd4bf" opacity="0.25" font-family="monospace">Qi +500</text>
+    <circle cx="64" cy="54" r="44" fill="none" stroke="#06b6d4" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="6 4"/>
+
+    <!-- Dark Casual Hoodie Shoulders -->
+    <path d="M 18 128 L 24 100 C 28 88 40 84 50 82 L 64 94 L 78 82 C 88 84 100 88 104 100 L 110 128 Z" fill="#1e293b"/>
+    <path d="M 50 82 Q 64 94 78 82" fill="none" stroke="#0ea5e9" stroke-width="1.8"/>
+
+    <!-- Glowing Cyber Wireless Headphones Neckband -->
+    <path d="M 40 76 Q 64 88 88 76" stroke="#06b6d4" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="36" y="66" width="7" height="13" rx="3.5" fill="#0891b2"/>
+    <rect x="85" y="66" width="7" height="13" rx="3.5" fill="#0891b2"/>
+
+    <!-- Neck with Soft Screen Glow -->
+    <path d="M 54 70 L 54 84 Q 64 88 74 84 L 74 70 Z" fill="#fed7aa"/>
+
+    <!-- Face (Illuminated by Cyan Novel Glow from below) -->
+    <path d="M 45 44 C 45 32 83 32 83 44 C 83 64 75 74 64 75 C 53 74 45 64 45 44 Z" fill="#fed7aa"/>
+    <path d="M 45 58 Q 64 76 83 58 L 83 74 C 75 78 53 78 45 74 Z" fill="#38bdf8" opacity="0.25"/>
+
+    <!-- Eyes (Focused, Curious, Cyan Screen Reflection) -->
+    <ellipse cx="54" cy="49" rx="3.8" ry="2.2" fill="#0f172a"/>
+    <circle cx="54" cy="49" r="1.6" fill="#0284c7"/>
+    <circle cx="55" cy="48" r="0.8" fill="#38bdf8"/>
+    <ellipse cx="74" cy="49" rx="3.8" ry="2.2" fill="#0f172a"/>
+    <circle cx="74" cy="49" r="1.6" fill="#0284c7"/>
+    <circle cx="75" cy="48" r="0.8" fill="#38bdf8"/>
+    <!-- Brows -->
+    <path d="M 49 44 Q 54 42 59 45" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M 79 44 Q 74 42 69 45" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+
+    <!-- Smile of Immersion in Novel -->
+    <path d="M 60 65 Q 64 68 68 65" stroke="#be123c" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+
+    <!-- Modern Dark Undercut Hair -->
+    <path d="M 44 42 C 46 28 82 28 84 42 C 78 34 66 34 64 38 C 62 34 50 34 44 42 Z" fill="#0f172a"/>
+    <path d="M 44 42 Q 47 50 44 58" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+    <!-- Holographic Floating Reader Device Screen at Bottom Foreground -->
+    <rect x="36" y="94" width="56" height="30" rx="3" fill="#0284c7" opacity="0.6"/>
+    <rect x="38" y="96" width="52" height="26" rx="2" fill="#082f49"/>
+    <!-- Holographic Novel Pages on Screen -->
+    <line x1="42" y1="102" x2="86" y2="102" stroke="#38bdf8" stroke-width="1.5"/>
+    <line x1="42" y1="107" x2="80" y2="107" stroke="#7dd3fc" stroke-width="1.2"/>
+    <line x1="42" y1="112" x2="74" y2="112" stroke="#7dd3fc" stroke-width="1.2"/>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#06b6d4" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.6"/>
+</svg>

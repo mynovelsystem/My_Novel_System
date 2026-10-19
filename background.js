@@ -10,16 +10,17 @@ const FIREBASE_DB_URL = "https://novel-tracker-1d134-default-rtdb.firebaseio.com
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_DIAGNOSTIC_LOGS = 25;
-const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c)[-_\/.]?\d+(?:[._-]\d+)?(?:\/.*)?$/i;
-const CHAPTER_URL_REGEX = /(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c)[-_\/.]?(\d+(?:[.-]\d+)?)(?:\/|$|\?|#)/i;
-const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|ch\.|cap\.|ep\.|c\.)\s*#?\s*\d+.*$/i;
+const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapters?|cap[ií]tulos?|capitulos?|episodes?|episodios?|partes?|secci[oó]n|secciones|sections?|ch|cap|ep|c|bab)[-_\/.]?\d+(?:[._-]\d+)?(?:\.html?|\/.*)?$/i;
+const CHAPTER_URL_REGEX = /(?:\/|-|_|\b)(?:chapters?|cap[ií]tulos?|capitulos?|episodes?|episodios?|partes?|secci[oó]n|secciones|sections?|ch|cap|ep|c|bab)[-_\/.]?(\d{1,7}(?:[.-]\d{1,2})?)(?:\/|$|\?|#|-|_)/i;
+const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapters?|cap[ií]tulos?|capitulos?|episodes?|episodios?|partes?|secci[oó]n|secciones|sections?|ch(?:[\s._-]|\\.)|cap(?:[\s._-]|\\.)|ep(?:[\s._-]|\\.)|c(?:[\s._-]|\\.)|bab|#)\s*#?\s*\d+.*$/i;
 const TRAILING_MEDIA_SUFFIX_REGEX = /\s+\b(?:manhwa|manhua|manga|webtoon|novela\s*ligera|light\s*novel|web\s*novel|novela|novel|comic|raw|sub\s*espa[ñn]ol|en\s*espa[ñn]ol|online|gratis|free)\b\s*$/i;
 
 const CATALOG_SEGMENTS = new Set([
   "novelas", "novela", "novels", "novel", "series", "serie",
   "manga", "mangas", "manhwa", "manhwas", "manhua", "manhuas",
-  "webtoon", "webtoons", "comic", "comics", "book", "books",
-  "obras", "obra", "lectura", "leer", "ver", "read"
+  "webtoon", "webtoons", "comic", "comics", "webcomic", "webcomics",
+  "book", "books", "obras", "obra", "lectura", "leer", "ver", "read",
+  "title", "titles"
 ]);
 
 const READER_SEGMENTS = new Set(["leer", "ver", "read", "lectura", "viewer"]);
@@ -31,7 +32,9 @@ const BOGUS_NAMES = new Set([
   "anterior", "siguiente", "leer", "ver", "episodios", "episodio",
   "capitulos", "capitulo", "chapters", "chapter", "lista", "lista_de_capitulos",
   "lista_de_episodios", "detalles", "ficha", "info", "informacion", "directorio",
-  "sumario", "contenido", "catalogo", "biblioteca", "obra", "obras"
+  "sumario", "contenido", "catalogo", "biblioteca", "obra", "obras",
+  "comic_episode", "comic_episodes", "webcomic_episode", "webcomic_episodes",
+  "comic_chapter", "comic_chapters", "webcomic", "webcomics", "comic", "comics"
 ]);
 
 const BLACKLIST_DOMAINS = [
@@ -179,10 +182,13 @@ async function addDomainToBlacklist(rawDomain, customAddedAt = null) {
   try {
     const tabs = await chrome.tabs.query({});
     for (const tab of tabs) {
-      if (tab.url && matchesDomainPattern(tab.url, domain)) {
-        setTabQuestionBadge(tab.id, false);
-        await chrome.storage.local.remove([`tab_${tab.id}`]);
-        chrome.tabs.sendMessage(tab.id, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, { type: "CHECK_BLACKLIST_AND_DISMISS", blockedDomain: domain }).catch(() => {});
+        if (tab.url && matchesDomainPattern(tab.url, domain)) {
+          setTabQuestionBadge(tab.id, false);
+          await chrome.storage.local.remove([`tab_${tab.id}`]);
+          chrome.tabs.sendMessage(tab.id, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+        }
       }
     }
   } catch {}
@@ -224,7 +230,25 @@ async function pushDomainBlacklistToCloud(list) {
   }
 }
 
+const NON_READER_SUBPAGE_REGEX = /\/(?:reviews?|comments?|threads?|forum|community|characters?|author|stats|statistics|gallery|recommendations|about|info|details|glossary|fan-?art|edit|settings|tos|privacy|contact)(?:\.(?:html?|php|asp[x]?))?(?:[\/?#]|$)/i;
+const CHAPTER_LISTING_SUBPAGE_REGEX = /\/(?:toc|table-of-contents|chapters|capitulos|indice|index)(?:\.(?:html?|php|asp[x]?))?(?:[\/?#]|$)/i;
+
+function isInformationalOrNonReaderUrl(urlStr) {
+  if (!urlStr || typeof urlStr !== "string") return false;
+  try {
+    const u = new URL(urlStr);
+    const path = u.pathname.toLowerCase();
+    if (NON_READER_SUBPAGE_REGEX.test(path)) return true;
+    if (CHAPTER_LISTING_SUBPAGE_REGEX.test(path) && !CHAPTER_URL_REGEX.test(path)) {
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
 function looksLikeReadingUrl(urlStr) {
+  if (!urlStr || typeof urlStr !== "string") return false;
+  if (isInformationalOrNonReaderUrl(urlStr)) return false;
   try {
     const u = new URL(urlStr);
     const host = u.hostname.toLowerCase();
@@ -281,10 +305,71 @@ async function appendDiagnosticLog(entry) {
   } catch {}
 }
 
+function sanitizeLogsForReport(logs) {
+  const sensitiveRegex = /token|auth|pass|secret|key|cred|bearer|cookie|session|jwt|authorization/i;
+
+  function cleanString(str) {
+    if (typeof str !== "string") return "";
+    return str
+      .replace(/\/\/[^:]+:[^@]+@/g, "//[CREDENTIALS_REDACTED]@")
+      .replace(/AIzaSy[A-Za-z0-9_-]{33}/g, "[API_KEY_REDACTED]")
+      .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+/g, "[JWT_REDACTED]")
+      .replace(/(key|auth|token|secret|password|bearer|api_key|access_token|refresh_token)=([A-Za-z0-9_\-.~%]+)/gi, "$1=[REDACTED]")
+      .replace(/(?:Bearer\s+)[A-Za-z0-9_\-.~+/=]+/gi, "Bearer [REDACTED]")
+      .slice(0, 500);
+  }
+
+  function sanitizeValue(val, depth = 0) {
+    if (val === null || val === undefined) return null;
+    if (typeof val === "string") return cleanString(val);
+    if (typeof val === "number" && Number.isFinite(val)) return val;
+    if (typeof val === "boolean") return val;
+
+    if (depth < 2 && typeof val === "object") {
+      if (Array.isArray(val)) {
+        return val.slice(0, 8).map((el) => {
+          if (typeof el === "string") return cleanString(el).slice(0, 200);
+          if (typeof el === "number" && Number.isFinite(el)) return el;
+          if (typeof el === "boolean") return el;
+          return null;
+        }).filter((el) => el !== null);
+      }
+
+      const cleanObj = {};
+      const entries = Object.entries(val).slice(0, 10);
+      for (const [subK, subV] of entries) {
+        if (!/^[A-Za-z0-9_]{1,40}$/.test(subK)) continue;
+        if (sensitiveRegex.test(subK)) continue;
+        const subSanitized = sanitizeValue(subV, depth + 1);
+        if (subSanitized !== null && subSanitized !== undefined) {
+          cleanObj[subK] = subSanitized;
+        }
+      }
+      return cleanObj;
+    }
+    return null;
+  }
+
+  return (Array.isArray(logs) ? logs : []).slice(0, 8).map((entry) => {
+    const out = {};
+    const src = entry && typeof entry === "object" ? entry : {};
+    for (const [k, v] of Object.entries(src)) {
+      if (!/^[A-Za-z0-9_]{1,40}$/.test(k)) continue;
+      if (sensitiveRegex.test(k)) continue;
+      const sanitized = sanitizeValue(v, 0);
+      if (sanitized !== null && sanitized !== undefined) {
+        out[k] = sanitized;
+      }
+    }
+    return out;
+  });
+}
+
 async function handleSubmitBugReport(payload) {
   const category = String(payload?.category || "other").slice(0, 40);
   const message = String(payload?.message || "").trim().slice(0, 1400);
   const attachLogs = Boolean(payload?.attachLogs);
+  const includeEmail = Boolean(payload?.includeEmail);
 
   if (!message) return { ok: false, error: "empty" };
 
@@ -294,13 +379,27 @@ async function handleSubmitBugReport(payload) {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab) {
+        const sanitizedTabLogs = sanitizeLogsForReport([{ url: tab.url, title: tab.title }]);
+        const sanitizedTab = sanitizedTabLogs[0] || {};
         activeTabInfo = {
-          url: tab.url || "",
-          title: tab.title || ""
+          url: String(sanitizedTab.url || "").slice(0, 1024),
+          title: String(sanitizedTab.title || "").slice(0, 300)
         };
       }
     } catch {}
   }
+
+  let activeAuth = null;
+  try {
+    activeAuth = typeof getValidAuth === "function" ? await getValidAuth() : storage.auth;
+  } catch {
+    activeAuth = storage.auth;
+  }
+  if (!activeAuth && storage.auth) {
+    activeAuth = storage.auth;
+  }
+
+  const userEmail = (includeEmail && activeAuth?.email) ? String(activeAuth.email).trim() : "anonymous";
 
   const reportData = {
     category,
@@ -308,13 +407,13 @@ async function handleSubmitBugReport(payload) {
     createdAt: Date.now(),
     createdIso: new Date().toISOString(),
     version: chrome.runtime.getManifest().version,
-    userEmail: storage.auth?.email || "anonymous",
+    userEmail,
     activeTab: attachLogs ? activeTabInfo : null,
-    recentLogs: attachLogs ? (storage.diagnosticLogs || []).slice(0, 8) : null
+    recentLogs: attachLogs ? sanitizeLogsForReport(storage.diagnosticLogs) : null
   };
 
   const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
-  const authParam = storage.auth?.idToken ? `?auth=${storage.auth.idToken}` : "";
+  const authParam = activeAuth?.idToken ? `?auth=${encodeURIComponent(activeAuth.idToken)}` : "";
 
   try {
     const res = await fetch(`${dbCleanUrl}/reports.json${authParam}`, {
@@ -468,8 +567,9 @@ async function refreshBrowserActionAppearance() {
     } else {
       const realmName = t(`realm_${cultState.realmId}`);
       const stageStr = cultState.stage ? ` (${t("header_stage", { stage: cultState.stage })})` : "";
+      const resUnit = (typeof t === "function" ? t(cultState.resource?.unitKey) : "") || cultState.resource?.name || "Qi";
       await chrome.action.setTitle({
-        title: `MyNovelSystem — ${realmName}${stageStr}${bAlert} • ${cultState.totalQi} Qi`
+        title: `MyNovelSystem — ${realmName}${stageStr}${bAlert} • ${cultState.totalQi} ${resUnit}`
       }).catch(() => {});
     }
 
@@ -510,6 +610,8 @@ function getDefaultStats() {
     bonusQi: 0,
     inventory: [],
     equippedItems: [],
+    systemAchievements: [],
+    genreAchievements: [],
     dailyChapters: {},
     cultivatedRealmIndex: undefined,
     cultivatedStage: undefined,
@@ -534,6 +636,11 @@ var equipItem = globalThis.equipItem;
 var unequipItem = globalThis.unequipItem;
 var getEquippedQiMultiplier = globalThis.getEquippedQiMultiplier;
 var calculateQiBreakdown = globalThis.calculateQiBreakdown;
+var SYSTEM_ACHIEVEMENTS_CONFIG = globalThis.SYSTEM_ACHIEVEMENTS_CONFIG;
+var evaluateSystemAchievements = globalThis.evaluateSystemAchievements;
+var normalizeGenre = globalThis.normalizeGenre;
+var evaluateGenreAchievements = globalThis.evaluateGenreAchievements;
+var GENRE_TAXONOMY = globalThis.GENRE_TAXONOMY;
 
 function fnv1aHex(str) {
   let hash = 0x811c9dc5;
@@ -553,10 +660,15 @@ function normalizeText(str) {
     .replace(/^_+|_+$/g, "");
 }
 
-function stripChapterFromTitle(rawName) {
+function stripChapterFromTitle(rawName, chapterHint = "") {
   if (!rawName) return "";
   let cleaned = String(rawName).replace(/\s+/g, " ").trim();
   cleaned = cleaned.replace(INLINE_CHAPTER_CUT_REGEX, "").trim();
+  if (chapterHint && /^\d+(?:\.\d+)?$/.test(String(chapterHint).trim())) {
+    const chapEsc = String(chapterHint).trim().replace(".", "\\.");
+    const chapPattern = new RegExp(`(?:\\s*[-–—|:«»#]+\\s*|\\s+)(?:cap[ií]tulo|capitulo|chapter|episode|episodio|parte|ch|cap|ep|c|part|seccion|section|#)?\\s*0*${chapEsc}\\b.*$`, "i");
+    cleaned = cleaned.replace(chapPattern, "").trim();
+  }
   cleaned = cleaned
     .replace(/^(?:read|leer|ver)\s+/i, "")
     .replace(TRAILING_MEDIA_SUFFIX_REGEX, "")
@@ -575,17 +687,32 @@ function isBogusNovelName(name, novelUrl = "") {
     return true;
   }
 
-  if (novelUrl) {
-    const slugHuman = humanizeSlugFromNovelUrl(novelUrl);
-    if (slugHuman) {
-      const slugWords = normalizeText(slugHuman).split("_").filter((w) => w.length >= 3 && !/^\d+$/.test(w));
-      const nameWords = norm.split("_").filter((w) => w.length >= 3);
-      if (slugWords.length >= 2 && nameWords.length <= 2) {
-        const hasOverlap = nameWords.some((nw) => slugWords.includes(nw));
-        if (!hasOverlap) return true;
-      }
-    }
+  // Reject UUID or long hex hashes as novel names (hyphenated, spaced or raw hex)
+  if (
+    /^[0-9a-f]{8}[-_\s][0-9a-f]{4}[-_\s][0-9a-f]{4}[-_\s][0-9a-f]{4}[-_\s][0-9a-f]{12}$/i.test(cleaned) ||
+    /^[0-9a-f]{24,}$/i.test(cleaned) ||
+    /^[0-9a-f]{32}$/i.test(norm.replace(/_/g, ""))
+  ) {
+    return true;
   }
+
+  // Action button labels
+  if (/^(?:leer_ahora|read_now|continue_reading|continuar_leyendo|ver_capitulos|view_chapters|start_reading|comenzar_lectura|read_first|read_last|bookmark|favorito|compartir|share|series_page|pagina_serie|pagina_de_la_serie|comic_page|novel_page|follow|subscribe|suscribirse|seguir|follow_this_series)$/.test(norm)) {
+    return true;
+  }
+
+  if (novelUrl) {
+    try {
+      const parsedHost = new URL(novelUrl, "https://example.com").hostname.replace(/^www\./i, "");
+      const domainBase = normalizeText(parsedHost.split(".")[0]);
+      const normRaw = norm.replace(/_/g, "");
+      if (norm === domainBase || normRaw === domainBase) return true;
+      if (domainBase.startsWith(normRaw) && (domainBase.endsWith("webcomics") || domainBase.endsWith("comics") || domainBase.endsWith("novels") || domainBase.endsWith("manga") || domainBase.endsWith("scans"))) {
+        return true;
+      }
+    } catch {}
+  }
+
   return false;
 }
 
@@ -609,10 +736,23 @@ function extractDomain(urlStr) {
   }
 }
 
+function isSameDomainOrSubdomain(domA, domB) {
+  if (!domA || !domB) return false;
+  const a = String(domA).toLowerCase().replace(/^www\./, "").trim();
+  const b = String(domB).toLowerCase().replace(/^www\./, "").trim();
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.endsWith("." + b) || b.endsWith("." + a)) return true;
+  return false;
+}
+
 function isValidSeriesPath(pathname) {
   const segments = String(pathname || "").split("/").filter(Boolean);
   if (segments.length === 0) return false;
   const first = normalizeText(segments[0]);
+  if (["chapter", "chapters", "capitulo", "capitulos", "episode", "episodio", "ch", "cap", "ep", "sec", "seccion", "section", "comic_episode", "comic_episodes", "webcomic_episode", "webcomic_episodes"].includes(first)) {
+    return false;
+  }
   if (segments.length === 1 && (BOGUS_NAMES.has(first) || CATALOG_SEGMENTS.has(first))) {
     return false;
   }
@@ -684,7 +824,6 @@ function deriveNovelUrlFromChapterUrl(rawUrl) {
     if (
       segments.length >= 2 &&
       /^\d+(?:[._-]\d+)?$/.test(segments[segments.length - 1]) &&
-      segments[segments.length - 2].includes("-") &&
       /[a-z]/i.test(segments[segments.length - 2])
     ) {
       const stripped = "/" + segments.slice(0, -1).join("/");
@@ -694,6 +833,11 @@ function deriveNovelUrlFromChapterUrl(rawUrl) {
     }
 
     if (CATALOG_SEGMENTS.has(firstLower) && segments.length === 2 && /[a-z]/i.test(segments[1])) {
+      const slug = segments[1];
+      const matchTrailingChap = slug.match(/^([a-z0-9_-]*[a-z][a-z0-9_-]*?)-(?:(?:chapters?|cap[ií]tulos?|ch|cap|ep|c)-)?(\d+(?:[._-]\d+)?)$/i);
+      if (matchTrailingChap && matchTrailingChap[1]) {
+        return `${u.origin}/${segments[0]}/${matchTrailingChap[1]}`;
+      }
       return `${u.origin}/${segments[0]}/${segments[1]}`;
     }
   } catch {}
@@ -703,11 +847,13 @@ function deriveNovelUrlFromChapterUrl(rawUrl) {
 function extractSlugFromNovelUrl(novelUrl) {
   if (!novelUrl) return "";
   try {
-    const u = new URL(novelUrl);
+    const derived = deriveNovelUrlFromChapterUrl(novelUrl);
+    const u = new URL(derived || novelUrl);
     const segments = u.pathname.split("/").filter(Boolean);
     for (let i = segments.length - 1; i >= 0; i--) {
       let seg = decodeURIComponent(segments[i]);
       if (/^\d+$/.test(seg)) continue;
+      if (CHAPTER_URL_REGEX.test("/" + seg) || CHAPTER_STRIP_PATH_REGEX.test("/" + seg)) continue;
       if (CATALOG_SEGMENTS.has(seg.toLowerCase()) || BOGUS_NAMES.has(normalizeText(seg))) continue;
       seg = seg.replace(/_\d{8,}$/, "");
       return normalizeText(seg);
@@ -771,7 +917,7 @@ function computeCanonicalSeriesId(entry, fallbackKey) {
   }
 
   const rawEffectiveName = (!isBogusNovelName(entry.novelName, bestNovelUrl) ? entry.novelName : "") || entry.customName || fallbackKey;
-  const effectiveName = stripChapterFromTitle(rawEffectiveName);
+  const effectiveName = stripChapterFromTitle(rawEffectiveName, entry.chapter);
   const domain = extractDomain(bestNovelUrl || entry.url);
   const idFromName = buildSeriesIdFromName(effectiveName, domain);
   return {
@@ -815,9 +961,9 @@ function deduplicateAndMigrateMap(rawMap) {
     }
 
     const { seriesId, novelUrl } = computeCanonicalSeriesId(entry, rawKey);
-    const rawCustom = entry.customName ? stripChapterFromTitle(entry.customName) : "";
+    const rawCustom = entry.customName ? stripChapterFromTitle(entry.customName, entry.chapter) : "";
     const cleanedCustom = !isBogusNovelName(rawCustom, novelUrl) ? rawCustom : "";
-    const cleanedNovelName = stripChapterFromTitle(entry.novelName || "");
+    const cleanedNovelName = stripChapterFromTitle(entry.novelName || "", entry.chapter);
     const rawName = cleanedCustom || cleanedNovelName;
     const fallbackSlugName = humanizeSlugFromNovelUrl(novelUrl);
     const validName = !isBogusNovelName(rawName, novelUrl) ? rawName : fallbackSlugName;
@@ -885,7 +1031,12 @@ function deduplicateAndMigrateMap(rawMap) {
   for (const [groupId, items] of activeGroups.entries()) {
     if (items.length > 1) changed = true;
 
-    items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    items.sort((a, b) => {
+      const cA = parseFloat(a.chapter) || 0;
+      const cB = parseFloat(b.chapter) || 0;
+      if (cA !== cB) return cB - cA;
+      return (b.updatedAt || 0) - (a.updatedAt || 0);
+    });
     const newest = items[0];
 
     const existingTombstone = result[groupId];
@@ -913,6 +1064,17 @@ function deduplicateAndMigrateMap(rawMap) {
     const statusManual = items.find((i) => i.statusManual)?.statusManual || "";
     const completedCounted = items.some((i) => i.completedCounted === true);
 
+    const allGenres = Array.from(
+      new Set(items.flatMap((i) => (Array.isArray(i.genres) ? i.genres : [])))
+    );
+    const genreSource = items.some((i) => i.genreSource === "manual")
+      ? "manual"
+      : items.some((i) => i.genreSource === "source")
+      ? "source"
+      : items.some((i) => i.genreSource === "inferred")
+      ? "inferred"
+      : newest.genreSource || "unknown";
+
     const mergedEntry = {
       seriesId: groupId,
       novelName: stableName,
@@ -923,6 +1085,8 @@ function deduplicateAndMigrateMap(rawMap) {
       scrollPct: typeof newest.scrollPct === "number" ? newest.scrollPct : 0,
       statusManual,
       completedCounted,
+      genres: allGenres,
+      genreSource,
       alert: newest.alert || null,
       updatedAt: newest.updatedAt || now
     };
@@ -934,6 +1098,94 @@ function deduplicateAndMigrateMap(rawMap) {
   }
 
   return { migratedNovels: result, changed };
+}
+
+function findExistingNovelKey(savedNovels, novelData, candidateSeriesId, candidateNovelUrl) {
+  if (!savedNovels || typeof savedNovels !== "object") return null;
+
+  // 1. Direct candidateSeriesId lookup
+  if (candidateSeriesId && savedNovels[candidateSeriesId] && !savedNovels[candidateSeriesId].deleted) {
+    return candidateSeriesId;
+  }
+
+  // 2. Direct novelData.seriesId lookup
+  if (novelData?.seriesId && savedNovels[novelData.seriesId] && !savedNovels[novelData.seriesId].deleted) {
+    return novelData.seriesId;
+  }
+
+  const incomingUrl = String(novelData?.url || "").trim();
+  const incomingNovelUrl = String(candidateNovelUrl || novelData?.novelUrl || "").trim();
+  const incomingDomain = extractDomain(incomingNovelUrl || incomingUrl);
+  const incomingChapter = String(novelData?.chapter || "").trim();
+  const incomingCleanName = stripChapterFromTitle(novelData?.novelName || "", incomingChapter);
+  const incomingNormName = normalizeText(incomingCleanName);
+
+  const derivedIncomingSeriesUrl =
+    (incomingNovelUrl && deriveNovelUrlFromChapterUrl(incomingNovelUrl)) ||
+    (incomingUrl && deriveNovelUrlFromChapterUrl(incomingUrl)) ||
+    incomingNovelUrl ||
+    "";
+  const incomingSeriesIdFromDerived = derivedIncomingSeriesUrl ? buildSeriesIdFromUrl(derivedIncomingSeriesUrl) : "";
+  const incomingSlug = extractSlugFromNovelUrl(derivedIncomingSeriesUrl || incomingNovelUrl || incomingUrl);
+
+  for (const [key, entry] of Object.entries(savedNovels)) {
+    if (!entry || typeof entry !== "object" || entry.deleted) continue;
+
+    // Check A: Key matches derived canonical series ID
+    if (incomingSeriesIdFromDerived && (key === incomingSeriesIdFromDerived || entry.seriesId === incomingSeriesIdFromDerived)) {
+      return key;
+    }
+
+    const entryDomain = extractDomain(entry.novelUrl || entry.url);
+    if (entryDomain && incomingDomain && !isSameDomainOrSubdomain(entryDomain, incomingDomain)) {
+      continue;
+    }
+
+    // Check B: Direct or derived novelUrl equality
+    if (derivedIncomingSeriesUrl && entry.novelUrl) {
+      const entrySeriesUrl = deriveNovelUrlFromChapterUrl(entry.novelUrl) || entry.novelUrl;
+      if (entrySeriesUrl) {
+        if (entrySeriesUrl === derivedIncomingSeriesUrl) return key;
+        const entryIdFromUrl = buildSeriesIdFromUrl(entrySeriesUrl);
+        if (entryIdFromUrl && (entryIdFromUrl === incomingSeriesIdFromDerived || entryIdFromUrl === candidateSeriesId)) {
+          return key;
+        }
+      }
+    }
+
+    // Check C: Chapter URLs derive to identical series base URL
+    if (incomingUrl && entry.url) {
+      const entryDerived = deriveNovelUrlFromChapterUrl(entry.url);
+      if (entryDerived && derivedIncomingSeriesUrl && entryDerived === derivedIncomingSeriesUrl) {
+        return key;
+      }
+    }
+
+    // Check D: Normalized title match within the same domain (checks BOTH novelName and customName)
+    const entryCleanNovelName = stripChapterFromTitle(entry.novelName || "", entry.chapter);
+    const entryNormNovelName = normalizeText(entryCleanNovelName);
+    const entryCleanCustomName = entry.customName ? stripChapterFromTitle(entry.customName, entry.chapter) : "";
+    const entryNormCustomName = normalizeText(entryCleanCustomName);
+
+    if (incomingNormName && incomingNormName.length >= 2) {
+      if (
+        (entryNormNovelName && incomingNormName === entryNormNovelName) ||
+        (entryNormCustomName && incomingNormName === entryNormCustomName)
+      ) {
+        return key;
+      }
+    }
+
+    // Check E: Slug match within the same domain (minimum 3 chars to prevent false positives)
+    if (incomingSlug && incomingSlug.length >= 3) {
+      const entrySlug = extractSlugFromNovelUrl(entry.novelUrl || entry.url);
+      if (entrySlug && entrySlug === incomingSlug) {
+        return key;
+      }
+    }
+  }
+
+  return null;
 }
 
 function mergeStatsObjects(localStats, cloudStats) {
@@ -959,7 +1211,13 @@ function mergeStatsObjects(localStats, cloudStats) {
   const lInventory = Array.isArray(l.inventory) ? l.inventory : [];
   const cInventory = Array.isArray(c.inventory) ? c.inventory : [];
   const mergedInventory = Array.from(new Set([...lInventory, ...cInventory]));
-  const rawEquipped = Array.isArray(winner.equippedItems) && winner.equippedItems.length > 0
+  const lSystem = Array.isArray(l.systemAchievements) ? l.systemAchievements : [];
+  const cSystem = Array.isArray(c.systemAchievements) ? c.systemAchievements : [];
+  const mergedSystem = Array.from(new Set([...lSystem, ...cSystem]));
+  const lGenre = Array.isArray(l.genreAchievements) ? l.genreAchievements : [];
+  const cGenre = Array.isArray(c.genreAchievements) ? c.genreAchievements : [];
+  const mergedGenre = Array.from(new Set([...lGenre, ...cGenre]));
+  const rawEquipped = Array.isArray(winner.equippedItems)
     ? winner.equippedItems
     : (Array.isArray(older.equippedItems) ? older.equippedItems : []);
   const mergedEquipped = Array.from(new Set(rawEquipped))
@@ -1063,6 +1321,9 @@ function mergeStatsObjects(localStats, cloudStats) {
         mergedThemes[tKey] = {
           realmIndex: mergedRIndex,
           stage: mergedStage,
+          exp: Math.max(Number(lT.exp) || 0, Number(cT.exp) || 0),
+          totalExp: Math.max(Number(lT.totalExp) || 0, Number(cT.totalExp) || 0),
+          chaptersRead: Math.max(Number(lT.chaptersRead) || 0, Number(cT.chaptersRead) || 0),
           lastBreakthrough: (lT.lastBreakthrough?.timestamp || 0) >= (cT.lastBreakthrough?.timestamp || 0)
             ? lT.lastBreakthrough
             : cT.lastBreakthrough
@@ -1077,7 +1338,10 @@ function mergeStatsObjects(localStats, cloudStats) {
         mergedThemes[tKey] = {
           ...(singleTheme || {}),
           realmIndex: singleR,
-          stage: isPeak ? null : (singleTheme?.stage !== null && singleTheme?.stage !== undefined ? Number(singleTheme.stage) || 1 : 1)
+          stage: isPeak ? null : (singleTheme?.stage !== null && singleTheme?.stage !== undefined ? Number(singleTheme.stage) || 1 : 1),
+          exp: Number(singleTheme?.exp) || 0,
+          totalExp: Number(singleTheme?.totalExp) || 0,
+          chaptersRead: Number(singleTheme?.chaptersRead) || 0
         };
       }
     }
@@ -1127,6 +1391,8 @@ function mergeStatsObjects(localStats, cloudStats) {
     claimedRewards: mergedClaimed,
     inventory: mergedInventory,
     equippedItems: mergedEquipped,
+    systemAchievements: mergedSystem,
+    genreAchievements: mergedGenre,
     dailyChapters: pruned,
     cultivatedRealmIndex: realmIndex,
     cultivatedStage: stage,
@@ -1136,6 +1402,9 @@ function mergeStatsObjects(localStats, cloudStats) {
   };
 
   evaluateUnlockedTitles(merged);
+  if (typeof evaluateSystemAchievements === "function") {
+    evaluateSystemAchievements(merged);
+  }
   if (typeof syncUserInventory === "function") {
     syncUserInventory(merged);
   }
@@ -1168,7 +1437,13 @@ async function migrateLocalStorageNow() {
   });
 }
 
-migrateLocalStorageNow();
+async function maybeMigrateLocalStorage() {
+  chrome.storage.local.remove(["supabase_auth", "supabase_config", "pending_supabase_signup_email"]).catch(() => {});
+  const { schemaVersion } = await chrome.storage.local.get(["schemaVersion"]);
+  if (schemaVersion === 4) return;
+  await migrateLocalStorageNow();
+  await chrome.storage.local.set({ schemaVersion: 4 });
+}
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.stats || changes.settings) {
@@ -1183,7 +1458,7 @@ chrome.storage.onChanged.addListener((changes) => {
 // Sincronización periódica cada 30 min para ahorrar ancho de banda de Firebase Spark
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("periodic_cloud_sync", { periodInMinutes: 30 });
-  migrateLocalStorageNow();
+  maybeMigrateLocalStorage();
   refreshBrowserActionAppearance();
 });
 
@@ -1194,10 +1469,17 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-  if (changeInfo.url && (await isDomainBlacklisted(changeInfo.url))) {
-    setTabQuestionBadge(tabId, false);
-    chrome.storage.local.remove([`tab_${tabId}`]).catch(() => {});
-    chrome.tabs.sendMessage(tabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+  if (changeInfo.url) {
+    if (await isDomainBlacklisted(changeInfo.url)) {
+      setTabQuestionBadge(tabId, false);
+      chrome.storage.local.remove([`tab_${tabId}`]).catch(() => {});
+      chrome.tabs.sendMessage(tabId, { type: "DISMISS_UNCONFIRMED_PROMPT" }).catch(() => {});
+    } else if (looksLikeReadingUrl(changeInfo.url) && !isInformationalOrNonReaderUrl(changeInfo.url)) {
+      chrome.tabs.sendMessage(tabId, {
+        type: "SPA_URL_CHANGED",
+        url: changeInfo.url
+      }).catch(() => {});
+    }
   }
 });
 
@@ -1206,6 +1488,7 @@ const GROUP_1_CONTENT_SCRIPT_MESSAGES = new Set([
   "SCROLL_UPDATED",
   "CONFIRM_UNCONFIRMED_TAB",
   "DISCARD_UNCONFIRMED_TAB",
+  "DISMISS_TAB_PROMPT",
   "ADD_DOMAIN_BLACKLIST",
   "REMOVE_DOMAIN_BLACKLIST",
   "DIAGNOSTIC_LOG"
@@ -1221,6 +1504,7 @@ const GROUP_2_ADMIN_MESSAGES = new Set([
   "PULL_FROM_CLOUD",
   "SWITCH_ACCOUNT",
   "LOGOUT",
+  "DELETE_ACCOUNT",
   "TEST_WHATSAPP",
   "CLEAR_DOMAIN_BLACKLIST",
   "GET_DOMAIN_BLACKLIST",
@@ -1229,7 +1513,10 @@ const GROUP_2_ADMIN_MESSAGES = new Set([
   "REFRESH_ICON",
   "EQUIP_ITEM",
   "UNEQUIP_ITEM",
-  "GET_INVENTORY"
+  "GET_INVENTORY",
+  "CLEAR_CACHE",
+  "RESET_LOCAL_DATA",
+  "UPDATE_NOVEL_GENRES"
 ]);
 
 function isValidHttpUrl(urlStr) {
@@ -1252,6 +1539,7 @@ function validateMessageSchema(message) {
     if (data.novelUrl && (typeof data.novelUrl !== "string" || !isValidHttpUrl(data.novelUrl) || data.novelUrl.length > 2048)) return false;
     if (data.chapter && typeof data.chapter !== "string") return false;
     if (data.seriesId && (typeof data.seriesId !== "string" || data.seriesId.length > 200)) return false;
+    if (data.genres && (!Array.isArray(data.genres) || data.genres.length > 50)) return false;
     return true;
   }
   if (type === "SCROLL_UPDATED") {
@@ -1275,6 +1563,12 @@ function validateMessageSchema(message) {
     if (message.domain && (typeof message.domain !== "string" || message.domain.length > 253)) return false;
     return true;
   }
+  if (type === 'UPDATE_NOVEL_GENRES') {
+    const sId = message.seriesId || message.novelKey;
+    if (!sId || typeof sId !== "string" || sId.length > 200) return false;
+    if (!Array.isArray(message.genres)) return false;
+    return true;
+  }
   if (type === "DIAGNOSTIC_LOG") {
     if (message.entry && typeof message.entry !== "object") return false;
     return true;
@@ -1288,13 +1582,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
-  const isGroup1 = GROUP_1_CONTENT_SCRIPT_MESSAGES.has(message.type);
-  const isGroup2 = GROUP_2_ADMIN_MESSAGES.has(message.type);
+  const rawType = typeof message.type === "string" ? message.type.trim() : "";
+  const upperType = rawType.toUpperCase();
+
+  const isGroup1 = GROUP_1_CONTENT_SCRIPT_MESSAGES.has(rawType) || GROUP_1_CONTENT_SCRIPT_MESSAGES.has(upperType);
+  const isGroup2 = GROUP_2_ADMIN_MESSAGES.has(rawType) || GROUP_2_ADMIN_MESSAGES.has(upperType);
 
   // SEC-02: Tipo de mensaje desconocido: rechazar con respuesta de error, sin ejecutar nada
   if (!isGroup1 && !isGroup2) {
-    sendResponse({ ok: false, error: `Unknown message type: ${message.type}` });
+    sendResponse({ ok: false, error: `Unknown message type: ${rawType || message.type}` });
     return true;
+  }
+
+  // Normalizar internamente message.type a mayúsculas canónicas para asegurar enrutamiento homogéneo
+  if (GROUP_1_CONTENT_SCRIPT_MESSAGES.has(upperType) || GROUP_2_ADMIN_MESSAGES.has(upperType)) {
+    message.type = upperType;
   }
 
   // SEC-02: Validación de emisor frente a chrome.runtime.id si está disponible
@@ -1304,9 +1606,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // SEC-02: Grupo 2 (acciones administrativas): exige sender.id === chrome.runtime.id Y !sender.tab
+  // SEC-02: Grupo 2 (acciones administrativas): exige sender.id === chrome.runtime.id Y !sender.tab (salvo páginas internas chrome-extension:// de esta extensión)
   if (isGroup2) {
-    if (sender && sender.tab) {
+    const extPrefix = currentRuntimeId ? `chrome-extension://${currentRuntimeId}/` : "chrome-extension://";
+    const isExtensionPageTab = sender && sender.tab && (
+      (sender.url && (sender.url.startsWith(extPrefix) || (!currentRuntimeId && sender.url.startsWith("chrome-extension://")))) ||
+      (sender.tab.url && (sender.tab.url.startsWith(extPrefix) || (!currentRuntimeId && sender.tab.url.startsWith("chrome-extension://"))))
+    );
+    if (sender && sender.tab && !isExtensionPageTab) {
       sendResponse({ ok: false, error: "Unauthorized: administrative action rejected from tab" });
       return true;
     }
@@ -1431,12 +1738,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "RECORD_MANUAL_READ") {
     withStorageLock(async () => {
-      const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
+      const storage = await chrome.storage.local.get(["stats", "savedNovels", "settings"]);
       let currentStats = { ...getDefaultStats(), ...(storage.stats || {}) };
       const chaptersDelta = Math.max(0, Number(message.chaptersDelta) || 0);
       const isNewNovel = Boolean(message.isNewNovel);
       const completedDelta = Number(message.completedDelta) || 0;
-      currentStats = recordCultivationProgress(currentStats, chaptersDelta, isNewNovel, completedDelta);
+      const activeThemeId = message.themeId || storage.settings?.activeThemeId || "cultivation";
+      currentStats = recordCultivationProgress(currentStats, chaptersDelta, isNewNovel, completedDelta, activeThemeId);
       await chrome.storage.local.set({ stats: currentStats });
       await refreshBrowserActionAppearance();
       await pushToCloudUnlocked(storage.savedNovels || {}, currentStats);
@@ -1472,8 +1780,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     withStorageLock(async () => {
       const storage = await chrome.storage.local.get(["stats", "savedNovels"]);
       const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      let equipRes = { ok: true };
       if (typeof equipItem === "function") {
-        equipItem(stats, message.itemId);
+        equipRes = equipItem(stats, message.itemId, message.slotIndex);
+      }
+      if (!equipRes.ok) {
+        return {
+          ok: false,
+          error: equipRes.error,
+          reason: equipRes.reason || equipRes.error,
+          message: equipRes.message || equipRes.error,
+          stats
+        };
       }
       stats.updatedAt = Date.now();
       await chrome.storage.local.set({ stats });
@@ -1482,6 +1800,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return {
         ok: true,
         stats,
+        replacedItemId: equipRes.replacedItemId,
+        alreadyEquipped: equipRes.alreadyEquipped,
         breakdown: typeof calculateQiBreakdown === "function" ? calculateQiBreakdown(stats) : null
       };
     })
@@ -1545,15 +1865,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "PULL_FROM_CLOUD") {
-    pullFromCloud()
-      .then(() => sendResponse({ ok: true }))
-      .catch(() => sendResponse({ ok: false }));
+    pullFromCloud(Boolean(message.force))
+      .then((res) => sendResponse(res || { ok: true }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
     return true;
   }
 
   if (message.type === "SWITCH_ACCOUNT") {
     withStorageLock(async () => {
-      return await switchAccountProfile(message.uid);
+      const target = message.uid || message.targetUid;
+      return await switchAccountProfile(target, Boolean(message.mergeGuestData));
     })
       .then((res) => sendResponse(res))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
@@ -1562,10 +1883,95 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "LOGOUT") {
     withStorageLock(async () => {
+      const storedAuth = await chrome.storage.local.get(["auth"]);
+      const outgoingUid = storedAuth?.auth?.uid;
+
       const res = await switchAccountProfile("guest");
       await chrome.storage.local.remove(["auth"]);
+
+      if (message.clearLocalData && outgoingUid && outgoingUid !== "guest") {
+        await chrome.storage.local.remove([`account_data_${outgoingUid}`, `userAvatar_${outgoingUid}`]);
+      }
+
       await refreshBrowserActionAppearance();
       return res;
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "DELETE_ACCOUNT") {
+    withStorageLock(async () => {
+      // 1. Obtener credenciales válidas y actualizadas intentando renovar token si expiró
+      let auth = await getValidAuth();
+      if (!auth || !auth.idToken || !auth.uid) {
+        const stored = await chrome.storage.local.get(["auth"]);
+        if (stored && stored.auth) {
+          return { ok: false, error: "REAUTH_REQUIRED" };
+        }
+        return { ok: false, error: "NOT_AUTHENTICATED" };
+      }
+
+      // 2. Eliminar cuenta de Firebase Authentication mediante accounts:delete
+      const apiKey = FIREBASE_API_KEY;
+
+      let authRes;
+      try {
+        authRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: auth.idToken })
+        });
+      } catch (networkErr) {
+        return { ok: false, error: "NETWORK_ERROR", details: String(networkErr) };
+      }
+
+      let authData;
+      try {
+        authData = await authRes.json();
+      } catch {
+        authData = null;
+      }
+
+      if (!authRes.ok || (authData && authData.error)) {
+        const errMsg = authData?.error?.message || `HTTP_${authRes.status}`;
+        if (
+          errMsg.includes("CREDENTIAL_TOO_OLD_LOGIN_AGAIN") ||
+          errMsg.includes("TOKEN_EXPIRED") ||
+          errMsg.includes("INVALID_ID_TOKEN") ||
+          errMsg.includes("USER_NOT_FOUND")
+        ) {
+          return { ok: false, error: "REAUTH_REQUIRED", details: errMsg };
+        }
+        return { ok: false, error: errMsg };
+      }
+
+      // 3. Confirmada la eliminación en Auth por el servidor: eliminar datos remotos en Realtime Database
+      let rtdbDeleted = false;
+      try {
+        const dbCleanUrl = (typeof FIREBASE_DB_URL !== "undefined" && FIREBASE_DB_URL)
+          ? FIREBASE_DB_URL.replace(/\/+$/, "")
+          : "https://novel-tracker-1d134-default-rtdb.firebaseio.com";
+        const rtdbRes = await fetch(`${dbCleanUrl}/users/${auth.uid}.json?auth=${encodeURIComponent(auth.idToken)}`, {
+          method: "DELETE"
+        });
+        rtdbDeleted = rtdbRes.ok;
+      } catch (err) {
+        console.warn("[Background] Warning deleting RTDB data:", err);
+      }
+
+      // 4. Cambiar a modo invitado de forma segura PRIMERO
+      await switchAccountProfile("guest");
+
+      // 5. Limpiar definitivamente bóveda local, avatar y credenciales de la cuenta eliminada (previene resurrección)
+      const userVaultKey = `account_data_${auth.uid}`;
+      const avatarKey = `userAvatar_${auth.uid}`;
+      await chrome.storage.local.remove([userVaultKey, avatarKey, "auth"]);
+
+      await refreshBrowserActionAppearance();
+
+      return { ok: true, rtdbDeleted };
     })
       .then((res) => sendResponse(res))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
@@ -1607,7 +2013,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === "DISCARD_UNCONFIRMED_TAB") {
+  if (message.type === "DISMISS_TAB_PROMPT" || message.type === "DISCARD_UNCONFIRMED_TAB") {
     const targetTabId = message.tabId || sender?.tab?.id;
     if (targetTabId) {
       setTabQuestionBadge(targetTabId, false);
@@ -1635,6 +2041,85 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         sendResponse(res);
       })
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "CLEAR_CACHE") {
+    withStorageLock(async () => {
+      const allData = await chrome.storage.local.get(null);
+      const keysToRemove = Object.keys(allData).filter((k) => {
+        return (
+          k.startsWith("tab_") ||
+          k.startsWith("cache_") ||
+          k.startsWith("badge_") ||
+          k.startsWith("debug_") ||
+          k.startsWith("logs_") ||
+          k.startsWith("preview_") ||
+          k === "lastError" ||
+          k === "unconfirmed_queue" ||
+          k === "supabase_auth" ||
+          k === "supabase_config" ||
+          k === "pending_supabase_signup_email"
+        );
+      });
+      if (keysToRemove.length > 0) {
+        await chrome.storage.local.remove(keysToRemove);
+      }
+      return { ok: true, clearedCount: keysToRemove.length };
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "RESET_LOCAL_DATA") {
+    withStorageLock(async () => {
+      const defaultStats = getDefaultStats();
+      const allData = await chrome.storage.local.get(null);
+      const keysToRemove = Object.keys(allData).filter((k) => k.startsWith("tab_"));
+      if (keysToRemove.length > 0) {
+        await chrome.storage.local.remove(keysToRemove);
+      }
+      await chrome.storage.local.set({
+        savedNovels: {},
+        stats: defaultStats
+      });
+      await refreshBrowserActionAppearance();
+      return { ok: true, stats: defaultStats };
+    })
+      .then((res) => sendResponse(res))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (message.type === "UPDATE_NOVEL_GENRES") {
+    withStorageLock(async () => {
+      const seriesId = message.seriesId || message.novelKey;
+      const { genres } = message;
+      if (!seriesId || !Array.isArray(genres)) {
+        return { ok: false, error: "invalid_params" };
+      }
+      const storage = await chrome.storage.local.get(["savedNovels", "stats"]);
+      const savedNovels = storage.savedNovels || {};
+      const stats = { ...getDefaultStats(), ...(storage.stats || {}) };
+      if (!savedNovels[seriesId]) {
+        return { ok: false, error: "novel_not_found" };
+      }
+      const normalized = Array.from(
+        new Set(genres.map((g) => (typeof normalizeGenre === "function" ? normalizeGenre(g) : g)).filter(Boolean))
+      );
+      savedNovels[seriesId].genres = normalized;
+      savedNovels[seriesId].genreSource = "manual";
+      savedNovels[seriesId].updatedAt = Date.now();
+      if (typeof evaluateGenreAchievements === "function") {
+        evaluateGenreAchievements(stats, savedNovels);
+      }
+      await chrome.storage.local.set({ savedNovels, stats });
+      await pushToCloudUnlocked(savedNovels, stats);
+      return { ok: true, seriesId, genres: normalized, stats };
+    })
+      .then((res) => sendResponse(res))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
     return true;
   }
@@ -1676,8 +2161,17 @@ async function handleConfirmUnconfirmedTab({ tabId, novelName, chapter, customNa
       finalSeriesId = computed.seriesId || buildSeriesIdFromName(finalName, extractDomain(finalUrl));
     }
 
-    const storage = await chrome.storage.local.get(["savedNovels", "stats"]);
+    const storage = await chrome.storage.local.get(["savedNovels", "stats", "settings"]);
     const savedNovels = storage.savedNovels || {};
+    const existingKey = findExistingNovelKey(
+      savedNovels,
+      { url: finalUrl, novelUrl: finalNovelUrl, novelName: finalName, chapter: finalChap, seriesId: finalSeriesId },
+      finalSeriesId,
+      finalNovelUrl
+    );
+    if (existingKey) {
+      finalSeriesId = existingKey;
+    }
     let stats = { ...getDefaultStats(), ...(storage.stats || {}) };
     const existing = savedNovels[finalSeriesId];
     const isNew = !existing;
@@ -1686,19 +2180,36 @@ async function handleConfirmUnconfirmedTab({ tabId, novelName, chapter, customNa
     const prevMax = existing ? parseFloat(existing.maxCounted ?? existing.chapter) || 0 : 0;
     const chapDelta = isNew ? chapNum : Math.max(0, chapNum - prevMax);
 
+    const allowRewind = storage.settings?.allowRewind !== false;
+    const prevChapNum = existing && !existing.deleted ? parseFloat(existing.chapter) || 0 : NaN;
+    let finalChapterToSave = finalChap;
+    let finalUrlToSave = finalUrl || existing?.url || "";
+    let finalScrollPctToSave = existing?.scrollPct || 0;
+
+    if (!isNew && !isNaN(prevChapNum) && chapNum < prevChapNum && !allowRewind) {
+      finalChapterToSave = existing.chapter;
+      finalUrlToSave = existing.url;
+      finalScrollPctToSave = typeof existing.scrollPct === "number" ? existing.scrollPct : 0;
+    }
+
+    const initialGenres = existing?.genres || (Array.isArray(tabData?.genres) ? tabData.genres : []);
+    const initialSource = existing?.genreSource || (initialGenres.length > 0 ? "source" : "unknown");
+
     const entry = {
       ...(existing || {}),
       seriesId: finalSeriesId,
       novelName: existing?.customName || finalName,
       novelUrl: finalNovelUrl || existing?.novelUrl || "",
-      url: finalUrl || existing?.url || "",
-      chapter: finalChap,
-      maxCounted: Math.max(prevMax, chapNum),
-      scrollPct: existing?.scrollPct || 0,
+      url: finalUrlToSave,
+      chapter: finalChapterToSave,
+      maxCounted: Math.max(prevMax, chapNum, isNaN(prevChapNum) ? 0 : prevChapNum),
+      scrollPct: finalScrollPctToSave,
       statusManual: existing?.statusManual || "",
+      genres: initialGenres,
+      genreSource: initialSource,
       completedCounted: Boolean(existing?.completedCounted),
       alert: null,
-      updatedAt: Date.now()
+      updatedAt: (!isNew && !isNaN(prevChapNum) && chapNum < prevChapNum && !allowRewind) ? (existing.updatedAt || Date.now()) : Date.now()
     };
     if (existing?.customName || customName) {
       entry.customName = customName || existing.customName;
@@ -1707,14 +2218,20 @@ async function handleConfirmUnconfirmedTab({ tabId, novelName, chapter, customNa
     savedNovels[finalSeriesId] = entry;
 
     if (chapDelta > 0 || isNew) {
-      stats = recordCultivationProgress(stats, chapDelta, isNew, 0);
+      const activeThemeId = storage.settings?.activeThemeId || "cultivation";
+      stats = recordCultivationProgress(stats, chapDelta, isNew, 0, activeThemeId);
+    }
+    if (typeof evaluateSystemAchievements === "function") {
+      evaluateSystemAchievements(stats, savedNovels);
     }
 
     const updates = { savedNovels, stats };
     if (tabId) {
       updates[`tab_${tabId}`] = { ...entry, unconfirmed: false };
-      setTabQuestionBadge(tabId, false);
-      chrome.action.setBadgeText({ text: "", tabId }).catch(() => {});
+      try {
+        const pBadge = chrome.action.setBadgeText({ text: "", tabId });
+        if (pBadge && typeof pBadge.catch === "function") pBadge.catch(() => {});
+      } catch (_e) {}
     }
 
     await chrome.storage.local.set(updates);
@@ -1727,10 +2244,19 @@ async function handleConfirmUnconfirmedTab({ tabId, novelName, chapter, customNa
 function setTabQuestionBadge(tabId, showQuestion) {
   if (!tabId) return;
   if (showQuestion) {
-    chrome.action.setBadgeText({ text: "?", tabId }).catch(() => {});
-    chrome.action.setBadgeBackgroundColor({ color: "#f59e0b", tabId }).catch(() => {});
+    try {
+      const p1 = chrome.action.setBadgeText({ text: "?", tabId });
+      if (p1 && typeof p1.catch === "function") p1.catch(() => {});
+    } catch (_e) {}
+    try {
+      const p2 = chrome.action.setBadgeBackgroundColor({ color: "#f59e0b", tabId });
+      if (p2 && typeof p2.catch === "function") p2.catch(() => {});
+    } catch (_e) {}
   } else {
-    chrome.action.setBadgeText({ text: "", tabId }).catch(() => {});
+    try {
+      const p3 = chrome.action.setBadgeText({ text: "", tabId });
+      if (p3 && typeof p3.catch === "function") p3.catch(() => {});
+    } catch (_e) {}
     refreshBrowserActionAppearance();
   }
 }
@@ -1756,11 +2282,17 @@ async function handleScrollUpdated(data) {
 
 async function handleNovelDetected(novelData, confident, tabId) {
   return withStorageLock(async () => {
-    // 1. Descartar de inmediato si es un dominio excluido o URL inválida
-    if (!novelData || !novelData.url || !isValidHttpUrl(novelData.url) || (await isDomainBlacklisted(novelData.url))) {
+    // 1. Descartar de inmediato si es un dominio excluido, URL inválida o subpágina informativa
+    if (
+      !novelData ||
+      !novelData.url ||
+      !isValidHttpUrl(novelData.url) ||
+      (await isDomainBlacklisted(novelData.url)) ||
+      isInformationalOrNonReaderUrl(novelData.url)
+    ) {
       setTabQuestionBadge(tabId, false);
       await chrome.storage.local.remove([`tab_${tabId}`]);
-      return { ok: false, ignored: true, blacklisted: true };
+      return { ok: false, ignored: true, informational: isInformationalOrNonReaderUrl(novelData?.url) };
     }
 
     novelData.novelName = String(novelData.novelName || "").slice(0, 300);
@@ -1773,12 +2305,21 @@ async function handleNovelDetected(novelData, confident, tabId) {
       novelData.seriesId = String(novelData.seriesId).slice(0, 200);
     }
 
-    const storage = await chrome.storage.local.get(["savedNovels", "stats"]);
+    const storage = await chrome.storage.local.get(["savedNovels", "stats", "settings"]);
     const rawSaved = storage.savedNovels || {};
     let currentStats = { ...getDefaultStats(), ...(storage.stats || {}) };
     const { migratedNovels: savedNovels } = deduplicateAndMigrateMap(rawSaved);
 
-    const { seriesId, novelUrl } = computeCanonicalSeriesId(novelData, novelData.seriesId || novelData.novelName);
+    const { seriesId: computedSeriesId, novelUrl } = computeCanonicalSeriesId(novelData, novelData.seriesId || novelData.novelName);
+    const existingKey = findExistingNovelKey(savedNovels, novelData, computedSeriesId, novelUrl);
+    const seriesId = existingKey || computedSeriesId;
+    if (existingKey && computedSeriesId && existingKey !== computedSeriesId && savedNovels[computedSeriesId]) {
+      savedNovels[seriesId].maxCounted = Math.max(
+        parseFloat(savedNovels[seriesId].maxCounted) || 0,
+        parseFloat(savedNovels[computedSeriesId].maxCounted) || 0
+      );
+      delete savedNovels[computedSeriesId];
+    }
     const existing = savedNovels[seriesId];
     const isAlreadyKnownActive = Boolean(existing && !existing.deleted && !isBogusNovelName(existing.novelName, novelUrl));
 
@@ -1789,7 +2330,7 @@ async function handleNovelDetected(novelData, confident, tabId) {
       return { ok: false, ignored: true };
     }
 
-    const strippedIncoming = stripChapterFromTitle(novelData.novelName);
+    const strippedIncoming = stripChapterFromTitle(novelData.novelName, novelData.chapter);
     const cleanIncomingName = !isBogusNovelName(strippedIncoming, novelUrl)
       ? strippedIncoming
       : humanizeSlugFromNovelUrl(novelUrl);
@@ -1865,9 +2406,13 @@ async function handleNovelDetected(novelData, confident, tabId) {
     const stableNovelUrl = novelUrl || existing?.novelUrl || "";
     const newChapNum = parseFloat(resolvedChapterStr);
     const prevChapNum = existing && !existing.deleted ? parseFloat(existing.chapter) : NaN;
+    const hasValidNewChap = !isNaN(newChapNum) && isFinite(newChapNum) && newChapNum >= 0;
+    const hasValidPrevChap = !isNaN(prevChapNum) && isFinite(prevChapNum) && prevChapNum >= 0;
     const prevMaxCounted = existing && !existing.deleted
       ? parseFloat(existing.maxCounted ?? existing.chapter)
       : NaN;
+
+    const allowRewind = storage.settings?.allowRewind !== false;
 
     let chaptersToCount = 0;
     let isNewNovelStarted = false;
@@ -1875,6 +2420,12 @@ async function handleNovelDetected(novelData, confident, tabId) {
     let alertObj = existing?.alert || null;
     let scrollPct = 0;
     let restoreScrollPct = 0;
+
+    let finalChapter = resolvedChapterStr;
+    let finalUrl = novelData.url;
+    let finalScrollPct = 0;
+    let isRewindPrevented = false;
+    let isInvalidDetectionOnExisting = false;
 
     if (!existing || existing.deleted) {
       if (!novelUrl && !looksLikeReadingUrl(novelData.url)) {
@@ -1887,82 +2438,154 @@ async function handleNovelDetected(novelData, confident, tabId) {
       newMaxCounted = !isNaN(newChapNum) ? newChapNum : 1;
       alertObj = null;
       scrollPct = 0;
-    } else if (!isNaN(newChapNum) && !isNaN(prevChapNum)) {
-      const diffFromSaved = newChapNum - prevChapNum;
-
-      if (diffFromSaved > 1) {
-        alertObj = {
-          type: "jump",
-          from: String(existing.chapter),
-          to: resolvedChapterStr,
-          createdAt: Date.now()
-        };
-      } else if (
-        diffFromSaved === 0 &&
-        existing.lastTabId &&
-        existing.lastTabId !== tabId &&
-        Date.now() - (existing.updatedAt || 0) > 60000
-      ) {
-        alertObj = {
-          type: "repeat",
-          chapter: resolvedChapterStr,
-          createdAt: Date.now()
-        };
-      } else if (diffFromSaved === 1) {
-        alertObj = null;
-      }
-
-      if (String(existing.chapter) === resolvedChapterStr) {
-        scrollPct = typeof existing.scrollPct === "number" ? existing.scrollPct : 0;
-        restoreScrollPct = scrollPct;
-      } else {
-        scrollPct = 0;
+      finalChapter = resolvedChapterStr;
+      finalUrl = novelData.url;
+      finalScrollPct = 0;
+    } else {
+      if (!hasValidNewChap && hasValidPrevChap) {
+        // Detección inválida, intermedia o sin número: no sobrescribir el progreso válido
+        isInvalidDetectionOnExisting = true;
+        finalChapter = existing.chapter;
+        finalUrl = existing.url;
+        finalScrollPct = typeof existing.scrollPct === "number" ? existing.scrollPct : 0;
+        newMaxCounted = Math.max(prevMaxCounted || 0, prevChapNum);
+        alertObj = existing.alert || null;
+        chaptersToCount = 0;
         restoreScrollPct = 0;
-      }
+      } else if (hasValidNewChap && hasValidPrevChap) {
+        const diffFromSaved = newChapNum - prevChapNum;
+        const isAlphabeticalRewind = () => {
+          if (diffFromSaved !== 0 || resolvedChapterStr === existing.chapter) return false;
+          const mPrev = String(existing.chapter).trim().toLowerCase().match(/^(\d+(?:\.\d+)?)([a-z])$/);
+          const mNew = String(resolvedChapterStr).trim().toLowerCase().match(/^(\d+(?:\.\d+)?)([a-z])$/);
+          return Boolean(mPrev && mNew && mPrev[1] === mNew[1] && mNew[2] < mPrev[2]);
+        };
+        const isRewind = diffFromSaved < 0 || isAlphabeticalRewind();
 
-      const diffFromMax = newChapNum - newMaxCounted;
-      if (diffFromMax >= 1 && diffFromMax <= 3) {
-        chaptersToCount = Math.round(diffFromMax);
-        newMaxCounted = newChapNum;
-      } else if (diffFromMax > 3) {
-        newMaxCounted = newChapNum;
+        if (isRewind && !allowRewind) {
+          // Retroceso deshabilitado: mantener capítulo guardado, URL, scroll y progreso máximo
+          isRewindPrevented = true;
+          finalChapter = existing.chapter;
+          finalUrl = existing.url;
+          finalScrollPct = typeof existing.scrollPct === "number" ? existing.scrollPct : 0;
+          newMaxCounted = Math.max(prevMaxCounted || 0, prevChapNum, newChapNum);
+          alertObj = existing.alert || null;
+          chaptersToCount = 0;
+          restoreScrollPct = 0;
+        } else {
+          // Retroceso habilitado (o avance / mismo capítulo)
+          if (diffFromSaved > 1) {
+            alertObj = {
+              type: "jump",
+              from: String(existing.chapter),
+              to: resolvedChapterStr,
+              createdAt: Date.now()
+            };
+          } else if (
+            diffFromSaved === 0 &&
+            existing.lastTabId &&
+            existing.lastTabId !== tabId &&
+            Date.now() - (existing.updatedAt || 0) > 60000
+          ) {
+            alertObj = {
+              type: "repeat",
+              chapter: resolvedChapterStr,
+              createdAt: Date.now()
+            };
+          } else if (diffFromSaved === 1) {
+            alertObj = null;
+          }
+
+          if (String(existing.chapter) === resolvedChapterStr) {
+            scrollPct = typeof existing.scrollPct === "number" ? existing.scrollPct : 0;
+            restoreScrollPct = scrollPct;
+          } else {
+            scrollPct = 0;
+            restoreScrollPct = 0;
+          }
+
+          const diffFromMax = newChapNum - newMaxCounted;
+          if (diffFromMax >= 1 && diffFromMax <= 3) {
+            chaptersToCount = Math.round(diffFromMax);
+            newMaxCounted = newChapNum;
+          } else if (diffFromMax > 3) {
+            newMaxCounted = newChapNum;
+          }
+
+          finalChapter = resolvedChapterStr;
+          finalUrl = novelData.url;
+          finalScrollPct = scrollPct;
+        }
+      } else {
+        if (String(existing.chapter) === resolvedChapterStr) {
+          scrollPct = typeof existing.scrollPct === "number" ? existing.scrollPct : 0;
+          restoreScrollPct = scrollPct;
+        } else {
+          scrollPct = 0;
+          restoreScrollPct = 0;
+        }
+        finalChapter = resolvedChapterStr;
+        finalUrl = novelData.url;
+        finalScrollPct = scrollPct;
       }
+    }
+
+    // P1-1: Detección ambigua o AUTO_NEXT: NUNCA conceder Qi ni contar capítulos adicionales
+    if (novelData.chapter === "AUTO_NEXT" || resolvedChapterStr === "AUTO_NEXT" || (!confident && !isAlreadyKnownActive)) {
+      chaptersToCount = 0;
+      isNewNovelStarted = false;
     }
 
     if (chaptersToCount > 0 || isNewNovelStarted) {
-      currentStats = recordCultivationProgress(currentStats, chaptersToCount, isNewNovelStarted, 0);
+      const activeThemeId = storage.settings?.activeThemeId || "cultivation";
+      currentStats = recordCultivationProgress(currentStats, chaptersToCount, isNewNovelStarted, 0, activeThemeId);
     }
+
+    const combinedGenres = Array.isArray(existing?.genres)
+      ? existing.genres
+      : (Array.isArray(novelData.genres) ? novelData.genres : []);
+    const genreSource = existing?.genreSource || (combinedGenres.length > 0 ? "source" : "unknown");
 
     const updatedEntry = {
       seriesId,
       novelName: stableNovelName,
       novelUrl: stableNovelUrl,
-      url: novelData.url,
-      chapter: resolvedChapterStr,
+      url: finalUrl,
+      chapter: finalChapter,
       maxCounted: newMaxCounted,
-      scrollPct,
+      scrollPct: finalScrollPct,
       statusManual: existing?.statusManual || "",
+      genres: combinedGenres,
+      genreSource,
       completedCounted: Boolean(existing?.completedCounted),
       alert: alertObj,
       lastTabId: tabId,
-      updatedAt: novelData.updatedAt || Date.now()
+      updatedAt: (isRewindPrevented || isInvalidDetectionOnExisting) ? (existing.updatedAt || Date.now()) : (novelData.updatedAt || Date.now())
     };
     if (customName) {
       updatedEntry.customName = customName;
     }
 
     savedNovels[seriesId] = updatedEntry;
+    if (typeof evaluateSystemAchievements === "function") {
+      evaluateSystemAchievements(currentStats, savedNovels);
+    }
 
     await chrome.storage.local.set({
       savedNovels,
       stats: currentStats,
-      [`tab_${tabId}`]: { ...updatedEntry, unconfirmed: false }
+      [`tab_${tabId}`]: { ...updatedEntry, chapter: finalChapter, unconfirmed: false }
     });
 
     await appendDiagnosticLog({
-      event: "DETECT_SAVED_OK",
+      event: isRewindPrevented
+        ? "DETECT_REWIND_PREVENTED"
+        : isInvalidDetectionOnExisting
+          ? "DETECT_INVALID_CHAPTER_PREVENTED"
+          : "DETECT_SAVED_OK",
       novelName: stableNovelName,
-      chapter: resolvedChapterStr,
+      chapter: finalChapter,
+      detectedChapter: resolvedChapterStr,
       seriesId,
       novelUrl: stableNovelUrl,
       url: novelData.url
@@ -1973,19 +2596,33 @@ async function handleNovelDetected(novelData, confident, tabId) {
 
     await refreshBrowserActionAppearance();
     const hasDataChanged =
-      isNewNovelStarted ||
+      !isRewindPrevented &&
+      !isInvalidDetectionOnExisting &&
+      (isNewNovelStarted ||
       chaptersToCount > 0 ||
       !existing ||
       existing.deleted ||
-      existing.chapter !== resolvedChapterStr ||
-      existing.url !== novelData.url ||
-      existing.novelName !== stableNovelName;
+      existing.chapter !== finalChapter ||
+      existing.url !== finalUrl ||
+      existing.novelName !== stableNovelName);
 
     if (hasDataChanged) {
-      chrome.storage.sync.set({ savedNovels }).catch(() => {});
+      if (chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.set === "function") {
+        try {
+          const syncP = chrome.storage.sync.set({ savedNovels });
+          if (syncP && typeof syncP.catch === "function") syncP.catch(() => {});
+        } catch (_e) {}
+      }
       await pushToCloudUnlocked(savedNovels, currentStats);
     }
-    return { ok: true, saved: true, seriesId, chapter: resolvedChapterStr, restoreScrollPct };
+    return {
+      ok: true,
+      saved: true,
+      seriesId,
+      chapter: finalChapter,
+      restoreScrollPct,
+      rewindPrevented: isRewindPrevented
+    };
   });
 }
 
@@ -2036,9 +2673,22 @@ async function handleImportData(payload) {
       return { ok: false };
     }
 
+    let actualPayload = payload;
+    if (payload.exportMetadata && payload.data) {
+      if (typeof verifyExportIntegrity === "function") {
+        const verifyRes = await verifyExportIntegrity(payload);
+        if (!verifyRes.ok) {
+          return { ok: false, error: "CHECKSUM_MISMATCH", details: verifyRes.error };
+        }
+      }
+      actualPayload = payload.data;
+    }
+
     const storage = await chrome.storage.local.get(["savedNovels", "stats", "settings"]);
     const localNovels = storage.savedNovels || {};
-    const incomingNovels = payload.novels && typeof payload.novels === "object" ? payload.novels : {};
+    const incomingNovels = (actualPayload.novels || actualPayload.savedNovels) && typeof (actualPayload.novels || actualPayload.savedNovels) === "object"
+      ? (actualPayload.novels || actualPayload.savedNovels)
+      : {};
 
     let added = 0;
     let updated = 0;
@@ -2111,10 +2761,10 @@ async function handleImportData(payload) {
     }
 
     const { migratedNovels } = deduplicateAndMigrateMap(combinedNovels);
-    const mergedStats = mergeStatsObjects(storage.stats, payload.stats);
+    const mergedStats = mergeStatsObjects(storage.stats, actualPayload.stats);
 
     const currentSettings = storage.settings || {};
-    const incSettings = payload.settings || {};
+    const incSettings = actualPayload.settings || {};
     const mergedSettings = {
       ...currentSettings,
       language: incSettings.language || currentSettings.language || detectDefaultLanguage(),
@@ -2130,14 +2780,14 @@ async function handleImportData(payload) {
       settings: mergedSettings
     });
 
-    if (Array.isArray(payload.domainBlacklist)) {
+    if (Array.isArray(actualPayload.domainBlacklist)) {
       const currentBl = await getStoredDomainBlacklist();
       const blMap = new Map();
       currentBl.forEach((item) => {
         const d = normalizeDomain(item && item.domain);
         if (d) blMap.set(d, { domain: d, addedAt: item.addedAt || Date.now() });
       });
-      payload.domainBlacklist.forEach((item) => {
+      actualPayload.domainBlacklist.forEach((item) => {
         const d = normalizeDomain(typeof item === "string" ? item : item?.domain);
         if (d && !blMap.has(d)) {
           blMap.set(d, { domain: d, addedAt: item?.addedAt || Date.now() });
@@ -2326,10 +2976,17 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 async function getValidAuth() {
   const { auth } = await chrome.storage.local.get(["auth"]);
-  if (!auth || !auth.refreshToken) return null;
+  if (!auth) return null;
 
-  if (auth.expiresAt && Date.now() < auth.expiresAt - 300000) {
+  if (auth.idToken && auth.expiresAt && Date.now() < auth.expiresAt - 300000) {
     return auth;
+  }
+
+  if (!auth.refreshToken) {
+    if (auth.idToken && (!auth.expiresAt || Date.now() < auth.expiresAt)) {
+      return auth;
+    }
+    return null;
   }
 
   try {
@@ -2342,11 +2999,11 @@ async function getValidAuth() {
       })
     });
     const data = await res.json();
-    if (data.id_token) {
+    if (data && data.id_token) {
       const updatedAuth = {
         ...auth,
         idToken: data.id_token,
-        refreshToken: data.refreshToken,
+        refreshToken: data.refresh_token || data.refreshToken || auth.refreshToken,
         expiresAt: Date.now() + parseInt(data.expires_in, 10) * 1000
       };
       await chrome.storage.local.set({ auth: updatedAuth });
@@ -2405,7 +3062,7 @@ async function pushToCloudUnlocked(novelsMap, statsObj, blacklistArr) {
   }
 }
 
-async function switchAccountProfile(targetUid) {
+async function switchAccountProfile(targetUid, mergeGuestData = false) {
   const normTarget = targetUid && typeof targetUid === "string" ? targetUid : "guest";
   const storage = await chrome.storage.local.get([
     "lastAuthUid",
@@ -2452,11 +3109,42 @@ async function switchAccountProfile(targetUid) {
     restoredNovels = targetData.savedNovels || {};
     restoredStats = targetData.stats || getDefaultStats();
     restoredBlacklist = Array.isArray(targetData.domainBlacklist) ? targetData.domainBlacklist : [];
-  } else if (normTarget !== "guest" && currentUid === "guest" && Object.keys(activeSnapshot.savedNovels || {}).length > 0) {
-    // Si el usuario era invitado y acaba de iniciar sesión por primera vez, hereda sus novelas locales sin perderlas
-    restoredNovels = activeSnapshot.savedNovels;
-    restoredStats = activeSnapshot.stats;
-    restoredBlacklist = activeSnapshot.domainBlacklist;
+  }
+
+  // 3. Fusión controlada de datos de invitado a cuenta registrada SOLO si el usuario lo confirmó expresamente (P0-2)
+  if (normTarget !== "guest" && currentUid === "guest" && mergeGuestData === true) {
+    const guestNovels = activeSnapshot.savedNovels || {};
+    const guestStats = activeSnapshot.stats || getDefaultStats();
+    const guestBlacklist = activeSnapshot.domainBlacklist || [];
+
+    const mergedNovels = { ...restoredNovels };
+    for (const [k, gItem] of Object.entries(guestNovels)) {
+      if (!gItem || gItem.deleted) continue;
+      const existingAccountItem = mergedNovels[k];
+      if (!existingAccountItem) {
+        mergedNovels[k] = gItem;
+      } else {
+        const gTime = gItem.updatedAt || 0;
+        const aTime = existingAccountItem.updatedAt || 0;
+        const gChap = parseFloat(gItem.chapter) || 0;
+        const aChap = parseFloat(existingAccountItem.chapter) || 0;
+        if (gChap > aChap || (gChap === aChap && gTime > aTime)) {
+          mergedNovels[k] = { ...existingAccountItem, ...gItem };
+        }
+      }
+    }
+    restoredNovels = mergedNovels;
+
+    restoredStats = mergeStatsObjects(restoredStats, guestStats);
+
+    const blSet = new Set(restoredBlacklist.map((b) => (typeof b === "string" ? b : b?.domain)).filter(Boolean));
+    guestBlacklist.forEach((b) => {
+      const d = typeof b === "string" ? b : b?.domain;
+      if (d && !blSet.has(d)) {
+        blSet.add(d);
+        restoredBlacklist.push(typeof b === "object" ? b : { domain: d, addedAt: Date.now() });
+      }
+    });
   }
 
   toSave.savedNovels = restoredNovels;
@@ -2471,8 +3159,16 @@ async function switchAccountProfile(targetUid) {
   return { ok: true, switched: true, previousUid: currentUid, newUid: normTarget };
 }
 
-async function pullFromCloud() {
-  return withStorageLock(async () => {
+const CLOUD_SYNC_CACHE_MS = 10 * 60 * 1000;
+const lastCloudPullTimestamps = {};
+let inFlightCloudPullPromise = null;
+
+async function pullFromCloud(force = false) {
+  if (inFlightCloudPullPromise && !force) {
+    return inFlightCloudPullPromise;
+  }
+
+  inFlightCloudPullPromise = withStorageLock(async () => {
     const { auth: rawAuth } = await chrome.storage.local.get(["auth"]);
     if (!rawAuth || !rawAuth.refreshToken) {
       const { lastAuthUid } = await chrome.storage.local.get(["lastAuthUid"]);
@@ -2480,14 +3176,20 @@ async function pullFromCloud() {
         await switchAccountProfile("guest");
       }
       await refreshBrowserActionAppearance();
-      return;
+      return { ok: false, error: "NO_AUTH" };
     }
 
     const auth = await getValidAuth();
     if (!auth) {
       // Dispositivo offline o error de red temporal al refrescar token.
       // Mantener al usuario en su perfil activo para lectura offline sin conmutar a invitado.
-      return;
+      return { ok: false, error: "OFFLINE_AUTH_FAILED" };
+    }
+
+    // P1-3: Política de caché de sincronización (10 minutos para lecturas pasivas)
+    const lastPull = lastCloudPullTimestamps[auth.uid] || 0;
+    if (!force && lastPull > 0 && Date.now() - lastPull < CLOUD_SYNC_CACHE_MS) {
+      return { ok: true, cached: true, lastSyncAt: lastPull };
     }
 
     const { lastAuthUid } = await chrome.storage.local.get(["lastAuthUid"]);
@@ -2497,7 +3199,8 @@ async function pullFromCloud() {
       await chrome.storage.local.set({ lastAuthUid: auth.uid });
     }
 
-    const { savedNovels, stats } = await chrome.storage.local.get(["savedNovels", "stats"]);
+    const { savedNovels, stats, settings } = await chrome.storage.local.get(["savedNovels", "stats", "settings"]);
+    const allowRewind = settings?.allowRewind !== false;
     const localMig = deduplicateAndMigrateMap(savedNovels || {});
     let localStats = evaluateUnlockedTitles({ ...getDefaultStats(), ...(stats || {}) });
 
@@ -2512,6 +3215,10 @@ async function pullFromCloud() {
         fetch(`${dbCleanUrl}/users/${auth.uid}/stats.json?auth=${auth.idToken}`),
         fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`).catch(() => null)
       ]);
+
+      if (!novelsRes.ok || !statsRes.ok) {
+        return { ok: false, error: `FIREBASE_HTTP_ERROR: ${novelsRes.status}/${statsRes.status}` };
+      }
 
       if (blacklistRes && blacklistRes.ok) {
         const rawCloudBl = (await blacklistRes.json()) || [];
@@ -2561,7 +3268,13 @@ async function pullFromCloud() {
         let older = null;
 
         if (cItem && lItem) {
-          if ((lItem.updatedAt || 0) > (cItem.updatedAt || 0)) {
+          const cChap = parseFloat(cItem.chapter) || 0;
+          const lChap = parseFloat(lItem.chapter) || 0;
+          if (!allowRewind && cChap !== lChap) {
+            winner = cChap > lChap ? cItem : lItem;
+            older = winner === cItem ? lItem : cItem;
+            if (winner === lItem) shouldPush = true;
+          } else if ((lItem.updatedAt || 0) > (cItem.updatedAt || 0)) {
             winner = lItem;
             older = cItem;
             shouldPush = true;
@@ -2640,10 +3353,17 @@ async function pullFromCloud() {
       if (shouldPush || finalPass.changed) {
         await pushToCloudUnlocked(finalPass.migratedNovels, mergedStats);
       }
+      lastCloudPullTimestamps[auth.uid] = Date.now();
+      return { ok: true, cached: false, lastSyncAt: lastCloudPullTimestamps[auth.uid] };
     } catch (e) {
       await appendDiagnosticLog({ event: "CLOUD_PULL_ERROR", error: String(e) });
+      return { ok: false, error: String(e) };
+    } finally {
+      inFlightCloudPullPromise = null;
     }
   });
+
+  return inFlightCloudPullPromise;
 }
 
 if (typeof globalThis !== "undefined") {
@@ -2657,6 +3377,8 @@ if (typeof globalThis !== "undefined") {
   globalThis.getStoredDomainBlacklist = getStoredDomainBlacklist;
   globalThis.handleConfirmUnconfirmedTab = handleConfirmUnconfirmedTab;
   globalThis.handleNovelDetected = handleNovelDetected;
+  globalThis.findExistingNovelKey = findExistingNovelKey;
+  globalThis.isSameDomainOrSubdomain = isSameDomainOrSubdomain;
   globalThis.deduplicateAndMigrateMap = deduplicateAndMigrateMap;
   globalThis.mergeStatsObjects = mergeStatsObjects;
   globalThis.refreshBrowserActionAppearance = refreshBrowserActionAppearance;
@@ -2666,7 +3388,14 @@ if (typeof globalThis !== "undefined") {
   globalThis.getToolbarIconPathsForTitle = getToolbarIconPathsForTitle;
   globalThis.resetRenderedStateKey = resetRenderedStateKey;
   globalThis.switchAccountProfile = switchAccountProfile;
-  globalThis.handleImportData = handleImportData;
+  globalThis.isInformationalOrNonReaderUrl = isInformationalOrNonReaderUrl;
+  globalThis.NON_READER_SUBPAGE_REGEX = NON_READER_SUBPAGE_REGEX;
+  globalThis.CHAPTER_LISTING_SUBPAGE_REGEX = CHAPTER_LISTING_SUBPAGE_REGEX;
+  globalThis.CHAPTER_URL_REGEX = CHAPTER_URL_REGEX;
+  globalThis.isBogusNovelName = isBogusNovelName;
+  globalThis.isValidSeriesPath = isValidSeriesPath;
+  globalThis.CATALOG_SEGMENTS = CATALOG_SEGMENTS;
+  globalThis.BOGUS_NAMES = BOGUS_NAMES;
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -2681,11 +3410,21 @@ if (typeof module !== "undefined" && module.exports) {
     getStoredDomainBlacklist,
     handleConfirmUnconfirmedTab,
     handleNovelDetected,
+    findExistingNovelKey,
+    isSameDomainOrSubdomain,
     deduplicateAndMigrateMap,
     mergeStatsObjects,
     refreshBrowserActionAppearance,
     switchAccountProfile,
     handleImportData,
+    isInformationalOrNonReaderUrl,
+    NON_READER_SUBPAGE_REGEX,
+    CHAPTER_LISTING_SUBPAGE_REGEX,
+    CHAPTER_URL_REGEX,
+    isBogusNovelName,
+    isValidSeriesPath,
+    CATALOG_SEGMENTS,
+    BOGUS_NAMES,
     TIER_ROMAN,
     RARITY_BADGE_COLORS,
     BASE_TOOLBAR_ICONS,

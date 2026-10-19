@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipQi">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgQi" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#0e3a5a"/>
+      <stop offset="55%" stop-color="#061c2e"/>
+      <stop offset="100%" stop-color="#020912"/>
+    </radialGradient>
+    <linearGradient id="robeQi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="45%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="innerRobeQi" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+    <radialGradient id="faceQi" cx="48%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#ffedd5"/>
+      <stop offset="70%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#fba86a"/>
+    </radialGradient>
+    <linearGradient id="hairQi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="qiGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#0284c7" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background in Circle -->
+  <g clip-path="url(#circleClipQi)">
+    <rect width="128" height="128" fill="url(#bgQi)"/>
+    
+    <!-- Bagua Daoist Ring Halo -->
+    <circle cx="64" cy="52" r="46" fill="none" stroke="#38bdf8" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="4 4"/>
+    <circle cx="64" cy="52" r="42" fill="none" stroke="#7dd3fc" stroke-width="0.8" stroke-opacity="0.2"/>
+    <circle cx="64" cy="52" r="30" fill="url(#qiGlow)"/>
+
+    <!-- Hair Back -->
+    <path d="M 40 48 Q 36 78 34 94 Q 64 96 94 94 Q 92 78 88 48 Z" fill="url(#hairQi)"/>
+
+    <!-- Disciples Robes (Chest & Shoulders) -->
+    <path d="M 22 128 L 26 102 C 28 92 36 86 46 84 L 64 96 L 82 84 C 92 86 100 92 102 102 L 106 128 Z" fill="url(#robeQi)"/>
+    <!-- Crossed Inner Lapel -->
+    <path d="M 46 84 L 64 110 L 68 128 L 60 128 L 44 94 Z" fill="url(#innerRobeQi)"/>
+    <path d="M 82 84 L 56 114 L 54 128 L 64 128 L 84 94 Z" fill="#0284c7" opacity="0.8"/>
+    <!-- Robe Jade Trim -->
+    <path d="M 46 84 L 64 110 L 82 84" fill="none" stroke="#10b981" stroke-width="2"/>
+
+    <!-- Neck -->
+    <path d="M 54 70 L 54 86 Q 64 90 74 86 L 74 70 Z" fill="#fed7aa"/>
+    <path d="M 54 75 Q 64 80 74 75 L 74 78 Q 64 83 54 78 Z" fill="#fba86a" opacity="0.6"/>
+
+    <!-- Head & Face -->
+    <path d="M 44 46 C 44 32 84 32 84 46 C 84 66 76 76 64 77 C 52 76 44 66 44 46 Z" fill="url(#faceQi)"/>
+    <!-- Ears -->
+    <ellipse cx="43" cy="52" rx="3.5" ry="6.5" fill="#fba86a"/>
+    <ellipse cx="85" cy="52" rx="3.5" ry="6.5" fill="#fba86a"/>
+
+    <!-- Eyes (Glowing Spiritual Cyan) -->
+    <ellipse cx="54" cy="50" rx="4" ry="2.2" fill="#0f172a"/>
+    <circle cx="54" cy="50" r="1.8" fill="#38bdf8"/>
+    <circle cx="55" cy="49" r="0.8" fill="#ffffff"/>
+    <ellipse cx="74" cy="50" rx="4" ry="2.2" fill="#0f172a"/>
+    <circle cx="74" cy="50" r="1.8" fill="#38bdf8"/>
+    <circle cx="75" cy="49" r="0.8" fill="#ffffff"/>
+    <!-- Eyebrows (Sword Brows) -->
+    <path d="M 48 44 Q 54 42 60 45" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M 80 44 Q 74 42 68 45" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <!-- Nose & Mouth -->
+    <path d="M 64 53 L 63 60 L 66 61" stroke="#fba86a" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M 59 67 Q 64 69 69 67" stroke="#dc2626" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+
+    <!-- Forehead Spirit Mark (Cyan Flame) -->
+    <path d="M 64 36 C 62 40 61 42 64 45 C 67 42 66 40 64 36 Z" fill="#38bdf8"/>
+
+    <!-- Hair Front & Bangs -->
+    <path d="M 44 44 C 48 30 80 30 84 44 C 76 34 68 36 64 41 C 60 36 52 34 44 44 Z" fill="url(#hairQi)"/>
+    <path d="M 43 45 Q 48 58 46 64 Q 44 54 41 48 Z" fill="url(#hairQi)"/>
+    <path d="M 85 45 Q 80 58 82 64 Q 84 54 87 48 Z" fill="url(#hairQi)"/>
+
+    <!-- Disciple Topknot & Jade Pin -->
+    <ellipse cx="64" cy="24" rx="9" ry="8" fill="url(#hairQi)"/>
+    <line x1="50" y1="23" x2="78" y2="23" stroke="#10b981" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="78" cy="23" r="2.2" fill="#34d399"/>
+
+    <!-- Flowing Translucent Qi Ribbon Ribbon Spiraling Foreground -->
+    <path d="M 18 106 Q 36 80 64 88 Q 92 96 110 74 Q 102 96 68 102 Q 38 108 18 106 Z" fill="#7dd3fc" opacity="0.6"/>
+    <path d="M 18 106 Q 36 80 64 88 Q 92 96 110 74" fill="none" stroke="#e0f2fe" stroke-width="1.5" opacity="0.9"/>
+  </g>
+
+  <!-- Golden Cyan Avatar Border Ring -->
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#38bdf8" stroke-width="3" stroke-opacity="0.8"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#bae6fd" stroke-width="1" stroke-opacity="0.4"/>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <defs>
+    <radialGradient id="lensGlass" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="40%" stop-color="#67e8f9" stop-opacity="0.45"/>
+      <stop offset="80%" stop-color="#0284c7" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.5"/>
+    </radialGradient>
+    <linearGradient id="monocleGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </linearGradient>
+  </defs>
+  <!-- Circular Gold Frame -->
+  <circle cx="28" cy="28" r="18" fill="url(#lensGlass)" stroke="url(#monocleGold)" stroke-width="3"/>
+  <!-- Inner Calibration Ring -->
+  <circle cx="28" cy="28" r="14" fill="none" stroke="#fde047" stroke-width="0.8" stroke-dasharray="3 2" opacity="0.8"/>
+  <!-- Divination Crosshair Reticle & Mystic Runes -->
+  <line x1="28" y1="14" x2="28" y2="42" stroke="#67e8f9" stroke-width="1" stroke-dasharray="2 2"/>
+  <line x1="14" y1="28" x2="42" y2="28" stroke="#67e8f9" stroke-width="1" stroke-dasharray="2 2"/>
+  <circle cx="28" cy="28" r="4" fill="none" stroke="#fde047" stroke-width="1.2"/>
+  <circle cx="28" cy="28" r="1.5" fill="#ffffff"/>
+  <!-- Lens Highlight Glare -->
+  <path d="M 20 18 Q 28 14 36 18" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+  <!-- Side Hinge Clasp -->
+  <rect x="45" y="26" width="5" height="4" rx="1" fill="url(#monocleGold)"/>
+  <!-- Golden Hanging Chain (Curving down) -->
+  <path d="M 48 30 Q 56 42 46 54 Q 38 62 32 58" fill="none" stroke="url(#monocleGold)" stroke-width="2" stroke-dasharray="3 1.5" stroke-linecap="round"/>
+  <!-- Little Jade Weight at chain tip -->
+  <circle cx="32" cy="58" r="3" fill="#10b981" stroke="#fde047" stroke-width="1"/>
+</svg>

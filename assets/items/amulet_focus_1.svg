@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <defs>
+    <radialGradient id="jadeAmulet" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </radialGradient>
+    <linearGradient id="amuletGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="50%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </linearGradient>
+  </defs>
+  <!-- Top Silk Cord -->
+  <path d="M 32 4 L 32 14" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="32" cy="14" r="3" fill="#fbbf24" stroke="#92400e" stroke-width="1"/>
+  <!-- Jade Bi Disc -->
+  <circle cx="32" cy="36" r="22" fill="url(#jadeAmulet)" stroke="url(#amuletGold)" stroke-width="2"/>
+  <!-- Outer Engraved Ring -->
+  <circle cx="32" cy="36" r="17" fill="none" stroke="#a7f3d0" stroke-width="1" stroke-dasharray="4 2" opacity="0.65"/>
+  <!-- Center Open Hole with Gold Rim -->
+  <circle cx="32" cy="36" r="8" fill="#070709" stroke="url(#amuletGold)" stroke-width="2"/>
+  <!-- Yin Yang / Taiji Spirit Waves inside -->
+  <path d="M 32 28 C 36.4 28 36.4 36 32 36 C 27.6 36 27.6 44 32 44" fill="none" stroke="#fde047" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="1.5" fill="#fde047"/>
+  <circle cx="32" cy="40" r="1.5" fill="#a7f3d0"/>
+  <!-- Hanging Bottom Silk Tassels -->
+  <path d="M 30 57 L 27 63 M 32 58 L 32 64 M 34 57 L 37 63" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

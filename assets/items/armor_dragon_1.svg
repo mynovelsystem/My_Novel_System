@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <defs>
+    <linearGradient id="dragonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="dragonPlate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#b91c1c"/>
+      <stop offset="60%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#450a0a"/>
+    </linearGradient>
+  </defs>
+  <!-- Dragon Wing Shoulder Guards -->
+  <path d="M 10 18 Q 16 12 24 16 L 22 28 Q 14 26 10 18 Z" fill="url(#dragonGold)" stroke="#78350f" stroke-width="1.5"/>
+  <path d="M 54 18 Q 48 12 40 16 L 42 28 Q 50 26 54 18 Z" fill="url(#dragonGold)" stroke="#78350f" stroke-width="1.5"/>
+  <!-- Gorget / Neck Guard -->
+  <path d="M 24 16 Q 32 20 40 16 L 38 22 Q 32 24 26 22 Z" fill="url(#dragonGold)" stroke="#92400e" stroke-width="1.2"/>
+  <!-- Main Chest Breastplate -->
+  <path d="M 20 22 Q 32 24 44 22 L 46 44 L 32 56 L 18 44 Z" fill="url(#dragonPlate)" stroke="url(#dragonGold)" stroke-width="2"/>
+  <!-- Overlapping Dragon Scales Pattern -->
+  <path d="M 22 28 Q 27 33 32 28 Q 37 33 42 28" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+  <path d="M 20 34 Q 26 39 32 34 Q 38 39 44 34" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+  <path d="M 22 40 Q 27 45 32 40 Q 37 45 42 40" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+  <!-- Central Glowing Dragon Heart Gem -->
+  <polygon points="32,28 37,35 32,42 27,35" fill="#fef08a" stroke="#ea580c" stroke-width="1.5"/>
+  <circle cx="32" cy="35" r="2.5" fill="#ef4444"/>
+  <!-- Waist Guard Belt Rim -->
+  <path d="M 18 52 L 32 60 L 46 52" fill="none" stroke="url(#dragonGold)" stroke-width="2.5"/>
+</svg>

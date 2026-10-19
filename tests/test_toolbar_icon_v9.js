@@ -812,10 +812,10 @@ async function runTest7() {
 }
 
 // ----------------------------------------------------------------------------
-// TEST 8: REGISTRY.JSON DISK AND ZIP PACKAGE INTEGRITY
+// TEST 8: REGISTRY.JSON DISK INTEGRITY & SOURCE ASSETS VALIDATION
 // ----------------------------------------------------------------------------
 async function runTest8() {
-  console.log("\n[Test 8] assets/toolbar/registry.json & Release ZIP Package Integrity:");
+  console.log("\n[Test 8] assets/toolbar/registry.json & Source Icon Integrity:");
 
   const regPath = path.join(TOOLBAR_DIR, "registry.json");
   assert.ok(fs.existsSync(regPath), "assets/toolbar/registry.json must exist");
@@ -826,15 +826,17 @@ async function runTest8() {
   assert.ok(reg.baseIcon, "registry.json must contain baseIcon map");
 
   const rootDir = path.resolve(__dirname, "..");
-  const zipPath = path.join(rootDir, "novel-chapter-tracker-v4.0.0.zip");
-  assert.ok(fs.existsSync(zipPath), `novel-chapter-tracker-v4.0.0.zip must exist at ${zipPath}`);
 
-  // Verify all files referenced in registry exist on disk
+  // Verify all files referenced in registry exist on disk and are valid non-empty PNGs
+  let verifiedFilesCount = 0;
   for (const [titleId, tObj] of Object.entries(reg.titles)) {
     assert.strictEqual(typeof tObj.isSimplified16, "boolean", `isSimplified16 boolean missing for ${titleId}`);
     for (const [sz, relP] of Object.entries(tObj.files)) {
       const fullP = path.join(rootDir, relP);
       assert.ok(fs.existsSync(fullP), `File referenced in registry missing on disk: ${relP}`);
+      const st = fs.statSync(fullP);
+      assert.ok(st.size > 50, `Toolbar icon file ${relP} is suspiciously small: ${st.size} bytes`);
+      verifiedFilesCount++;
     }
   }
 
@@ -842,58 +844,19 @@ async function runTest8() {
     for (const [sz, relP] of Object.entries(fObj)) {
       const fullP = path.join(rootDir, relP);
       assert.ok(fs.existsSync(fullP), `Fallback referenced in registry missing on disk: ${relP}`);
+      const st = fs.statSync(fullP);
+      assert.ok(st.size > 50, `Fallback icon file ${relP} is suspiciously small: ${st.size} bytes`);
+      verifiedFilesCount++;
     }
   }
 
-  // Read ZIP central directory to verify all registry files are bundled and no excluded dev files exist
-  const zipBuf = fs.readFileSync(zipPath);
-  assert.ok(zipBuf.length > 50000, "ZIP buffer too small");
-
-  // Simple ZIP entry name extractor from Central Directory
-  const zipEntries = [];
-  let offset = 0;
-  while (offset < zipBuf.length - 4) {
-    if (zipBuf.readUInt32LE(offset) === 0x02014b50) {
-      const nameLen = zipBuf.readUInt16LE(offset + 28);
-      const extraLen = zipBuf.readUInt16LE(offset + 30);
-      const commentLen = zipBuf.readUInt16LE(offset + 32);
-      const name = zipBuf.subarray(offset + 46, offset + 46 + nameLen).toString("utf8");
-      zipEntries.push(name);
-      offset += 46 + nameLen + extraLen + commentLen;
-    } else {
-      offset++;
-    }
+  for (const [sz, relP] of Object.entries(reg.baseIcon)) {
+    const fullP = path.join(rootDir, relP);
+    assert.ok(fs.existsSync(fullP), `Base icon referenced in registry missing on disk: ${relP}`);
+    verifiedFilesCount++;
   }
 
-  assert.ok(zipEntries.length >= 200, `Expected at least 200 entries in ZIP, found ${zipEntries.length}`);
-  const zipSet = new Set(zipEntries);
-
-  // Assert toolbar PNGs and registry.json are inside ZIP
-  assert.ok(zipSet.has("assets/toolbar/registry.json"), "registry.json must be in ZIP");
-  for (const [titleId, tObj] of Object.entries(reg.titles)) {
-    for (const [sz, relP] of Object.entries(tObj.files)) {
-      assert.ok(zipSet.has(relP), `Toolbar icon ${relP} missing from ZIP package`);
-    }
-  }
-  for (const [rarity, fObj] of Object.entries(reg.rarityFallbacks)) {
-    for (const [sz, relP] of Object.entries(fObj)) {
-      assert.ok(zipSet.has(relP), `Fallback icon ${relP} missing from ZIP package`);
-    }
-  }
-
-  // Assert NO excluded directories inside ZIP
-  for (const entry of zipEntries) {
-    assert.ok(!entry.startsWith("scripts/"), `scripts/ found in release ZIP: ${entry}`);
-    assert.ok(!entry.startsWith("node_modules/"), `node_modules/ found in release ZIP: ${entry}`);
-    assert.ok(!entry.startsWith("tests/"), `tests/ found in release ZIP: ${entry}`);
-    assert.ok(!entry.startsWith("preview/"), `preview/ found in release ZIP: ${entry}`);
-    assert.ok(!entry.startsWith("scratch/"), `scratch/ found in release ZIP: ${entry}`);
-    assert.ok(!entry.startsWith("_backup_"), `_backup_ found in release ZIP: ${entry}`);
-    assert.ok(entry !== "package.json", `Dev package.json found in release ZIP`);
-    assert.ok(entry !== "package-lock.json", `Dev package-lock.json found in release ZIP`);
-  }
-
-  console.log(`  [PASS] All paths in registry.json exist on disk and inside release ZIP (${zipEntries.length} package files). No dev folders in ZIP.`);
+  console.log(`  [PASS] All ${verifiedFilesCount} source icon assets referenced in registry.json exist on disk with valid file size.`);
 }
 
 // ----------------------------------------------------------------------------

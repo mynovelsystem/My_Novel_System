@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipSword">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgSword" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="55%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="swordBlade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="silkRobe" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipSword)">
+    <rect width="128" height="128" fill="url(#bgSword)"/>
+
+    <!-- Concentric Sword-Qi Blade Rays -->
+    <circle cx="64" cy="52" r="46" fill="none" stroke="#38bdf8" stroke-width="0.8" stroke-opacity="0.4"/>
+    
+    <!-- Floating Twin Flying Swords Behind Shoulders -->
+    <!-- Left Flying Sword -->
+    <g transform="translate(24, 20) rotate(-15)">
+      <polygon points="6,0 10,24 8,48 4,48 2,24" fill="url(#swordBlade)"/>
+      <rect x="1" y="48" width="10" height="3" fill="#fbbf24" rx="1"/>
+      <rect x="4.5" y="51" width="3" height="12" fill="#0f172a"/>
+      <circle cx="6" cy="65" r="2" fill="#38bdf8"/>
+    </g>
+    <!-- Right Flying Sword -->
+    <g transform="translate(94, 20) rotate(15)">
+      <polygon points="6,0 10,24 8,48 4,48 2,24" fill="url(#swordBlade)"/>
+      <rect x="1" y="48" width="10" height="3" fill="#fbbf24" rx="1"/>
+      <rect x="4.5" y="51" width="3" height="12" fill="#0f172a"/>
+      <circle cx="6" cy="65" r="2" fill="#38bdf8"/>
+    </g>
+
+    <!-- Hair Back -->
+    <path d="M 38 48 Q 28 80 24 105 Q 64 112 104 105 Q 100 80 90 48 Z" fill="#090d16"/>
+
+    <!-- Indigo Silk Robe with Silver Embroidery -->
+    <path d="M 20 128 L 24 100 C 28 90 38 84 50 82 L 64 96 L 78 82 C 90 84 100 90 104 100 L 108 128 Z" fill="url(#silkRobe)"/>
+    <path d="M 50 82 L 64 104 L 78 82" fill="none" stroke="#cbd5e1" stroke-width="1.8"/>
+    <path d="M 44 100 Q 64 114 84 100" fill="none" stroke="#38bdf8" stroke-width="1.2" opacity="0.7"/>
+
+    <!-- Neck -->
+    <path d="M 54 70 L 54 86 Q 64 90 74 86 L 74 70 Z" fill="#fed7aa"/>
+
+    <!-- Face -->
+    <path d="M 44 44 C 44 30 84 30 84 44 C 84 64 76 75 64 76 C 52 75 44 64 44 44 Z" fill="#fed7aa"/>
+
+    <!-- Eyes (Piercing Silver-Azure) -->
+    <ellipse cx="54" cy="49" rx="4" ry="2.2" fill="#0f172a"/>
+    <circle cx="54" cy="49" r="1.8" fill="#e0f2fe"/>
+    <circle cx="54" cy="49" r="0.9" fill="#0284c7"/>
+    <ellipse cx="74" cy="49" rx="4" ry="2.2" fill="#0f172a"/>
+    <circle cx="74" cy="49" r="1.8" fill="#e0f2fe"/>
+    <circle cx="74" cy="49" r="0.9" fill="#0284c7"/>
+    <!-- Sword Eyebrows -->
+    <path d="M 48 43 L 60 44" stroke="#090d16" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M 80 43 L 68 44" stroke="#090d16" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Calm Smile -->
+    <path d="M 59 66 Q 64 68 69 66" stroke="#991b1b" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+
+    <!-- Hair Front (Wind-swept with silver bangs) -->
+    <path d="M 44 42 C 48 30 80 30 84 42 C 76 34 64 36 64 39 C 64 36 52 34 44 42 Z" fill="#090d16"/>
+    <path d="M 46 42 Q 54 48 50 62" stroke="#e2e8f0" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M 82 42 Q 74 48 78 62" stroke="#090d16" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+    <!-- Whirling Sword Aura Crescent -->
+    <path d="M 22 92 Q 46 72 64 80 Q 82 88 106 72" fill="none" stroke="#7dd3fc" stroke-width="1.8" opacity="0.8"/>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#6366f1" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.6"/>
+</svg>

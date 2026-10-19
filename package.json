@@ -1,10 +1,28 @@
 {
-  "name": "novel-tracker",
+  "name": "MyNovelSystem",
   "version": "4.0.0",
   "description": "Novel Chapter Tracker Chrome Extension",
   "type": "commonjs",
   "scripts": {
     "test": "node tests/test_audit_comprehensive_v10.js",
-    "test:mv3": "node tests/test_webnovel_continuous_scroll_mv3.js"
+    "test:mv3": "node tests/test_webnovel_continuous_scroll_mv3.js",
+    "test:all": "node tests/run_all_tests.js",
+    "test:e2e": "node tests/e2e/run_all_e2e.js",
+    "test:e2e:fixtures": "node tests/e2e/run_all_e2e.js",
+    "test:e2e:external": "node tests/e2e/e2e_external_platforms.js",
+    "test:e2e:single": "node tests/e2e/run_single_test.js",
+    "test:e2e:report": "node tests/e2e/generate_report.js",
+    "test:e2e:platforms": "node tests/e2e/e2e_platforms_suite.js",
+    "test:e2e:genres": "node tests/e2e/e2e_genres_audit_suite.js",
+    "test:e2e:nav": "node tests/e2e/e2e_navigation_spa_scroll_suite.js",
+    "test:e2e:negatives": "node tests/e2e/e2e_regressions_false_positives_suite.js",
+    "test:e2e:storage": "node tests/e2e/e2e_storage_sync_persistence_suite.js",
+    "test:aethon": "node tests/test_aethon_shadow_slave_regression.js"
+  },
+  "dependencies": {
+    "playwright": "^1.64.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
   }
 }

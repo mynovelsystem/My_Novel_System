@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#451a03" />
+      <stop offset="35%" stop-color="#78350f" />
+      <stop offset="70%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#92400e" />
+    </linearGradient>
+    <linearGradient id="bronzeRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+    <radialGradient id="commonInnerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#78350f" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#140c06" />
+    </radialGradient>
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.75" />
+    </filter>
+  </defs>
+  <g class="badge-frame">
+    <polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="url(#bronzeGrad)" stroke="url(#bronzeRim)" stroke-width="2.5" filter="url(#badgeShadow)" />
+    <polygon points="32,10 68,10 90,32 90,68 68,90 32,90 10,68 10,32" fill="url(#commonInnerGlow)" stroke="#d97706" stroke-width="1.2" stroke-opacity="0.7" />
+    <circle cx="30" cy="7" r="1.8" fill="#fef08a" />
+    <circle cx="70" cy="7" r="1.8" fill="#fef08a" />
+    <circle cx="93" cy="30" r="1.8" fill="#fef08a" />
+    <circle cx="93" cy="70" r="1.8" fill="#fef08a" />
+    <circle cx="70" cy="93" r="1.8" fill="#fef08a" />
+    <circle cx="30" cy="93" r="1.8" fill="#fef08a" />
+    <circle cx="7" cy="70" r="1.8" fill="#fef08a" />
+    <circle cx="7" cy="30" r="1.8" fill="#fef08a" />
+  </g>
+  <g class="badge-art" filter="url(#badgeShadow)">
+    <!-- Sand hourglass -->
+    <path d="M34 26 L66 26 L66 30 L54 48 L66 66 L66 70 L34 70 L34 66 L46 48 L34 30 Z" fill="none" stroke="#fef08a" stroke-width="2" />
+    <rect x="30" y="24" width="40" height="4" rx="1.5" fill="#d97706" stroke="#fef08a" stroke-width="1" />
+    <rect x="30" y="68" width="40" height="4" rx="1.5" fill="#d97706" stroke="#fef08a" stroke-width="1" />
+    <!-- Falling sand -->
+    <polygon points="38,32 62,32 50,47" fill="#fbbf24" opacity="0.85" />
+    <path d="M43 66 L57 66 L53 58 L47 58 Z" fill="#fbbf24" opacity="0.95" />
+    <line x1="50" y1="48" x2="50" y2="58" stroke="#fef08a" stroke-width="1.5" stroke-dasharray="2 2" />
+  </g>
+</svg>

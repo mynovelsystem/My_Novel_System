@@ -45,29 +45,29 @@ console.log("[Test 1] Strict Stage Cap Gating (No free clicks without Qi):");
 // ----------------------------------------------------------------------------
 console.log("\n[Test 2] Surplus Application & Button Deactivation (Prevent spam clicking):");
 {
-  // User has read 35 chapters -> 35 Qi.
-  // In Realm 0: Stage 1 cap = 11, Stage 2 cap = 22, Stage 3 cap = 33, Stage 4 cap = 44.
-  // At stage 1 with 35 Qi, user is ready to breakthrough.
+  // User has read 90 chapters -> 90 Qi.
+  // In Realm 0 (0-200): Stage 1 cap = 22, Stage 2 cap = 44, Stage 3 cap = 67, Stage 4 cap = 89, Stage 5 cap = 111.
+  // At stage 1 with 90 Qi, user is ready to breakthrough.
   const stats = {
-    chaptersRead: 35,
+    chaptersRead: 90,
     novelsCompleted: 0,
     bonusQi: 0,
     cultivatedRealmIndex: 0,
     cultivatedStage: 1
   };
   let state = getCultivationState(stats, "cultivation");
-  assert.strictEqual(state.isBottleneckReady, true, "Ready for breakthrough at 35 Qi > 11 Qi");
+  assert.strictEqual(state.isBottleneckReady, true, "Ready for breakthrough at 90 Qi > 22 Qi");
 
   // User clicks breakthrough with applySurplus: true
   const res = advanceCultivationBreakthrough(stats, "cultivation", { applySurplus: true });
   assert.strictEqual(res.ok, true, "Breakthrough succeeds");
-  assert.strictEqual(res.newStage, 4, "Surplus 35 Qi properly places user in Stage 4 (earned stage)");
+  assert.strictEqual(res.newStage, 5, "Surplus 90 Qi properly places user in Stage 5 (earned stage)");
 
   // Now inspect state AFTER breakthrough:
   state = getCultivationState(stats, "cultivation");
-  assert.strictEqual(state.stage, 4);
-  assert.strictEqual(state.currentStageCapQi, 44);
-  assert.strictEqual(state.isBottleneckReady, false, "Bottleneck must be FALSE because 35 Qi < 44 Qi cap");
+  assert.strictEqual(state.stage, 5);
+  assert.strictEqual(state.currentStageCapQi, 111);
+  assert.strictEqual(state.isBottleneckReady, false, "Bottleneck must be FALSE because 90 Qi < 111 Qi cap");
   assert.strictEqual(state.isBottleneck, false);
 
   // If user tries to click the button again immediately:
@@ -82,9 +82,9 @@ console.log("\n[Test 2] Surplus Application & Button Deactivation (Prevent spam 
 // ----------------------------------------------------------------------------
 console.log("\n[Test 3] Stage 9/9 Major Realm Bottleneck & Ascension to Next Realm:");
 {
-  // User in Realm 0 (Qi Condensation), Stage 9 with 120 Qi (cap is 100 Qi)
+  // User in Realm 0 (Qi Condensation), Stage 9 with 280 Qi (cap is 200 Qi)
   const stats = {
-    chaptersRead: 120,
+    chaptersRead: 280,
     novelsCompleted: 0,
     bonusQi: 0,
     cultivatedRealmIndex: 0,
@@ -101,18 +101,19 @@ console.log("\n[Test 3] Stage 9/9 Major Realm Bottleneck & Ascension to Next Rea
   assert.strictEqual(res.isMajor, true);
   assert.strictEqual(res.newRealmIndex, 1, "Must advance to Realm 1 (Foundation Establishment)");
   assert.strictEqual(res.realmObj.id, "foundation_establishment");
-  // Foundation Establishment: minQi = 100, nextQi = 400 (span = 300).
-  // progressInNew = 120 - 100 = 20.
-  // earnedStage = floor(20 * 9 / 300) + 1 = 1.
-  assert.strictEqual(res.newStage, 1, "New realm starts at Stage 1 for 120 Qi");
+  // Foundation Establishment: minQi = 200, nextQi = 800 (span = 600).
+  // progressInNew = 280 - 200 = 80.
+  // earnedStage = floor(80 * 9 / 600) + 1 = 1 + 1 = 2.
+  assert.strictEqual(res.newStage, 2, "New realm places user at earned Stage 2 for 280 Qi");
 
-  // Check state in Realm 1 Stage 1
+  // Check state in Realm 1 Stage 2
   state = getCultivationState(stats, "cultivation");
   assert.strictEqual(state.realmIndex, 1);
   assert.strictEqual(state.realmId, "foundation_establishment");
-  // Foundation Stage 1 cap = 100 + 300/9 = 133 Qi.
-  assert.strictEqual(state.currentStageCapQi, 133);
-  assert.strictEqual(state.isBottleneckReady, false, "In Realm 1, 120 Qi < 133 Qi so button disappears!");
+  assert.strictEqual(state.stage, 2);
+  // Foundation Stage 2 cap = 200 + 600/9 * 2 = 333 Qi.
+  assert.strictEqual(state.currentStageCapQi, 333);
+  assert.strictEqual(state.isBottleneckReady, false, "In Realm 1, 280 Qi < 333 Qi so button disappears!");
   console.log("  [PASS] Stage 9/9 ascends to Realm 1 and stops at next stage cap.");
 }
 
@@ -122,7 +123,7 @@ console.log("\n[Test 3] Stage 9/9 Major Realm Bottleneck & Ascension to Next Rea
 console.log("\n[Test 4] Supreme Peak Realm Termination & Immortality Guard:");
 {
   const stats = {
-    chaptersRead: 45000,
+    chaptersRead: 250000,
     novelsCompleted: 0,
     bonusQi: 0,
     cultivatedRealmIndex: 9, // Realm 9 is immortal_ascension

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="jadeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="40%" stop-color="#059669" />
+      <stop offset="75%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="jadeRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0" />
+      <stop offset="50%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <radialGradient id="rareInnerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#047857" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#041814" />
+    </radialGradient>
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.75" />
+    </filter>
+  </defs>
+  <g class="badge-frame">
+    <polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="url(#jadeGrad)" stroke="url(#jadeRim)" stroke-width="2.5" filter="url(#badgeShadow)" />
+    <polygon points="32,10 68,10 90,32 90,68 68,90 32,90 10,68 10,32" fill="url(#rareInnerGlow)" stroke="#34d399" stroke-width="1.2" stroke-opacity="0.7" />
+    <circle cx="30" cy="7" r="1.8" fill="#a7f3d0" />
+    <circle cx="70" cy="7" r="1.8" fill="#a7f3d0" />
+    <circle cx="93" cy="30" r="1.8" fill="#a7f3d0" />
+    <circle cx="93" cy="70" r="1.8" fill="#a7f3d0" />
+    <circle cx="70" cy="93" r="1.8" fill="#a7f3d0" />
+    <circle cx="30" cy="93" r="1.8" fill="#a7f3d0" />
+    <circle cx="7" cy="70" r="1.8" fill="#a7f3d0" />
+    <circle cx="7" cy="30" r="1.8" fill="#a7f3d0" />
+  </g>
+  <g class="badge-art" filter="url(#badgeShadow)">
+    <!-- Fortified heater shield -->
+    <path d="M50 20 L72 26 C72 50 62 68 50 78 C38 68 28 50 28 26 Z" fill="#334155" stroke="#34d399" stroke-width="2.2" />
+    <path d="M50 25 L67 30 C67 48 58 64 50 72 C42 64 33 48 33 30 Z" fill="#0f172a" stroke="#a7f3d0" stroke-width="1" />
+    <!-- Center fiery emblem -->
+    <path d="M50 36 C46 44 43 47 47 55 C49 53 50 50 51 48 C53 54 51 58 48 62 C58 62 61 52 57 44 C55 47 53 48 52 46 C54 42 53 38 50 36 Z" fill="#38bdf8" stroke="#ffffff" stroke-width="0.8" />
+  </g>
+</svg>

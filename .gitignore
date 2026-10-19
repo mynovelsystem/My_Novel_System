@@ -1,4 +1,4 @@
-# NovelTrack - Git Ignore
+# MyNovelSystem - Git Ignore
 preview/
 scratch/
 _backup_*/
@@ -7,3 +7,7 @@ _backup_*/
 node_modules/
 .DS_Store
 Thumbs.db
+test-results/
+_backup*/
+.env
+.vscode/

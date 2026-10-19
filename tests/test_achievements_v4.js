@@ -222,7 +222,7 @@ console.log("\n[Test 4] Peak Realm immortal_ascension (stage === null) Gating Ve
 {
   const stats = {
     ...getDefaultStats(),
-    chaptersRead: 50000,
+    chaptersRead: 250000,
     cultivatedRealmIndex: 9,
     cultivatedStage: null,
     cultivationThemes: {

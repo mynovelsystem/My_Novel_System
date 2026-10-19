@@ -78,8 +78,8 @@
     return;
   }
 
-  // Patrón 1: Con palabra clave explícita (Capítulo 12, Cap. 12, Chapter 12, Episode 12, Ep. 12, Parte 12, c12, #12, Bab 1)
-  const CHAPTER_EXPLICIT_REGEX = /\b(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|part|ch\.?|cap\.?|ep\.?|pt\.?|c\.?|bab)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b|(?:^|\s)#(\d{1,5}(?:[.,-]\d{1,2})?)(?:\s|:|-|$)/i;
+  // Patrón 1: Con palabra clave explícita (Capítulo 12, Cap. 12, Chapter 12, Episode 12, Ep. 12, Seccion 12, Parte 12, c12, #12, Bab 1)
+  const CHAPTER_EXPLICIT_REGEX = /\b(?:chapter|cap[ií]tulo|capitulo|episode|episodio|secci[oó]n|seccion|section|parte|part|ch\.?|cap\.?|ep\.?|pt\.?|sec\.?|c\.?|bab)\s*#?\s*(\d{1,7}(?:[.,-]\d{1,2}|[a-z])?)\b|(?:^|\s)#(\d{1,7}(?:[.,-]\d{1,2})?)(?:\s|:|-|$)/i;
   const VOLUME_FALLBACK_REGEX = /\b(?:tomo|volumen|volume|vol\.?|v\.?)\s*#?\s*(\d{1,5}(?:[.,-]\d{1,2}|[a-z])?)\b/i;
 
   // Patrón para capítulos especiales (Prólogo, Epílogo, One-shot, Extra, etc.)
@@ -88,16 +88,17 @@
   // Patrón 2: Número al inicio de un título de capítulo ("12. El comienzo", "12 - Título", "[12] Título")
   const CHAPTER_LEADING_NUM_REGEX = /^\s*(?:\[\s*(\d{1,5}(?:[.,]\d{1,2})?)\s*\]|(\d{1,5}(?:[.,]\d{1,2})?)\s*[-–—.:)\]]\s+\S)/;
 
-  const CHAPTER_URL_REGEX = /(?:\/|-|_|\b)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c|bab)[-_\/.]?(\d{1,5}(?:[.-]\d{1,2})?)(?:\/|$|\?|#|-|_)/i;
-  const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|parte|ch|cap|ep|c|bab)[-_\/.]?\d+(?:[._-]\d+)?(?:\/.*)?$/i;
-  const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapter|cap[ií]tulo|capitulo|episode|episodio|parte|ch\.|cap\.|ep\.|c\.|bab)\s*#?\s*\d+.*$/i;
+  const CHAPTER_URL_REGEX = /(?:\/|-|_|\b)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|secci[oó]n|seccion|section|parte|ch|cap|ep|sec|c|bab)[-_\/.]?(\d{1,7}(?:[.-]\d{1,2})?)(?:\/|$|\?|#|-|_)/i;
+  const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episode|episodio|secci[oó]n|seccion|section|parte|ch|cap|ep|sec|c|bab)[-_\/.]?\d+(?:[._-]\d+)?(?:\.html?|\/.*)?$/i;
+  const INLINE_CHAPTER_CUT_REGEX = /\s*[-–—|:«»]*\s*(?:chapters?|cap[ií]tulos?|capitulos?|episodes?|episodios?|partes?|secci[oó]n|secciones|sections?|ch(?:[\s._-]|\\.)|cap(?:[\s._-]|\\.)|ep(?:[\s._-]|\\.)|sec(?:[\s._-]|\\.)|c(?:[\s._-]|\\.)|bab|#)\s*#?\s*\d+.*$/i;
   const TRAILING_MEDIA_SUFFIX_REGEX = /\s+\b(?:manhwa|manhua|manga|webtoon|novela\s*ligera|light\s*novel|web\s*novel|novela|novel|comic|raw|sub\s*espa[ñn]ol|en\s*espa[ñn]ol|online|gratis|free|skynovels)\b\s*$/i;
 
   const CATALOG_SEGMENTS = new Set([
     "novelas", "novela", "novels", "novel", "series", "serie",
     "manga", "mangas", "manhwa", "manhwas", "manhua", "manhuas",
-    "webtoon", "webtoons", "comic", "comics", "book", "books",
-    "obras", "obra", "lectura", "leer", "ver", "read", "ficcion"
+    "webtoon", "webtoons", "comic", "comics", "webcomic", "webcomics",
+    "book", "books", "obras", "obra", "lectura", "leer", "ver", "read",
+    "ficcion", "title", "titles"
   ]);
 
   const READER_SEGMENTS = new Set(["leer", "ver", "read", "lectura", "viewer"]);
@@ -112,7 +113,9 @@
     "lista", "lista_de_capitulos", "lista_de_episodios", "tabla_de_contenido",
     "detalles", "ficha", "info", "informacion", "directorio", "sumario", "contenido",
     "comentarios", "sinopsis", "login", "registro", "mi_perfil", "ajustes",
-    "configuracion", "leer", "ver", "obra", "obras", "skynovels"
+    "configuracion", "leer", "ver", "obra", "obras", "skynovels",
+    "comic_episode", "comic_episodes", "webcomic_episode", "webcomic_episodes",
+    "comic_chapter", "comic_chapters", "webcomic", "webcomics"
   ]);
 
   const ICON_LIGATURES_REGEX = /^(?:home|menu_book|auto_stories|book|import_contacts|arrow_back|arrow_forward|chevron_left|chevron_right|navigate_before|navigate_next|list|toc|dehaze|menu)\s*/i;
@@ -132,6 +135,14 @@
     '.chr-title a[href]',
     '.cat-series a[href]',
     '.wp-manga-nav a[href]',
+    '.manga-title a[href]',
+    'a.manga-title[href]',
+    'a.modfarm-webcomic-series-link[href]',
+    '.modfarm-webcomic-series-link[href]',
+    '.modfarm-webcomic-reader-footer-series[href]',
+    'a[class*="series-link"][href]',
+    'a[class*="series-logo"][href]',
+    'a[href*="/title/"]',
     'a[href*="/novelas/"]',
     'a[href*="/novela/"]',
     'a[href*="/novel/"]',
@@ -142,6 +153,8 @@
     'a[href*="/mangas/"]',
     'a[href*="/manhua/"]',
     'a[href*="/webtoon/"]',
+    'a[href*="/webcomic/"]',
+    'a[href*="/webcomics/"]',
     'a[href*="/comic/"]',
     'a[href*="/series/"]',
     'a[href*="/serie/"]',
@@ -155,7 +168,11 @@
     'a.novel-title',
     '.cat-series',
     '.manga-title',
-    '.entry-title-series'
+    '.entry-title-series',
+    '.modfarm-webcomic-reader-side-heading h2',
+    '[class*="series-heading"] h2',
+    '[class*="series-title"]',
+    'aside[aria-label*="Series" i] h2'
   ];
 
   const CHAPTER_HEADING_SELECTORS = [
@@ -234,7 +251,7 @@
       .trim();
   }
 
-  function stripChapterAndSuffixes(rawTitle) {
+  function stripChapterAndSuffixes(rawTitle, chapterHint = "") {
     if (!rawTitle) return "";
     let cleaned = String(rawTitle)
       .replace(ICON_LIGATURES_REGEX, "")
@@ -242,6 +259,11 @@
       .trim();
 
     cleaned = cleaned.replace(INLINE_CHAPTER_CUT_REGEX, "").trim();
+    if (chapterHint && /^\d+(?:\.\d+)?$/.test(String(chapterHint).trim())) {
+      const chapEsc = String(chapterHint).trim().replace(".", "\\.");
+      const chapPattern = new RegExp(`(?:\\s*[-–—|:«»#]+\\s*|\\s+)(?:cap[ií]tulo|capitulo|chapter|episode|episodio|parte|ch|cap|ep|c|part|seccion|section|#)?\\s*0*${chapEsc}\\b.*$`, "i");
+      cleaned = cleaned.replace(chapPattern, "").trim();
+    }
     cleaned = cleaned
       .replace(/^(?:read|leer|ver)\s+/i, "")
       .replace(TRAILING_MEDIA_SUFFIX_REGEX, "")
@@ -261,28 +283,29 @@
     if (/^(?:home|inicio|menu|volver|anterior|siguiente|capitulos|capitulo|episodios|episodio|chapters|chapter|lista|detalles|ficha|info|novelas|manhwa|manga|index|portada|leer|skynovels)+$/.test(norm.replace(/_/g, ""))) {
       return true;
     }
+    // Reject UUID or long hex hashes as novel names
+    if (
+      /^[0-9a-f]{8}[-_\s][0-9a-f]{4}[-_\s][0-9a-f]{4}[-_\s][0-9a-f]{4}[-_\s][0-9a-f]{12}$/i.test(cleaned) ||
+      /^[0-9a-f]{24,}$/i.test(cleaned) ||
+      /^[0-9a-f]{32}$/i.test(norm.replace(/_/g, ""))
+    ) {
+      return true;
+    }
     const domainBase = normalizeText(cleanHost(location.href).split(".")[0]);
-    if (norm === domainBase) return true;
+    const normRaw = norm.replace(/_/g, "");
+    if (norm === domainBase || normRaw === domainBase) return true;
+    if (domainBase.startsWith(normRaw) && (domainBase.endsWith("webcomics") || domainBase.endsWith("comics") || domainBase.endsWith("novels") || domainBase.endsWith("manga") || domainBase.endsWith("scans"))) {
+      return true;
+    }
     return false;
   }
 
   function isUnrelatedButtonLabel(candidateText, novelUrl) {
     if (!candidateText) return true;
-    if (!novelUrl) return false;
-
-    const slugHuman = humanizeSlugFromNovelUrl(novelUrl);
-    if (!slugHuman) return false;
-
-    const slugWords = normalizeText(slugHuman)
-      .split("_")
-      .filter((w) => w.length >= 3 && !/^\d+$/.test(w));
-    const candWords = normalizeText(candidateText)
-      .split("_")
-      .filter((w) => w.length >= 3);
-
-    if (slugWords.length >= 2 && candWords.length <= 2) {
-      const hasOverlap = candWords.some((cw) => slugWords.includes(cw));
-      if (!hasOverlap) return true;
+    if (isGenericText(candidateText)) return true;
+    const norm = normalizeText(candidateText);
+    if (/^(?:leer_ahora|read_now|continue_reading|continuar_leyendo|ver_capitulos|view_chapters|start_reading|comenzar_lectura|read_first|read_last|bookmark|favorito|compartir|share|series_page|pagina_serie|pagina_de_la_serie|comic_page|novel_page|follow|subscribe|suscribirse|seguir|follow_this_series)$/.test(norm)) {
+      return true;
     }
     return false;
   }
@@ -301,6 +324,10 @@
     // Para rutas con prefijo de idioma como /es/book/... o /en/book/..., normalizar quitando el prefijo de idioma
     if (segments.length >= 2 && /^[a-z]{2}$/.test(segments[0]) && CATALOG_SEGMENTS.has(segments[1])) {
       segments.shift();
+    }
+    // Quitar subsegmentos finales de catálogo comunes como /list, /detail, /overview, /indice
+    if (segments.length >= 2 && ["list", "detail", "overview", "indice", "index"].includes(segments[segments.length - 1])) {
+      segments.pop();
     }
     if (segments.length >= 2 && CATALOG_SEGMENTS.has(segments[0])) {
       segments[0] = "series";
@@ -335,6 +362,9 @@
     const segments = pathname.split("/").filter(Boolean);
     if (segments.length === 0) return false;
     const first = normalizeText(segments[0]);
+    if (["chapter", "chapters", "capitulo", "capitulos", "episode", "episodio", "ch", "cap", "ep", "sec", "seccion", "section", "comic_episode", "comic_episodes", "webcomic_episode", "webcomic_episodes"].includes(first)) {
+      return false;
+    }
     if (segments.length === 1 && (GENERIC_WORDS.has(first) || CATALOG_SEGMENTS.has(first))) {
       return false;
     }
@@ -404,17 +434,26 @@
         return `${u.origin}/${segments[0]}/${segments[1]}`;
       }
 
-      // Caso E: Ruta terminada en ID numérico precedida por un slug con letras y guiones
+      // Caso E: Ruta terminada en ID numérico precedida por un slug con letras
       if (
         segments.length >= 2 &&
         /^\d+(?:[._-]\d+)?$/.test(segments[segments.length - 1]) &&
-        segments[segments.length - 2].includes("-") &&
         /[a-z]/i.test(segments[segments.length - 2])
       ) {
         const stripped = "/" + segments.slice(0, -1).join("/");
         if (isValidSeriesPath(stripped)) {
           return `${u.origin}${stripped}`;
         }
+      }
+
+      // Caso F: CATALOG_SEGMENTS y 2 segmentos con slug que termina en número de capítulo
+      if (CATALOG_SEGMENTS.has(firstLower) && segments.length === 2 && /[a-z]/i.test(segments[1])) {
+        const slug = segments[1];
+        const matchTrailingChap = slug.match(/^([a-z0-9_-]*[a-z][a-z0-9_-]*?)-(?:(?:chapters?|cap[ií]tulos?|ch|cap|ep|c)-)?(\d+(?:[._-]\d+)?)$/i);
+        if (matchTrailingChap && matchTrailingChap[1]) {
+          return `${u.origin}/${segments[0]}/${matchTrailingChap[1]}`;
+        }
+        return `${u.origin}/${segments[0]}/${segments[1]}`;
       }
     } catch {}
     return null;
@@ -439,9 +478,9 @@
         if (/^\d+$/.test(seg)) continue;
         if (CATALOG_SEGMENTS.has(seg.toLowerCase()) || GENERIC_WORDS.has(normalizeText(seg))) continue;
         seg = seg.replace(/_\d{8,}$/, "");
-        if (seg.includes("-") && seg.length > 3) {
+        if ((seg.includes("-") || seg.length >= 3) && !GENERIC_WORDS.has(normalizeText(seg)) && !CATALOG_SEGMENTS.has(seg.toLowerCase())) {
           const words = seg.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
-          return words.charAt(0).toUpperCase() + words.slice(1);
+          return words.replace(/\b[a-z]/g, (char) => char.toUpperCase());
         }
       }
     } catch {}
@@ -461,6 +500,10 @@
     if (isNaN(num) || num < 0 || num > 15000) return null;
     // Si es un entero con ceros a la izquierda (ej. "005"), devolver "5"
     if (/^0+\d+$/.test(clean)) {
+      return String(parseInt(clean, 10));
+    }
+    // Si tiene ceros decimales innecesarios (ej. "1050.00" o "12.0"), normalizar a entero "1050" / "12"
+    if (/^\d+\.0+$/.test(clean)) {
       return String(parseInt(clean, 10));
     }
     return clean;
@@ -584,7 +627,8 @@
         const last = segments[segments.length - 1];
         const prev = segments[segments.length - 2].toLowerCase();
         const isCatalogIdPath = segments.length >= 3 && CATALOG_SEGMENTS.has(segments[0].toLowerCase()) && /^\d+$/.test(segments[1]);
-        if (!isCatalogIdPath && /^\d{1,5}(?:[.-]\d{1,2})?$/.test(last) && !["page", "pagina", "p", "pag"].includes(prev)) {
+        const isUuidOrHash = /^[0-9a-f-]{32,36}$/i.test(prev);
+        if (!isCatalogIdPath && !isUuidOrHash && /^\d{1,5}(?:[.-]\d{1,2})?$/.test(last) && !["page", "pagina", "p", "pag"].includes(prev)) {
           const parsed = parseValidChapterNumber(last);
           if (parsed !== null) return parsed;
         }
@@ -639,6 +683,10 @@
         '[data-chapter-no]',
         '[data-chapterno]',
         '[data-chapter]',
+        '[data-episode-number]',
+        '[data-episode-no]',
+        '[data-episode]',
+        '[data-webcomic-reader]',
         '.chapter-entity',
         '.j_chapterBox',
         '.cha-content',
@@ -667,7 +715,10 @@
           let chapNum = null;
           const attrVal = el.getAttribute("data-chapter-no") ||
                           el.getAttribute("data-chapterno") ||
-                          el.getAttribute("data-chapter");
+                          el.getAttribute("data-chapter") ||
+                          el.getAttribute("data-episode-number") ||
+                          el.getAttribute("data-episode-no") ||
+                          el.getAttribute("data-episode");
           if (attrVal) {
             chapNum = parseValidChapterNumber(attrVal);
           }
@@ -798,13 +849,13 @@
 
   // Motor de extracción de capítulo en niveles protegidos
   function extractChapterNumber(novelNameHint = "") {
-    // Nivel 1: Dropdown / <select> del lector (Fuente más fiable en webs de manga/novelas)
-    const fromDropdown = extractChapterFromReaderDropdown(novelNameHint);
-    if (fromDropdown !== null) return fromDropdown;
-
-    // Nivel 1.5: Viewport continuo (prioritario cuando hay múltiples capítulos en pantalla sin recarga)
+    // Nivel 1: Viewport continuo (P2-2: prioritario para evitar que un <select> estático en cabecera secuestre la lectura con desplazamiento continuo)
     const fromViewport = getVisibleChapterFromViewport(novelNameHint);
     if (fromViewport !== null) return fromViewport;
+
+    // Nivel 1.5: Dropdown / <select> del lector (Fuente más fiable en webs de manga/novelas con paginación tradicional)
+    const fromDropdown = extractChapterFromReaderDropdown(novelNameHint);
+    if (fromDropdown !== null) return fromDropdown;
 
     // Nivel 2: URL y parámetros (?episode_no=, /chapter-12, /slug/120)
     const fromUrl = extractChapterFromUrl(location.href);
@@ -921,7 +972,28 @@
         const candDerivedBase = deriveNovelUrlFromRawUrl(cleanCandHref);
         if (candDerivedBase && candDerivedBase !== cleanCandHref) continue;
 
-        const rawText = getCleanElementText(a);
+        let rawText = getCleanElementText(a);
+        if (!rawText || isGenericText(rawText) || isUnrelatedButtonLabel(rawText, cleanCandHref)) {
+          const aria = a.getAttribute("aria-label") || a.getAttribute("title") || a.querySelector("img")?.getAttribute("alt");
+          if (aria && !hasChapterPattern(aria) && !isGenericText(aria) && !isUnrelatedButtonLabel(aria, cleanCandHref)) {
+            rawText = aria;
+          }
+        }
+        if (!rawText || isGenericText(rawText) || isUnrelatedButtonLabel(rawText, cleanCandHref)) {
+          const heading = a.closest(".modfarm-webcomic-reader-side-heading, [class*='series-heading'], [class*='series-card'], aside, nav, header")?.querySelector("h1, h2, h3, [class*='series-title']");
+          if (heading) {
+            const hText = getCleanElementText(heading);
+            if (hText && !hasChapterPattern(hText) && !isGenericText(hText) && !isUnrelatedButtonLabel(hText, cleanCandHref)) {
+              rawText = hText;
+            }
+          }
+        }
+        if (!rawText || isGenericText(rawText) || isUnrelatedButtonLabel(rawText, cleanCandHref)) {
+          const slug = humanizeSlugFromNovelUrl(cleanCandHref);
+          if (slug && !isGenericText(slug)) {
+            rawText = slug;
+          }
+        }
         const strippedText = stripChapterAndSuffixes(rawText);
         const isValidTitleText =
           !hasChapterPattern(strippedText) &&
@@ -983,7 +1055,7 @@
       if (!cleaned || cleaned.length < 2) continue;
       if (hasChapterPattern(cleaned)) continue;
       if (isGenericText(cleaned)) continue;
-      if (cleaned.toLowerCase().includes(domainBase) && cleaned.split(" ").length <= 2) continue;
+      if ((cleaned.toLowerCase().includes(domainBase) || domainBase.includes(cleaned.toLowerCase())) && cleaned.split(" ").length <= 2) continue;
       return cleaned;
     }
 
@@ -1162,12 +1234,8 @@
     if (!document.body) return;
 
     bodyObserver = new MutationObserver(() => {
-      if (lastCapturedUrl === location.href) {
-        stopBodyObserver();
-        return;
-      }
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(evaluatePage, 500);
+      debounceTimer = setTimeout(evaluatePage, 350);
     });
 
     bodyObserver.observe(document.body, { childList: true, subtree: true });
@@ -1186,8 +1254,70 @@
     return false;
   }
 
+  const NON_READER_SUBPAGE_REGEX = /\/(?:reviews?|comments?|threads?|forum|community|characters?|author|stats|statistics|gallery|recommendations|about|info|details|glossary|fan-?art|edit|settings|tos|privacy|contact)(?:\.(?:html?|php|asp[x]?))?(?:[\/?#]|$)/i;
+  const CHAPTER_LISTING_SUBPAGE_REGEX = /\/(?:toc|table-of-contents|chapters|capitulos|indice|index)(?:\.(?:html?|php|asp[x]?))?(?:[\/?#]|$)/i;
+
+  function isInformationalOrNonReaderUrl(urlStr = location.href) {
+    if (!urlStr) return false;
+    try {
+      const u = new URL(urlStr, location.origin);
+      const path = u.pathname.toLowerCase();
+      if (NON_READER_SUBPAGE_REGEX.test(path)) return true;
+      if (CHAPTER_LISTING_SUBPAGE_REGEX.test(path) && !extractChapterFromUrl(path)) {
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+
+  function hasRealReaderContent() {
+    if (typeof document === "undefined" || !document.body) return false;
+    if (isInformationalOrNonReaderUrl(location.href)) return false;
+
+    // 1. Contenedores de lectura con texto sustancial
+    for (const sel of READER_CONTENT_CONTAINERS) {
+      try {
+        const el = document.querySelector(sel);
+        if (el) {
+          const txt = (el.innerText || el.textContent || "").trim();
+          if (txt.length >= 20) return true;
+        }
+      } catch {}
+    }
+
+    // 2. Múltiples párrafos con volumen de lectura (novelas web)
+    const paragraphs = document.querySelectorAll("p");
+    let longPCount = 0;
+    let totalTextLen = 0;
+    for (let i = 0; i < paragraphs.length; i++) {
+      const pText = (paragraphs[i].textContent || "").trim();
+      if (pText.length > 25) {
+        longPCount++;
+        totalTextLen += pText.length;
+        if (longPCount >= 2 || totalTextLen >= 150) return true;
+      }
+    }
+
+    // 3. Imágenes de lectura para manga/webtoon o canvas
+    const comicImages = document.querySelectorAll('.viewer-cnt img, #viewer img, .reading-content img, .chapter-images img, .comic-page, [class*="reading-image"], canvas.comic-page, #viewer canvas, ._comicImage, [class*="_comicImage"], [class*="viewer"] img, .viewer_lst img, #_viewerBox img, [data-webcomic-reader] img, .modfarm-webcomic-panel img, [data-webcomic-panel] img, [class*="webcomic-panel"] img, [class*="webcomic-reader"] img');
+    if (comicImages.length >= 1) return true;
+
+    // 4. Botones de navegación entre capítulos con algo de texto
+    const navButtons = document.querySelectorAll('a[href*="chapter"], a[href*="capitulo"], [class*="next-chap" i], [class*="prev-chap" i], a[rel="next"], a[rel="prev"]');
+    if (navButtons.length >= 1 && (totalTextLen >= 60 || (document.body.innerText || "").length >= 100)) return true;
+
+    // 5. Volumen sustancial de texto en el cuerpo
+    const bodyTxt = (document.body.innerText || document.body.textContent || "").trim();
+    if (bodyTxt.length >= 350) return true;
+
+    return false;
+  }
+
   function isAuthenticReadingContext() {
     if (isCurrentDomainBlacklisted()) return false;
+
+    // P1-1: Subpáginas informativas, reseñas, foros, autores o personajes
+    if (isInformationalOrNonReaderUrl(location.href)) return false;
 
     // Si es la raíz de la web (home) sin ruta de lectura, no evaluar
     const pathOnly = location.pathname.replace(/\/+$/, "");
@@ -1204,7 +1334,7 @@
     // 2. Ruta de URL que apunta claramente a un catálogo o visor de lectura
     if (looksLikeReadingSiteUrl()) return true;
     const path = location.pathname.toLowerCase();
-    if (/(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episodio|episode|ch|cap|ep)[-_\/.]?\d+/i.test(path)) {
+    if (/(?:\/|-|_)(?:chapter|capitulo|cap[ií]tulo|episodio|episode|secci[oó]n|seccion|section|ch|cap|ep)[-_\/.]?\d+/i.test(path)) {
       return true;
     }
     const search = location.search.toLowerCase();
@@ -1217,10 +1347,11 @@
       return true;
     }
 
-    // Contenedores específicos de lectura de manga / webtoon / novelas
+    // Contenedores específicos de lectura de manga / webtoon / novelas / webcomics
     const hasReaderContainer = document.querySelector(
       '.reading-content, #readerarea, .reader-area, .v-reader, #chapter-content, ' +
       '.chapter-content, [class*="reading-content"], [class*="novel-content"], ' +
+      '[data-webcomic-reader], .modfarm-webcomic-reader, [class*="webcomic-reader"], ' +
       'img[class*="wp-manga"], img[class*="ts-main-image"], img[src*="chapter"]'
     );
     if (hasReaderContainer) return true;
@@ -1289,19 +1420,29 @@
       document.querySelector('select[class*="chap" i], select[name*="chap" i], [class*="chapter" i], [class*="reading" i]')
     );
 
-    if ((!chapter || isStaleSpaChapter) && retryCount < 8) {
+    const hasContent = hasRealReaderContent();
+    if ((!chapter || isStaleSpaChapter || (!novelName && isPotentialReaderPage) || (!hasContent && isPotentialReaderPage)) && retryCount < 8) {
       if (isPotentialReaderPage || isStaleSpaChapter) {
         retryCount++;
         clearTimeout(retryTimer);
-        retryTimer = setTimeout(evaluatePage, 700);
+        retryTimer = setTimeout(evaluatePage, 500);
         return;
       }
     }
 
     // Si tras todos los reintentos en una URL que claramente es un capítulo de una serie conocida (ej. /novelas/319/slug/100166/)
-    // el capítulo es un prólogo/epílogo sin número en el texto, enviamos chapter: "AUTO_NEXT" para que background lo gestione
+    // el capítulo es un prólogo/epílogo sin número en el texto, enviamos chapter: "AUTO_NEXT" sólo si hay evidencia de lectura real
     if (!chapter) {
-      if (reliableSeriesId && novelName && derivedNovelUrl && derivedNovelUrl !== location.href.replace(/\/+$/, "")) {
+      const isExplicitUnnumberedChapterUrl = /(?:\/prolog[uo]|\/epilog[uo]|\/interludi?o|\/read\/|\/chapter\/|\/capitulo\/|\/c\/|\/novelas\/\d+\/[^\/]+\/\d+)/i.test(location.pathname);
+      if (
+        reliableSeriesId &&
+        novelName &&
+        derivedNovelUrl &&
+        derivedNovelUrl !== location.href.replace(/\/+$/, "") &&
+        !NON_READER_SUBPAGE_REGEX.test(location.pathname) &&
+        isExplicitUnnumberedChapterUrl &&
+        hasContent
+      ) {
         sendDetectedPayload(seriesId, novelName, novelUrl, "AUTO_NEXT", true);
         return;
       }
@@ -1328,9 +1469,13 @@
     if (!confident && !novelUrl) {
       return;
     }
+
+    // P1-1: Exigir evidencia suficiente de lectura para no registrar páginas vacías o sin contenido real
+    if (!hasContent) {
+      return;
+    }
     sendDetectedPayload(seriesId, novelName, novelUrl, chapter, confident);
   }
-
   function sendDetectedPayload(seriesId, novelName, novelUrl, chapter, confident) {
     const finalSeriesId = seriesId || buildSeriesIdFromName(novelName || cleanHost(location.href), cleanHost(location.href));
     const dedupeSignature = `${finalSeriesId}::${novelName || ""}::${chapter}::${location.href}::${confident ? "1" : "0"}`;
@@ -1341,9 +1486,9 @@
     if (chapter !== "AUTO_NEXT") {
       lastCapturedChapterForPrevUrl = String(chapter);
       lastCapturedSeriesIdForPrevUrl = finalSeriesId;
+      stopBodyObserver();
     }
     retryCount = 0;
-    stopBodyObserver();
 
     chrome.runtime.sendMessage({
       type: "NOVEL_DETECTED",
@@ -1355,6 +1500,7 @@
         url: location.href,
         pageTitle: document.title || "",
         chapter: String(chapter),
+        genres: [],
         updatedAt: Date.now()
       }
     })
@@ -1366,7 +1512,9 @@
           }
           activeSeriesId = res.seriesId;
           activeChapter = resolvedChapter;
-          lastCapturedChapterForPrevUrl = resolvedChapter;
+          if (chapter === "AUTO_NEXT") {
+            lastCapturedChapterForPrevUrl = resolvedChapter;
+          }
 
           if (typeof res.restoreScrollPct === "number" && res.restoreScrollPct > 0) {
             restoreScrollPosition(res.restoreScrollPct, `${res.seriesId}::${resolvedChapter}`);
@@ -1388,7 +1536,7 @@
     clearTimeout(retryTimer);
     if (!isAuthenticReadingContext() || isCurrentDomainBlacklisted()) return;
     startTemporaryBodyObserver();
-    debounceTimer = setTimeout(evaluatePage, 600);
+    debounceTimer = setTimeout(evaluatePage, 400);
   }
 
   function attachTitleObserver() {
@@ -1679,10 +1827,10 @@
         <button type="button" class="nt-btn-close" aria-label="Cerrar aviso" title="Cerrar (Esc)">&times;</button>
       </div>
       <div class="nt-body">
-        <div class="nt-novel-title" title="${escapeHtml(displayTitle)}">${escapeHtml(displayTitle)}</div>
+        <div class="nt-novel-title" id="ntNovelTitle"></div>
         <div class="nt-meta-row">
-          <span class="nt-chip-chap">${escapeHtml(displayChapter)}</span>
-          <span class="nt-chip-domain" title="${escapeHtml(rawDomain)}">${escapeHtml(rawDomain)}</span>
+          <span class="nt-chip-chap" id="ntChipChap"></span>
+          <span class="nt-chip-domain" id="ntChipDomain"></span>
         </div>
       </div>
       <div class="nt-actions" id="ntActionsRow">
@@ -1692,6 +1840,21 @@
       </div>
       <div class="nt-feedback" id="ntFeedback" style="display:none;"></div>
     `;
+
+    const titleEl = card.querySelector("#ntNovelTitle");
+    if (titleEl) {
+      titleEl.textContent = displayTitle;
+      titleEl.setAttribute("title", displayTitle);
+    }
+    const chapEl = card.querySelector("#ntChipChap");
+    if (chapEl) {
+      chapEl.textContent = displayChapter;
+    }
+    const domainEl = card.querySelector("#ntChipDomain");
+    if (domainEl) {
+      domainEl.textContent = rawDomain;
+      domainEl.setAttribute("title", rawDomain);
+    }
 
     shadow.appendChild(style);
     shadow.appendChild(card);
@@ -1749,7 +1912,18 @@
           domain: rawDomain
         });
         actionsRow.style.display = "none";
-        feedbackEl.innerHTML = `<span>🚫 Dominio bloqueado</span> <button type="button" id="ntBtnUndo" style="background:transparent; border:1px solid #fda4af; color:#fda4af; border-radius:4px; padding:2px 8px; font-size:11px; margin-left:8px; cursor:pointer;">Deshacer</button>`;
+        while (feedbackEl.firstChild) {
+          feedbackEl.removeChild(feedbackEl.firstChild);
+        }
+        const spanBlocked = document.createElement("span");
+        spanBlocked.textContent = "🚫 Dominio bloqueado";
+        const undoBtn = document.createElement("button");
+        undoBtn.type = "button";
+        undoBtn.id = "ntBtnUndo";
+        undoBtn.textContent = "Deshacer";
+        undoBtn.style.cssText = "background:transparent; border:1px solid #fda4af; color:#fda4af; border-radius:4px; padding:2px 8px; font-size:11px; margin-left:8px; cursor:pointer;";
+        feedbackEl.appendChild(spanBlocked);
+        feedbackEl.appendChild(undoBtn);
         feedbackEl.style.color = "#fda4af";
         feedbackEl.style.display = "flex";
         feedbackEl.style.alignItems = "center";
@@ -1759,7 +1933,7 @@
           dismissInPagePrompt();
         }, 5000);
 
-        shadow.getElementById("ntBtnUndo")?.addEventListener("click", async (ev) => {
+        undoBtn.addEventListener("click", async (ev) => {
           if (ev && !ev.isTrusted) return;
           clearTimeout(undoTimer);
           try {
@@ -1768,7 +1942,7 @@
               domain: rawDomain
             });
             feedbackEl.style.display = "none";
-            feedbackEl.innerHTML = "";
+            feedbackEl.textContent = "";
             actionsRow.style.display = "flex";
             btnBlacklist.disabled = false;
           } catch {
@@ -1789,6 +1963,15 @@
     document.addEventListener("keydown", keyListener);
   }
 
+  function matchesDomainPattern(host, pattern) {
+    if (!host || !pattern) return false;
+    const cleanHost = String(host).trim().toLowerCase().replace(/^www\./i, "");
+    const cleanPattern = String(pattern).trim().toLowerCase().replace(/^www\./i, "").replace(/^\*+\.?/i, "");
+    if (!cleanHost || !cleanPattern) return false;
+    if (cleanHost === cleanPattern || cleanHost.endsWith("." + cleanPattern)) return true;
+    return false;
+  }
+
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg && msg.type === "SHOW_UNCONFIRMED_PROMPT") {
       showInPagePrompt(msg.data);
@@ -1796,14 +1979,48 @@
     if (msg && msg.type === "DISMISS_UNCONFIRMED_PROMPT") {
       dismissInPagePrompt();
     }
+    if (msg && msg.type === "CHECK_BLACKLIST_AND_DISMISS") {
+      if (msg.blockedDomain && matchesDomainPattern(window.location.hostname, msg.blockedDomain)) {
+        dismissInPagePrompt();
+        chrome.runtime.sendMessage({ type: "DISMISS_TAB_PROMPT" }).catch(() => {});
+      }
+    }
+    if (msg && msg.type === "SPA_URL_CHANGED") {
+      lastCheckedHref = location.href;
+      triggerNavigationDetection();
+    }
   });
+
+  if (window.navigation && typeof window.navigation.addEventListener === "function") {
+    window.navigation.addEventListener("navigatesuccess", () => {
+      triggerNavigationDetection();
+    });
+  }
 
   setInterval(() => {
     if (location.href !== lastCheckedHref) {
       lastCheckedHref = location.href;
       triggerNavigationDetection();
     }
-  }, 1500);
+  }, 900);
+
+  if (typeof window !== "undefined" && window.__EXPOSE_DETECTOR_FOR_TESTS__) {
+    window.__DETECTOR_INTERNALS__ = {
+      extractChapterNumber,
+      extractChapterFromUrl,
+      extractChapterFromReaderDropdown,
+      parseSpecialChapter,
+      parseValidChapterNumber,
+      matchLeadingNumberChapter,
+      extractFromJsonLd,
+      isBlacklistedDomain,
+      hasRealReaderContent,
+      isAuthenticReadingContext,
+      isInformationalOrNonReaderUrl,
+      NON_READER_SUBPAGE_REGEX,
+      CHAPTER_LISTING_SUBPAGE_REGEX
+    };
+  }
 
   triggerNavigationDetection();
 })();

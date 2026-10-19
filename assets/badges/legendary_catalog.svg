@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="solarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f" />
+      <stop offset="25%" stop-color="#b45309" />
+      <stop offset="60%" stop-color="#f59e0b" />
+      <stop offset="85%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#fde047" />
+    </linearGradient>
+    <linearGradient id="solarRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#fef08a" />
+      <stop offset="80%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <radialGradient id="legendaryInnerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d97706" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#180e03" />
+    </radialGradient>
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.75" />
+    </filter>
+    <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#fbbf24" flood-opacity="0.8" />
+    </filter>
+  </defs>
+  <g class="badge-frame">
+    <polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="url(#solarGrad)" stroke="url(#solarRim)" stroke-width="2.5" filter="url(#goldGlow)" />
+    <polygon points="32,10 68,10 90,32 90,68 68,90 32,90 10,68 10,32" fill="url(#legendaryInnerGlow)" stroke="#fde047" stroke-width="1.2" stroke-opacity="0.9" />
+    <circle cx="30" cy="7" r="2.2" fill="#ffffff" />
+    <circle cx="70" cy="7" r="2.2" fill="#ffffff" />
+    <circle cx="93" cy="30" r="2.2" fill="#ffffff" />
+    <circle cx="93" cy="70" r="2.2" fill="#ffffff" />
+    <circle cx="70" cy="93" r="2.2" fill="#ffffff" />
+    <circle cx="30" cy="93" r="2.2" fill="#ffffff" />
+    <circle cx="7" cy="70" r="2.2" fill="#ffffff" />
+    <circle cx="7" cy="30" r="2.2" fill="#ffffff" />
+  </g>
+  <g class="badge-art" filter="url(#goldGlow)">
+    <!-- Crown atop book -->
+    <path d="M35 32 L40 22 L50 28 L60 22 L65 32 Z" fill="#fde047" stroke="#78350f" stroke-width="1.2" />
+    <circle cx="40" cy="21" r="1.5" fill="#ffffff" />
+    <circle cx="50" cy="27" r="1.5" fill="#ffffff" />
+    <circle cx="60" cy="21" r="1.5" fill="#ffffff" />
+    <!-- Ancient massive catalog tome -->
+    <rect x="28" y="34" width="44" height="42" rx="3" fill="#b45309" stroke="#fef08a" stroke-width="1.8" />
+    <path d="M36 34 L36 76" stroke="#fde047" stroke-width="2" />
+    <rect x="42" y="42" width="22" height="6" rx="1" fill="#fde047" />
+    <rect x="42" y="52" width="22" height="3" rx="0.5" fill="#fef08a" />
+    <rect x="42" y="58" width="18" height="3" rx="0.5" fill="#fef08a" />
+    <rect x="42" y="64" width="14" height="3" rx="0.5" fill="#fef08a" />
+  </g>
+</svg>

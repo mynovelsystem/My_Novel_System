@@ -1,15 +1,15 @@
 # Política de Privacidad — MyNovelSystem
 
-**Última actualización:** [FECHA]  
+**Última actualización:** 17 de octubre de 2026  
 **Versión:** 4.0.0  
-**Contacto:** [EMAIL_DE_CONTACTO]  
+**Contacto:** mynovelsystem@gmail.com  
 
 Esta Política de Privacidad describe de manera transparente, veraz y exhaustiva el tratamiento de datos personales y técnicos que realiza la extensión de navegador **MyNovelSystem**, conforme a los principios de minimización de datos del Reglamento General de Protección de Datos (RGPD / GDPR) y las directrices de la Chrome Web Store.
 
 ---
 
 ## 1. Responsable del Tratamiento y Contacto
-El responsable del desarrollo y mantenimiento de la extensión es el desarrollador de MyNovelSystem. Para cualquier duda, consulta o ejercicio de derechos de privacidad, puede contactar a través del correo electrónico: **[EMAIL_DE_CONTACTO]**.
+El responsable del desarrollo y mantenimiento de la extensión es el desarrollador de MyNovelSystem. Para cualquier duda, consulta o ejercicio de derechos de privacidad, puede contactar a través del correo electrónico: **mynovelsystem@gmail.com**.
 
 ---
 
@@ -60,8 +60,32 @@ Solo si el usuario activa conscientemente las notificaciones de WhatsApp en los 
 
 ---
 
-## 7. Derechos del Usuario (RGPD) y Eliminación de Datos
+## 7. Política de No Venta de Datos y Cero Publicidad
+MyNovelSystem está diseñado bajo un modelo estricto de privacidad y utilidad para el lector:
+- **No venta ni cesión comercial:** La extensión **NO vende, NO alquila, NO comercializa ni transfiere** ningún dato personal, de navegación o de lectura a terceros, empresas de publicidad ni intermediarios de datos.
+- **Sin publicidad ni rastreadores de anuncios:** La extensión no contiene librerías de publicidad, anuncios de terceros, ni redes o píxeles de seguimiento publicitario de ningún tipo.
+- **Uso limitado y exclusivo:** Cualquier comunicación de red se limita exclusivamente a las funcionalidades solicitadas voluntariamente por el usuario (sincronización con Google Firebase, alertas de CallMeBot o envío de reportes de diagnóstico).
+
+---
+
+## 8. Derechos del Usuario (RGPD) y Eliminación de Datos
 Como usuario, le asisten los derechos de acceso, rectificación, portabilidad y supresión de sus datos:
-- **Exportación y portabilidad:** Puede exportar en cualquier momento toda su biblioteca y estadísticas en formato JSON desde el apartado "Copia de Seguridad" de los ajustes.
+- **Exportación y portabilidad:** Puede exportar en cualquier momento toda su biblioteca y estadísticas en formato JSON desde el apartado «Copia de Seguridad» de los ajustes.
+- **Eliminación de cuenta desde la propia extensión:** Si utiliza sincronización en la nube, la extensión dispone de una opción directa e integrada para eliminar su cuenta en la ventana de Cuenta («Eliminar cuenta»). Al confirmar esta acción:
+  - Se elimina de inmediato su cuenta de autenticación en **Google Firebase Authentication**.
+  - Se suprimen íntegramente sus datos de biblioteca, estadísticas y configuraciones almacenados en **Firebase Realtime Database** (`/users/<uid>`).
+  - Se purgan de forma definitiva todos los registros locales de bóveda y avatares asociados a dicha cuenta en el almacenamiento de su navegador, revirtiendo la extensión a modo local.
+  - *Reautenticación por seguridad:* Si la sesión de autenticación requiere confirmación reciente, el sistema le solicitará iniciar sesión nuevamente antes de proceder con el borrado definitivo.
 - **Eliminación local:** Al desinstalar la extensión o limpiar los datos del navegador, toda la información local se elimina permanentemente.
-- **Eliminación en la nube:** Puede solicitar el borrado íntegro de su cuenta y sus datos en Firebase enviando un mensaje a `[EMAIL_DE_CONTACTO]` indicando el correo de su cuenta.
+- **Solicitud por correo electrónico:** Alternativamente, puede solicitar el borrado manual de su cuenta y sus datos en Firebase enviando un mensaje a `mynovelsystem@gmail.com` indicando el correo de su cuenta.
+
+---
+
+## 9. Reportes de Errores y Diagnóstico Técnico
+La extensión incluye una funcionalidad opcional para enviar reportes de errores técnicos al desarrollador con el fin de resolver fallos o incompatibilidades en sitios web de lectura:
+- **Carácter voluntario y anónimo por defecto:** El envío de un reporte solo ocurre cuando el usuario pulsa deliberadamente el botón «Enviar reporte». Por defecto, todos los reportes son completamente **anónimos** (se identifican como `anonymous`) y no transmiten el correo de la cuenta del usuario ni información personal identificable.
+- **Consentimiento específico e independiente para el correo:** La casilla «Incluir mi correo de contacto» se encuentra desmarcada por defecto. Solo si el usuario decide activarla conscientemente, se adjuntará el correo de su cuenta para recibir respuesta del desarrollador.
+- **Datos técnicos y URL de pestaña (opcional y desmarcado por defecto):** La casilla «Adjuntar URL actual y registro técnico (logs)» se encuentra desmarcada por defecto. La URL y título de la pestaña activa, así como los eventos técnicos recientes de depuración, **solo se incluyen si el usuario marca deliberadamente dicha casilla**. Si no se marca, no se envía ninguna URL ni registro de logs (valor nulo).
+- **Transparencia previa:** El usuario puede revisar previamente estos registros mediante el visor desplegable antes de enviarlos.
+- **Privacidad y minimización:** Los reportes técnicos se transmiten de forma segura a Firebase Realtime Database bajo la ruta `/reports/` para uso exclusivo de diagnóstico técnico por el desarrollador.
+- **Contacto directo:** Para cualquier cuestión relativa a un reporte de error o para solicitar la supresión de cualquier dato enviado, puede contactar directamente a: `mynovelsystem@gmail.com`.

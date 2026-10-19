@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipMaster">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgMaster" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="60%" stop-color="#022c22"/>
+      <stop offset="100%" stop-color="#01140e"/>
+    </radialGradient>
+    <linearGradient id="robeMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="50%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="goldTrimMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <radialGradient id="sunAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipMaster)">
+    <rect width="128" height="128" fill="url(#bgMaster)"/>
+    
+    <!-- Supreme Enlightenment Solar Halo -->
+    <circle cx="64" cy="50" r="44" fill="url(#sunAura)"/>
+    <circle cx="64" cy="50" r="38" fill="none" stroke="url(#goldTrimMaster)" stroke-width="1.5" stroke-dasharray="10 4 2 4"/>
+    <!-- Golden rays -->
+    <line x1="64" y1="8" x2="64" y2="16" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="64" y1="84" x2="64" y2="92" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="22" y1="50" x2="30" y2="50" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="98" y1="50" x2="106" y2="50" stroke="#fbbf24" stroke-width="1.8"/>
+
+    <!-- Flowing Long White Hair Back -->
+    <path d="M 36 50 Q 28 85 24 116 Q 64 122 104 116 Q 100 85 92 50 Z" fill="#e2e8f0"/>
+
+    <!-- Venerable Master Robes -->
+    <path d="M 18 128 L 22 98 C 26 88 38 82 50 80 L 64 92 L 78 80 C 90 82 102 88 106 98 L 110 128 Z" fill="url(#robeMaster)"/>
+    <!-- Opulent Gold Trim on Robe -->
+    <path d="M 50 80 L 64 102 L 78 80 L 74 128 L 54 128 Z" fill="url(#goldTrimMaster)"/>
+    <path d="M 64 96 L 64 128" stroke="#78350f" stroke-width="1.5"/>
+
+    <!-- Neck -->
+    <path d="M 54 68 L 54 84 Q 64 88 74 84 L 74 68 Z" fill="#fed7aa"/>
+
+    <!-- Face -->
+    <path d="M 45 46 C 45 32 83 32 83 46 C 83 66 75 75 64 76 C 53 75 45 66 45 46 Z" fill="#fed7aa"/>
+    <!-- Ears -->
+    <ellipse cx="44" cy="52" rx="3.5" ry="7" fill="#fed7aa"/>
+    <ellipse cx="84" cy="52" rx="3.5" ry="7" fill="#fed7aa"/>
+
+    <!-- Venerable Long White Beard and Mustache -->
+    <path d="M 52 64 Q 64 69 76 64 C 74 72 70 80 68 96 Q 64 108 60 96 C 58 80 54 72 52 64 Z" fill="#f8fafc"/>
+    <path d="M 52 64 Q 64 68 76 64 Q 64 62 52 64 Z" fill="#e2e8f0"/>
+    <path d="M 56 63 Q 64 67 60 74 Q 64 68 68 74 Q 64 67 72 63" fill="#cbd5e1"/>
+
+    <!-- Eyes (Wise, Serene Jade Aura) -->
+    <path d="M 50 49 Q 55 46 60 49" stroke="#334155" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <ellipse cx="55" cy="50" rx="3" ry="2" fill="#047857"/>
+    <circle cx="55" cy="50" r="1.2" fill="#34d399"/>
+    <circle cx="56" cy="49" r="0.6" fill="#ffffff"/>
+    <path d="M 68 49 Q 73 46 78 49" stroke="#334155" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <ellipse cx="73" cy="50" rx="3" ry="2" fill="#047857"/>
+    <circle cx="73" cy="50" r="1.2" fill="#34d399"/>
+    <circle cx="74" cy="49" r="0.6" fill="#ffffff"/>
+
+    <!-- Long White Eyebrows extending gracefully past temples -->
+    <path d="M 44 43 Q 54 39 61 43" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M 84 43 Q 74 39 67 43" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+
+    <!-- Ancient Jade Crown / Guan atop hair -->
+    <path d="M 54 22 L 74 22 L 72 32 L 56 32 Z" fill="url(#goldTrimMaster)"/>
+    <ellipse cx="64" cy="27" rx="4" ry="4" fill="#10b981"/>
+    <line x1="46" y1="26" x2="82" y2="26" stroke="#fde047" stroke-width="2" stroke-linecap="round"/>
+    <!-- Forehead Third Eye / Daoist Jade Pearl -->
+    <circle cx="64" cy="38" r="2.5" fill="#34d399" stroke="#fbbf24" stroke-width="1"/>
+  </g>
+
+  <!-- Imperial Jade and Gold Rim -->
+  <circle cx="64" cy="64" r="62" fill="none" stroke="url(#goldTrimMaster)" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.6"/>
+</svg>

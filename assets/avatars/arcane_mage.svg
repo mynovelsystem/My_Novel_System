@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipMage">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgMage" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#1e103a"/>
+      <stop offset="55%" stop-color="#0f0721"/>
+      <stop offset="100%" stop-color="#030108"/>
+    </radialGradient>
+    <linearGradient id="hatFabric" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="60%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="manaOrb" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#67e8f9"/>
+      <stop offset="80%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </radialGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipMage)">
+    <rect width="128" height="128" fill="url(#bgMage)"/>
+
+    <!-- Arcane Spell Circle in Backdrop -->
+    <circle cx="64" cy="58" r="48" fill="none" stroke="#818cf8" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="8 4 2 4"/>
+    <circle cx="64" cy="58" r="42" fill="none" stroke="#a78bfa" stroke-width="0.7" stroke-opacity="0.25"/>
+
+    <!-- Flowing Lavender Hair (Back) -->
+    <path d="M 34 56 Q 22 90 26 118 Q 64 124 102 118 Q 106 90 94 56 Z" fill="#a78bfa"/>
+
+    <!-- Arcane Robes Shoulders -->
+    <path d="M 18 128 L 24 100 C 28 90 38 84 50 82 L 64 96 L 78 82 C 90 84 100 90 104 100 L 110 128 Z" fill="url(#hatFabric)"/>
+    <!-- Gold Arcane Runes on Collar -->
+    <path d="M 50 82 L 64 102 L 78 82" fill="none" stroke="#facc15" stroke-width="1.8"/>
+
+    <!-- Neck -->
+    <path d="M 54 70 L 54 86 Q 64 90 74 86 L 74 70 Z" fill="#ffedd5"/>
+
+    <!-- Face -->
+    <path d="M 45 46 C 45 34 83 34 83 46 C 83 66 75 76 64 77 C 53 76 45 66 45 46 Z" fill="#ffedd5"/>
+
+    <!-- Eyes (Mystical Glowing Cyan-Violet) -->
+    <ellipse cx="54" cy="51" rx="4" ry="2.4" fill="#0f172a"/>
+    <circle cx="54" cy="51" r="1.8" fill="#38bdf8"/>
+    <circle cx="55" cy="50" r="0.8" fill="#ffffff"/>
+    <ellipse cx="74" cy="51" rx="4" ry="2.4" fill="#0f172a"/>
+    <circle cx="74" cy="51" r="1.8" fill="#38bdf8"/>
+    <circle cx="75" cy="50" r="0.8" fill="#ffffff"/>
+    <!-- Gentle Curved Eyebrows -->
+    <path d="M 49 46 Q 54 44 59 47" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M 79 46 Q 74 44 69 47" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <!-- Soft Smile -->
+    <path d="M 60 67 Q 64 69 68 67" stroke="#f43f5e" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+
+    <!-- Lavender Bangs -->
+    <path d="M 45 44 C 48 34 80 34 83 44 C 74 38 66 40 64 45 C 62 40 54 38 45 44 Z" fill="#c4b5fd"/>
+    <path d="M 44 46 Q 48 64 42 74" stroke="#c4b5fd" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M 84 46 Q 80 64 86 74" stroke="#c4b5fd" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+
+    <!-- Classic Pointed Wizard Hat with Moon Buckle -->
+    <!-- Hat Brim -->
+    <ellipse cx="64" cy="38" rx="46" ry="12" fill="url(#hatFabric)"/>
+    <ellipse cx="64" cy="37" rx="45" ry="11" fill="none" stroke="#facc15" stroke-width="1.4" opacity="0.8"/>
+    <!-- Hat Cone -->
+    <path d="M 38 36 Q 60 12 74 6 Q 66 18 84 36 Z" fill="url(#hatFabric)"/>
+    <!-- Hat Band and Golden Crescent Moon -->
+    <path d="M 40 37 Q 64 44 88 37 Q 64 41 40 37 Z" fill="#818cf8"/>
+    <path d="M 62 34 A 4 4 0 1 0 66 38 A 3 3 0 1 1 62 34 Z" fill="#facc15"/>
+
+    <!-- Floating Mana Orb beside shoulder -->
+    <circle cx="24" cy="68" r="5" fill="url(#manaOrb)"/>
+    <circle cx="104" cy="68" r="5" fill="url(#manaOrb)"/>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#818cf8" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#facc15" stroke-width="1" stroke-opacity="0.6"/>
+</svg>

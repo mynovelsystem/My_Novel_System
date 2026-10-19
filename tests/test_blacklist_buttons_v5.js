@@ -252,7 +252,7 @@ async function runAllTests() {
   assert.strictEqual(typeof achData.advanceCultivationBreakthrough, "function");
 
   const testStats = {
-    chaptersRead: 150,
+    chaptersRead: 300,
     cultivatedRealmIndex: 0,
     cultivatedStage: 9,
     bonusQi: 100,

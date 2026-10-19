@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipPhoenix">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgPhoenix" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#4c0519"/>
+      <stop offset="60%" stop-color="#2a020d"/>
+      <stop offset="100%" stop-color="#0f0105"/>
+    </radialGradient>
+    <linearGradient id="phoenixFeather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipPhoenix)">
+    <rect width="128" height="128" fill="url(#bgPhoenix)"/>
+
+    <!-- Flaming Solar Wings Silhouette in Background -->
+    <path d="M 20 40 Q 40 24 64 36 Q 88 24 108 40 Q 88 70 64 60 Q 40 70 20 40 Z" fill="#be123c" opacity="0.35"/>
+    <circle cx="64" cy="54" r="44" fill="none" stroke="#f43f5e" stroke-width="0.8" stroke-opacity="0.3"/>
+
+    <!-- Dark Hair in High Imperial Phoenix Bun -->
+    <ellipse cx="64" cy="22" rx="14" ry="11" fill="#18181b"/>
+    <!-- Ornate Golden Phoenix Hairpins Spanning Outward -->
+    <path d="M 44 18 Q 28 12 20 16" stroke="#facc15" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M 84 18 Q 100 12 108 16" stroke="#facc15" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <!-- Golden Phoenix Tail Plumes Falling Behind -->
+    <path d="M 34 50 Q 22 86 24 116 Q 64 122 104 116 Q 106 86 94 50 Z" fill="#18181b"/>
+
+    <!-- Fiery Robes (Crimson to Gold Gradient) -->
+    <path d="M 18 128 L 24 100 C 28 88 40 84 50 82 L 64 94 L 78 82 C 88 84 100 88 104 100 L 110 128 Z" fill="url(#phoenixFeather)"/>
+    <path d="M 50 82 L 64 104 L 78 82" fill="none" stroke="#facc15" stroke-width="2"/>
+
+    <!-- Neck -->
+    <path d="M 54 70 L 54 84 Q 64 88 74 84 L 74 70 Z" fill="#fed7aa"/>
+
+    <!-- Face -->
+    <path d="M 45 45 C 45 33 83 33 83 45 C 83 65 75 75 64 76 C 53 75 45 65 45 45 Z" fill="#fed7aa"/>
+
+    <!-- Slanted Phoenix Eyes (Flaming Amber-Red) -->
+    <ellipse cx="54" cy="49" rx="4" ry="2.2" fill="#18181b"/>
+    <circle cx="54" cy="49" r="1.8" fill="#f97316"/>
+    <circle cx="55" cy="48" r="0.8" fill="#fef08a"/>
+    <ellipse cx="74" cy="49" rx="4" ry="2.2" fill="#18181b"/>
+    <circle cx="74" cy="49" r="1.8" fill="#f97316"/>
+    <circle cx="75" cy="48" r="0.8" fill="#fef08a"/>
+    <!-- Red Eyeliner Wing -->
+    <path d="M 57 49 Q 60 48 62 47" stroke="#e11d48" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M 71 49 Q 68 48 66 47" stroke="#e11d48" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+
+    <!-- Brows -->
+    <path d="M 48 43 Q 54 41 59 44" stroke="#18181b" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M 80 43 Q 74 41 69 44" stroke="#18181b" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+
+    <path d="M 59 66 Q 64 68 69 66" stroke="#be123c" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Forehead Vermilion Phoenix Mark -->
+    <path d="M 64 36 C 62 40 61 42 64 45 C 67 42 66 40 64 36 Z" fill="#e11d48"/>
+
+    <!-- Hair Bangs -->
+    <path d="M 45 44 C 48 34 80 34 83 44 C 74 37 66 38 64 42 C 62 38 54 37 45 44 Z" fill="#18181b"/>
+
+    <!-- Floating Burning Phoenix Feathers in Foreground -->
+    <path d="M 24 74 Q 30 68 32 78 Q 28 82 24 74 Z" fill="url(#phoenixFeather)"/>
+    <path d="M 104 74 Q 98 68 96 78 Q 100 82 104 74 Z" fill="url(#phoenixFeather)"/>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#e11d48" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#facc15" stroke-width="1" stroke-opacity="0.6"/>
+</svg>

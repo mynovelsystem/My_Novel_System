@@ -315,13 +315,13 @@ async function test3() {
 
   const ctx = createSandboxContext(mockChrome);
 
-  // 1. User A logs in for the first time: inherits guest novels without loss
-  const switchResA = await ctx.switchAccountProfile("UID_USER_A");
+  // 1. User A logs in for the first time with explicit transfer requested: inherits guest novels without loss
+  const switchResA = await ctx.switchAccountProfile("UID_USER_A", true);
   assert.strictEqual(switchResA.ok, true);
   assert.strictEqual(switchResA.switched, true);
   assert.strictEqual(mockChrome._store.lastAuthUid, "UID_USER_A");
   const hasGuestNovel = Object.values(mockChrome._store.savedNovels || {}).some((n) => n.novelName === "Guest Chronicle");
-  assert.strictEqual(hasGuestNovel, true, "First login inherits guest novels");
+  assert.strictEqual(hasGuestNovel, true, "First login with confirmed transfer inherits guest novels");
 
   // User A reads user-A exclusive novel
   mockChrome._store.savedNovels.user_a_exclusive = {
@@ -366,9 +366,9 @@ async function test4() {
   const mockChrome = createMockChrome();
   const ctx = createSandboxContext(mockChrome);
 
-  // Cultivator at Realm 0 (Qi Condensation, span 0-100, 9 stages = 11.1 Qi/stage)
+  // Cultivator at Realm 0 (Qi Condensation, span 0-250, 9 stages = 27.8 Qi/stage)
   const stats = {
-    chaptersRead: 60,
+    chaptersRead: 150,
     cultivatedRealmIndex: 0,
     cultivatedStage: 1,
     claimedRewards: [],
@@ -382,11 +382,11 @@ async function test4() {
   // Perform breakthrough with applySurplus
   const btRes = ctx.advanceCultivationBreakthrough(stats, "cultivation", { applySurplus: true });
   assert.strictEqual(btRes.ok, true, "Breakthrough succeeds");
-  assert.strictEqual(btRes.newStage, 6, "Surplus Qi correctly advanced user to stage 6 upon breakthrough");
+  assert.strictEqual(btRes.newStage, 7, "Surplus Qi correctly advanced user to stage 7 upon breakthrough");
 
   // Peak Realm guard: cannot breakthrough at immortal_ascension (Realm 9)
   const peakStats = {
-    chaptersRead: 45000,
+    chaptersRead: 250000,
     cultivatedRealmIndex: 9,
     cultivatedStage: null,
     cultivationThemes: {
@@ -451,7 +451,7 @@ async function test6() {
     cultivatedStage: 4,
     cultivationThemes: {
       cultivation: { realmIndex: 2, stage: 4, lastBreakthrough: null },
-      hunter: { realmIndex: 0, stage: 1, lastBreakthrough: null },
+      hunter: { realmIndex: 0, stage: 1, exp: 100, totalExp: 100, lastBreakthrough: null },
       legendary_novels: { realmIndex: 1, stage: 2, lastBreakthrough: null }
     }
   };

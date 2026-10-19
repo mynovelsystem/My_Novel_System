@@ -20,6 +20,7 @@ const requiredCoreFiles = [
   "popup.js",
   "i18n.js",
   "achievements_data.js",
+  "avatars_data.js",
   "privacy.html",
   "locales/es.json",
   "locales/en.json",
@@ -53,25 +54,25 @@ for (const [sz, p] of Object.entries(manifest.action.default_icon)) {
 }
 console.log("  [PASS] All manifest icons (16, 32, 48, 128) verified.");
 
-// 3. Check all 38 SVG Badges exist in assets/badges
+// 3. Check all 53 SVG Badges exist in assets/badges
 console.log("\n[Check 3] Illustrated Badges:");
 const badgesDir = path.join(rootDir, "assets/badges");
 assert.ok(fs.existsSync(badgesDir), "assets/badges directory must exist");
 const badgeFiles = fs.readdirSync(badgesDir).filter((f) => f.endsWith(".svg"));
-assert.strictEqual(badgeFiles.length, 38, `Expected exactly 38 badge SVGs, found ${badgeFiles.length}`);
+assert.strictEqual(badgeFiles.length, 53, `Expected exactly 53 badge SVGs, found ${badgeFiles.length}`);
 for (const bf of badgeFiles) {
   const content = fs.readFileSync(path.join(badgesDir, bf), "utf8");
   assert.ok(content.includes("<svg"), `Badge ${bf} does not contain valid <svg`);
   assert.ok(content.includes("</svg>"), `Badge ${bf} does not close </svg>`);
 }
-console.log(`  [PASS] All 38 badge SVGs verified.`);
+console.log(`  [PASS] All 53 badge SVGs verified.`);
 
 // 4. Excluded Patterns Check (Ensure dev folders are never bundled)
-console.log("\n[Check 4] Excluded Development Artifacts:");
-const excludedFolders = [".git", "tests", "preview", "scratch", "node_modules", "scripts", "_backup_"];
+const excludedFolders = [".git", "tests", "preview", "scratch", "node_modules", "scripts"];
 for (const ef of excludedFolders) {
   console.log(`  - Excluded from ZIP: ${ef}/`);
 }
+console.log("  - Excluded from ZIP: _backup_*/");
 console.log("  [PASS] Excluded development directories defined and isolated.");
 
 // 5. Zero Dangerous APIs in Production Files
@@ -82,6 +83,7 @@ const prodCodeFiles = [
   "popup.js",
   "i18n.js",
   "achievements_data.js",
+  "avatars_data.js",
   "popup.html",
   "privacy.html"
 ];
@@ -210,6 +212,33 @@ for (const tf of toolbarFiles) {
   addFileToPackage(`assets/toolbar/${tf}`);
 }
 
+// 4. Illustrated Item SVGs (Fase 2)
+const itemsDir = path.join(rootDir, "assets/items");
+if (fs.existsSync(itemsDir)) {
+  const itemFiles = fs.readdirSync(itemsDir).filter((f) => f.endsWith(".svg"));
+  for (const itf of itemFiles) {
+    addFileToPackage(`assets/items/${itf}`);
+  }
+}
+
+// 5. Original Xianxia Sponsored WebP Assets (Fase 2)
+const sponsoredDir = path.join(rootDir, "assets/sponsored");
+if (fs.existsSync(sponsoredDir)) {
+  const spFiles = fs.readdirSync(sponsoredDir).filter((f) => f.endsWith(".webp"));
+  for (const spf of spFiles) {
+    addFileToPackage(`assets/sponsored/${spf}`);
+  }
+}
+
+// 6. Preset Avatar SVGs (v4.0.0)
+const avatarsDir = path.join(rootDir, "assets/avatars");
+if (fs.existsSync(avatarsDir)) {
+  const avatarFiles = fs.readdirSync(avatarsDir).filter((f) => f.endsWith(".svg"));
+  for (const avf of avatarFiles) {
+    addFileToPackage(`assets/avatars/${avf}`);
+  }
+}
+
 // Verify registry.json integrity and that all referenced files exist in package
 const registryContent = JSON.parse(fs.readFileSync(path.join(toolbarDir, "registry.json"), "utf8"));
 assert.ok(registryContent.titles, "registry.json must contain titles map");
@@ -237,7 +266,9 @@ for (const pf of packageFiles) {
   for (const ef of excludedFolders) {
     assert.ok(!pf.path.startsWith(ef + "/"), `Excluded folder ${ef} found in package: ${pf.path}`);
   }
+  assert.ok(!pf.path.startsWith("_backup") && !pf.path.includes("/_backup"), `Backup folder found in package: ${pf.path}`);
   assert.ok(!pf.path.endsWith(".md"), `Markdown file should not be in release ZIP: ${pf.path}`);
+  assert.ok(!pf.path.endsWith(".txt"), `Text file should not be in release ZIP: ${pf.path}`);
   assert.ok(!pf.path.includes("test"), `Test file should not be in release ZIP: ${pf.path}`);
   assert.ok(!pf.path.startsWith("scripts/"), `Scripts folder should not be in release ZIP: ${pf.path}`);
   assert.ok(!pf.path.startsWith("node_modules/"), `node_modules should not be in release ZIP: ${pf.path}`);
@@ -248,12 +279,15 @@ for (const pf of packageFiles) {
 const zipBuffer = createZipBuffer(packageFiles);
 const zipOutPath = path.join(rootDir, "novel-chapter-tracker-v4.0.0.zip");
 fs.writeFileSync(zipOutPath, zipBuffer);
+const zipOutPathNamed = path.join(rootDir, "MyNovelSystem-v4.0.0.zip");
+fs.writeFileSync(zipOutPathNamed, zipBuffer);
 
 const uncompressedTotal = packageFiles.reduce((acc, f) => acc + f.data.length, 0);
 console.log(`  - Packaged files: ${packageFiles.length}`);
 console.log(`  - Uncompressed size: ${(uncompressedTotal / 1024).toFixed(1)} KB`);
 console.log(`  - Compressed ZIP size: ${(zipBuffer.length / 1024).toFixed(1)} KB`);
 console.log(`  - Output: ${zipOutPath}`);
+console.log(`  - Output (CWS Brand): ${zipOutPathNamed}`);
 assert.ok(zipBuffer.length > 50000, "ZIP buffer suspiciously small");
 assert.ok(zipBuffer.length < 5000000, "ZIP buffer exceeds reasonable limit");
 console.log("  [PASS] Release package built and validated successfully.");

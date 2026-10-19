@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <clipPath id="circleClipReaderF">
+      <circle cx="64" cy="64" r="62"/>
+    </clipPath>
+    <radialGradient id="bgReaderF" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#3b1220"/>
+      <stop offset="60%" stop-color="#1f0710"/>
+      <stop offset="100%" stop-color="#0a0205"/>
+    </radialGradient>
+    <radialGradient id="magicGrimoire" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#f59e0b" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <g clip-path="url(#circleClipReaderF)">
+    <rect width="128" height="128" fill="url(#bgReaderF)"/>
+
+    <!-- Magic Firefly Book Sparks in Background -->
+    <circle cx="64" cy="54" r="44" fill="none" stroke="#fb7185" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="6 4"/>
+    <circle cx="28" cy="40" r="1.5" fill="#fde047"/>
+    <circle cx="98" cy="36" r="1.5" fill="#fde047"/>
+    <circle cx="34" cy="62" r="1.2" fill="#fb7185"/>
+    <circle cx="94" cy="64" r="1.2" fill="#fb7185"/>
+
+    <!-- Auburn Hair Back & Loose Bun -->
+    <ellipse cx="64" cy="22" rx="14" ry="11" fill="#78350f"/>
+    <!-- Golden Quill Hairpin in Bun -->
+    <line x1="46" y1="20" x2="82" y2="24" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 34 50 Q 22 86 26 116 Q 64 122 102 116 Q 106 86 94 50 Z" fill="#78350f"/>
+
+    <!-- Cozy Oversized Knit Sweater -->
+    <path d="M 18 128 L 24 100 C 28 88 40 84 50 82 L 64 94 L 78 82 C 88 84 100 88 104 100 L 110 128 Z" fill="#831843"/>
+    <path d="M 50 82 Q 64 94 78 82" fill="none" stroke="#f43f5e" stroke-width="2"/>
+
+    <!-- Neck -->
+    <path d="M 54 70 L 54 84 Q 64 88 74 84 L 74 70 Z" fill="#fed7aa"/>
+
+    <!-- Face -->
+    <path d="M 45 45 C 45 33 83 33 83 45 C 83 65 75 75 64 76 C 53 75 45 65 45 45 Z" fill="#fed7aa"/>
+
+    <!-- Stylish Round Gold Glasses -->
+    <circle cx="54" cy="50" r="6.5" fill="none" stroke="#f59e0b" stroke-width="1.4"/>
+    <circle cx="74" cy="50" r="6.5" fill="none" stroke="#f59e0b" stroke-width="1.4"/>
+    <line x1="60.5" y1="50" x2="67.5" y2="50" stroke="#f59e0b" stroke-width="1.4"/>
+
+    <!-- Eyes (Enchanted Amber Behind Lenses) -->
+    <ellipse cx="54" cy="50" rx="3.5" ry="2" fill="#0f172a"/>
+    <circle cx="54" cy="50" r="1.5" fill="#f59e0b"/>
+    <circle cx="55" cy="49" r="0.7" fill="#ffffff"/>
+    <ellipse cx="74" cy="50" rx="3.5" ry="2" fill="#0f172a"/>
+    <circle cx="74" cy="50" r="1.5" fill="#f59e0b"/>
+    <circle cx="75" cy="49" r="0.7" fill="#ffffff"/>
+    <!-- Brows -->
+    <path d="M 49 43 Q 54 41 59 44" stroke="#78350f" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <path d="M 79 43 Q 74 41 69 44" stroke="#78350f" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+
+    <!-- Pleasant Gentle Smile -->
+    <path d="M 60 66 Q 64 69 68 66" stroke="#e11d48" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+
+    <!-- Auburn Bangs Framing Face -->
+    <path d="M 45 44 C 48 34 80 34 83 44 C 74 37 66 38 64 42 C 62 38 54 37 45 44 Z" fill="#9a3412"/>
+    <path d="M 44 46 Q 48 64 42 74" stroke="#9a3412" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <path d="M 84 46 Q 80 64 86 74" stroke="#9a3412" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+
+    <!-- Glowing Open Novel Book in Foreground -->
+    <g transform="translate(34, 94)">
+      <!-- Book Cover -->
+      <polygon points="0,18 30,28 60,18 60,34 30,42 0,34" fill="#450a0a"/>
+      <!-- Pages -->
+      <polygon points="2,16 30,25 30,38 2,30" fill="#fef08a"/>
+      <polygon points="58,16 30,25 30,38 58,30" fill="#fef9c3"/>
+      <!-- Book Spine -->
+      <line x1="30" y1="25" x2="30" y2="40" stroke="#78350f" stroke-width="1.5"/>
+      <!-- Glowing Words Spiraling Upward -->
+      <circle cx="30" cy="18" r="6" fill="url(#magicGrimoire)"/>
+    </g>
+  </g>
+
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#f43f5e" stroke-width="3"/>
+  <circle cx="64" cy="64" r="60.5" fill="none" stroke="#fef08a" stroke-width="1" stroke-opacity="0.6"/>
+</svg>
