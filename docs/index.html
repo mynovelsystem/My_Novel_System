@@ -49,7 +49,7 @@
     h3 {
       font-size: 15px;
       color: #cbd5e1;
-      margin-top: 18px;
+      margin-top: 16px;
       margin-bottom: 6px;
     }
     p, li {
@@ -57,70 +57,65 @@
       color: var(--text);
     }
     ul {
-      padding-left: 20px;
+      padding-left: 24px;
+      margin-top: 8px;
+      margin-bottom: 16px;
     }
     li {
       margin-bottom: 6px;
     }
-    .badge-meta {
-      display: inline-block;
-      background: rgba(99, 102, 241, 0.15);
-      color: #a5b4fc;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-    .callout {
-      background: rgba(255, 255, 255, 0.04);
-      border-left: 4px solid var(--accent);
-      padding: 12px 16px;
-      margin: 16px 0;
-      border-radius: 0 8px 8px 0;
-      font-size: 14px;
-      color: var(--text-muted);
-    }
     code {
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(255, 255, 255, 0.08);
       padding: 2px 6px;
       border-radius: 4px;
-      font-family: monospace;
       font-size: 13px;
-      color: #38bdf8;
+      color: #a5b4fc;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent-light);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
     }
     footer {
-      margin-top: 40px;
+      margin-top: 36px;
       padding-top: 20px;
       border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 12.5px;
+      font-size: 13px;
       color: var(--text-muted);
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Política de Privacidad — MyNovelSystem</h1>
-    <div class="badge-meta">Última actualización: 17 de octubre de 2026 · Versión: 4.0.0</div>
-
-    <p>Esta Política de Privacidad describe de manera transparente, veraz y exhaustiva el tratamiento de datos personales y técnicos que realiza la extensión de navegador <strong>MyNovelSystem</strong>, conforme a los principios de minimización de datos del Reglamento General de Protección de Datos (RGPD / GDPR) y las directrices de la Chrome Web Store.</p>
+    <span class="badge">Chrome Web Store — Versión 4.0.0</span>
+    <h1>Política de Privacidad de MyNovelSystem</h1>
+    <p><strong>Última actualización:</strong> 17 de octubre de 2026</p>
 
     <h2>1. Responsable del Tratamiento y Contacto</h2>
-    <p>El responsable del desarrollo y mantenimiento de la extensión es el desarrollador de MyNovelSystem. Para cualquier duda, consulta o ejercicio de derechos de privacidad, puede contactar a través del correo electrónico: <strong>mynovelsystem@gmail.com</strong>.</p>
+    <p>El responsable de la extensión de navegador <strong>MyNovelSystem</strong> es su desarrollador independiente. Para cualquier consulta, ejercicio de derechos o aclaración referente a esta política de privacidad, puede contactar en: <strong>mynovelsystem@gmail.com</strong>.</p>
 
-    <h2>2. Ejecución en la Web y Tratamiento de Contenido (Permiso &lt;all_urls&gt;)</h2>
-    <p>La extensión requiere ejecutarse en las páginas web visitadas para poder detectar automáticamente cuándo el usuario está leyendo un capítulo de una novela o cómic web.</p>
+    <h2>2. Filosofía de Privacidad</h2>
+    <p>MyNovelSystem está diseñada bajo el principio de <strong>minimización de datos y privacidad desde el diseño</strong>:</p>
     <ul>
-      <li><strong>Páginas que NO son novelas:</strong> En sitios que no corresponden a plataformas de lectura o en páginas donde no se detectan patrones de capítulos, la extensión <strong>NO almacena ningún dato, NO recopila información personal, NO rastrea la navegación y NO envía ninguna petición a servidores externos</strong>. El análisis heurístico se realiza exclusivamente en la memoria volátil del navegador y se descarta de inmediato.</li>
-      <li><strong>Lista Negra y Dominios Excluidos:</strong> La extensión bloquea por diseño y por defecto la ejecución de cualquier observador en buscadores (Google, Bing, Yahoo), redes sociales (X, Facebook, Instagram, Reddit), servicios de streaming (YouTube, Twitch, Netflix), plataformas de desarrollo (GitHub, StackOverflow), almacenamiento y productividad. Asimismo, el usuario puede añadir cualquier dominio a su lista negra local para detener toda inspección con 0 consumo y 0 interferencia.</li>
+      <li>La extensión puede utilizarse de forma <strong>100% local</strong> sin necesidad de registrarse ni crear ninguna cuenta.</li>
+      <li><strong>Navegación Privada y Modo Incógnito:</strong> En pestañas o ventanas en modo incógnito, la extensión desactiva por completo su ejecución: no rastrea lectura, no escribe en memoria ni en la nube, no programa alarmas ni notificaciones, y jamás transmite información de pestañas privadas en los reportes de error.</li>
+      <li>No recopilamos contraseñas en servidores propios (la autenticación se delega exclusivamente en Google Firebase).</li>
+      <li>No rastreamos su historial de navegación general ni vendemos ningún tipo de información a terceros.</li>
     </ul>
 
-    <h2>3. Tratamiento de Credenciales y Autenticación</h2>
-    <p>La extensión <strong>NUNCA almacena ni registra contraseñas</strong> de los usuarios en su código ni en el almacenamiento local.</p>
+    <h2>3. Permisos de Navegador Solicitados y Justificación</h2>
+    <p>La extensión solicita únicamente los permisos indispensables para cumplir sus funciones técnicas:</p>
     <ul>
-      <li>Al iniciar sesión o registrarse para la sincronización en la nube, las credenciales se transmiten directamente y de forma segura a través de HTTPS a <strong>Google Firebase Authentication (Identity Toolkit)</strong>.</li>
-      <li>La extensión almacena en <code>chrome.storage.local</code> únicamente el identificador único de usuario (<code>uid</code>), el correo electrónico y los tokens de sesión delegados (<code>idToken</code> y <code>refreshToken</code>) necesarios para autorizar las solicitudes a la base de datos de usuario.</li>
+      <li><code>storage</code>: Imprescindible para guardar en la memoria local de su navegador los capítulos leídos, sus estadísticas de cultivo y sus ajustes personalizados.</li>
+      <li><code>tabs</code>: Utilizado exclusivamente para identificar la pestaña de lectura activa, detectar el capítulo actual en sitios web de novelas o cómics y actualizar el icono del navegador.</li>
+      <li><code>alarms</code>: Utilizado para programar el temporizador local que verifica la inactividad de lectura (para los avisos de WhatsApp opcionales) y la sincronización periódica con la nube.</li>
     </ul>
 
     <h2>4. Datos Almacenados Localmente (en su Dispositivo)</h2>
@@ -147,7 +142,6 @@
     <ul>
       <li><strong>Datos enviados:</strong> Número de teléfono (saneado a dígitos exclusivamente), API Key personal de CallMeBot, título de la novela pausada y URL de reanudación de lectura.</li>
       <li><strong>Servidor de destino:</strong> <code>https://api.callmebot.com/whatsapp.php</code> mediante petición GET sobre HTTPS cifrado al cumplirse el temporizador de pausa o al pulsar "Probar".</li>
-      <li><strong>Aviso sobre el servicio:</strong> CallMeBot recibe tu teléfono, tu clave y el título de la novela en la URL de la petición. No actives el aviso si no quieres que ese servicio vea esos datos.</li>
     </ul>
 
     <h2>6. Finalidad del Tratamiento y Conservación</h2>
@@ -186,7 +180,7 @@
       <li><strong>Requisito de sesión autenticada:</strong> Para prevenir abusos, proteger la infraestructura y garantizar el origen legítimo de los reportes, <strong>los reportes solo se aceptan de usuarios con sesión iniciada</strong> en una cuenta de la extensión. Los usuarios sin sesión no pueden enviar reportes desde el formulario integrado; si no dispone de cuenta o prefiere no iniciar sesión, puede remitir su consulta o reporte directamente por correo a <strong>mynovelsystem@gmail.com</strong>.</li>
       <li><strong>Carácter voluntario y anónimo por defecto:</strong> El envío de un reporte solo ocurre cuando el usuario pulsa deliberadamente el botón «Enviar reporte». Por defecto, todos los reportes son completamente <strong>anónimos</strong> (se identifican como <code>anonymous</code>) y no transmiten el correo de la cuenta del usuario ni información personal identificable.</li>
       <li><strong>Consentimiento específico e independiente para el correo:</strong> La casilla «Incluir mi correo de contacto» se encuentra desmarcada por defecto. Solo si el usuario decide activarla conscientemente, se adjuntará el correo de su cuenta para recibir respuesta del desarrollador.</li>
-      <li><strong>Datos técnicos y URL de pestaña (opcional y desmarcado por defecto):</strong> La casilla «Adjuntar URL actual y registro técnico (logs)» se encuentra desmarcada por defecto. La URL y título de la pestaña activa, así como los eventos técnicos recientes de depuración, <strong>solo se incluyen si el usuario marca deliberadamente dicha casilla</strong>. Si no se marca, no se envía ninguna URL ni registro de logs (valor nulo).</li>
+      <li><strong>Datos técnicos y URL de pestaña (opcional y desmarcado por defecto):</strong> La casilla «Adjuntar URL actual y registro técnico (logs)» se encuentra desmarcada por defecto. La URL y título de la pestaña activa, así como los eventos técnicos recientes de depuración, <strong>solo se incluyen si el usuario marca deliberadamente dicha casilla</strong>. Si no se marca, no se envía ninguna URL ni registro de logs (valor nulo). Si la pestaña activa es una ventana en modo incógnito o privada, la URL y el título nunca se capturan ni se transmiten.</li>
       <li><strong>Transparencia previa:</strong> El usuario puede revisar previamente estos registros mediante el visor desplegable antes de enviarlos.</li>
       <li><strong>Privacidad y minimización:</strong> Los reportes técnicos se transmiten de forma segura a Firebase Realtime Database bajo la ruta <code>/reports/</code> para uso exclusivo de diagnóstico técnico por el desarrollador.</li>
       <li><strong>Contacto directo:</strong> Para cualquier cuestión relativa a un reporte de error o para solicitar la supresión de cualquier dato enviado, puede contactar directamente a: <strong>mynovelsystem@gmail.com</strong>.</li>
