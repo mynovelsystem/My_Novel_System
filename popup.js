@@ -448,12 +448,19 @@ function initNavigation() {
 // ================= REPORTE DE ERRORES Y VISOR DE LOGS =================
 
 function initReportAndLogsEvents() {
-  document.getElementById("btnSendReport")?.addEventListener("click", () => {
+  document.getElementById("btnSendReport")?.addEventListener("click", async () => {
     const category = document.getElementById("reportCategory").value;
     const message = document.getElementById("reportMessage").value.trim();
     const attachLogs = Boolean(document.getElementById("reportAttachLogs")?.checked);
     const includeEmail = Boolean(document.getElementById("reportIncludeEmail")?.checked);
     const statusEl = document.getElementById("reportStatusMsg");
+
+    const { auth } = await chrome.storage.local.get(["auth"]);
+    if (!auth || !auth.idToken) {
+      statusEl.className = "feedback-msg err";
+      statusEl.textContent = t("report_auth_required_err");
+      return;
+    }
 
     if (!message) {
       statusEl.className = "feedback-msg err";
@@ -480,7 +487,11 @@ function initReportAndLogsEvents() {
           statusEl.textContent = t("report_sent_ok");
         } else {
           statusEl.className = "feedback-msg err";
-          statusEl.textContent = t("report_sent_err");
+          if (res?.error === "AUTH_REQUIRED" || res?.error === "NO_AUTH") {
+            statusEl.textContent = res.message || t("report_auth_required_err");
+          } else {
+            statusEl.textContent = res?.message || t("report_sent_err");
+          }
         }
       }
     );
@@ -3470,6 +3481,30 @@ function initSettingsAndBackupEvents() {
     msg.textContent = t("backup_export_ok");
   });
 
+function verifyExportIntegrity(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { ok: false, error: "INVALID_STRUCTURE" };
+  }
+  let target = payload;
+  if (payload.exportMetadata && payload.data) {
+    if (typeof payload.exportMetadata !== "object" || Array.isArray(payload.exportMetadata)) {
+      return { ok: false, error: "INVALID_METADATA" };
+    }
+    if (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) {
+      return { ok: false, error: "INVALID_DATA" };
+    }
+    target = payload.data;
+  }
+  const hasNovels = (target.novels && typeof target.novels === "object") || (target.savedNovels && typeof target.savedNovels === "object");
+  const hasStats = target.stats && typeof target.stats === "object" && !Array.isArray(target.stats);
+  const hasSettings = target.settings && typeof target.settings === "object" && !Array.isArray(target.settings);
+  const hasBlacklist = Array.isArray(target.domainBlacklist);
+  if (!hasNovels && !hasStats && !hasSettings && !hasBlacklist) {
+    return { ok: false, error: "NO_VALID_DATA_FOUND" };
+  }
+  return { ok: true };
+}
+
   document.getElementById("btnImportJson")?.addEventListener("click", () => {
     document.getElementById("importFileInput")?.click();
   });
@@ -3479,6 +3514,13 @@ function initSettingsAndBackupEvents() {
     if (!file) return;
     const msg = document.getElementById("backupMsg");
 
+    if (file.size > 10 * 1024 * 1024) {
+      msg.className = "feedback-msg err";
+      msg.textContent = t("backup_import_too_large");
+      e.target.value = "";
+      return;
+    }
+
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
@@ -3486,19 +3528,18 @@ function initSettingsAndBackupEvents() {
 
       // Detect and verify verifiable backup bundle format
       if (parsed && typeof parsed === "object" && parsed.exportMetadata && parsed.data) {
-        if (typeof verifyExportIntegrity === "function") {
-          const verifyRes = await verifyExportIntegrity(parsed);
-          if (!verifyRes.ok) {
-            msg.className = "feedback-msg err";
-            msg.textContent = `Archivo manipulado o corrupto (Error: ${verifyRes.error})`;
-            return;
-          }
+        const verifyRes = verifyExportIntegrity(parsed);
+        if (!verifyRes.ok) {
+          msg.className = "feedback-msg err";
+          msg.textContent = `Archivo manipulado o corrupto (Error: ${verifyRes.error})`;
+          return;
         }
         payloadToImport = parsed.data;
       }
 
-      if (!payloadToImport || typeof payloadToImport !== "object" || (!payloadToImport.novels && !payloadToImport.savedNovels && !payloadToImport.stats)) {
-        throw new Error("Invalid format");
+      const verifyRes = verifyExportIntegrity(payloadToImport);
+      if (!verifyRes.ok) {
+        throw new Error(verifyRes.error);
       }
 
       chrome.runtime.sendMessage({ type: "IMPORT_DATA", payload: payloadToImport }, async (res) => {
@@ -3508,11 +3549,18 @@ function initSettingsAndBackupEvents() {
           await renderNovels();
           await renderBlacklistUI();
           msg.className = "feedback-msg ok";
-          msg.textContent = t("backup_import_ok", {
+          let successText = t("backup_import_ok", {
             added: res.added || 0,
             updated: res.updated || 0,
             skipped: res.skipped || 0
           });
+          if (res.discarded && res.discarded > 0) {
+            const discText = (typeof getCurrentLang === "function" ? getCurrentLang() : "es") === "en"
+              ? ` (${res.discarded} discarded)`
+              : ` (${res.discarded} descartadas por formato inválido)`;
+            successText += discText;
+          }
+          msg.textContent = successText;
         } else {
           msg.className = "feedback-msg err";
           msg.textContent = t("backup_import_err");
@@ -4569,6 +4617,8 @@ async function checkAuthState() {
     if (reportEmailSpan) {
       reportEmailSpan.textContent = `${t("report_include_email")} (${auth.email})`;
     }
+    const reportAuthNotice = document.getElementById("reportAuthNotice");
+    if (reportAuthNotice) reportAuthNotice.style.display = "none";
   } else {
     currentSyncStatus = "local";
     const userEmail = document.getElementById("userEmailDisplay");
@@ -4580,6 +4630,11 @@ async function checkAuthState() {
     const reportEmailSpan = document.querySelector("#reportIncludeEmail + span") || document.querySelector("[data-i18n='report_include_email']");
     if (reportEmailSpan) {
       reportEmailSpan.textContent = t("report_include_email");
+    }
+    const reportAuthNotice = document.getElementById("reportAuthNotice");
+    if (reportAuthNotice) {
+      reportAuthNotice.style.display = "block";
+      reportAuthNotice.textContent = t("report_auth_required_err");
     }
   }
 
@@ -4749,7 +4804,7 @@ async function renderBlacklistUI() {
         <span style="font-size:11.5px; font-family:monospace; color:var(--text-primary); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item.domain)}</span>
         <span style="font-size:9.5px; color:var(--text-secondary);">${escapeHtml(formatTimeAgo(item.addedAt))}</span>
       </div>
-      <button type="button" class="btn-remove-blacklist" data-domain="${escapeHtml(item.domain)}" data-added-at="${item.addedAt || ""}" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:15px; padding:2px 6px; border-radius:4px; line-height:1; flex-shrink:0;" title="${escapeHtml(t("btn_close") || "Eliminar")}" aria-label="Eliminar ${escapeHtml(item.domain)}">&times;</button>
+      <button type="button" class="btn-remove-blacklist" data-domain="${escapeHtml(item.domain)}" data-added-at="${Number.isFinite(item.addedAt) ? item.addedAt : ""}" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:15px; padding:2px 6px; border-radius:4px; line-height:1; flex-shrink:0;" title="${escapeHtml(t("btn_close") || "Eliminar")}" aria-label="Eliminar ${escapeHtml(item.domain)}">&times;</button>
     </div>
   `
     )
@@ -4765,8 +4820,10 @@ function extractDomain(url) {
 }
 
 function formatTimeAgo(timestamp) {
-  if (!timestamp) return t("time_recent");
-  const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+  const num = Number(timestamp);
+  if (!Number.isFinite(num) || num <= 0) return t("time_recent");
+  const diffSec = Math.floor((Date.now() - num) / 1000);
+  if (diffSec < 0) return t("time_recent");
   if (diffSec < 60) return t("time_now");
   const diffMin = Math.floor(diffSec / 60);
   if (diffMin < 60) return t("time_min", { n: diffMin });
@@ -4775,7 +4832,7 @@ function formatTimeAgo(timestamp) {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) return t("time_yesterday");
   const locale = getCurrentLang() === "en" ? "en-US" : "es-ES";
-  return new Date(timestamp).toLocaleDateString(locale, { day: "2-digit", month: "2-digit" });
+  return new Date(num).toLocaleDateString(locale, { day: "2-digit", month: "2-digit" });
 }
 
 function escapeHtml(str) {

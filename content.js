@@ -1449,13 +1449,17 @@
 
       if ((derivedNovelUrl || looksLikeReadingSiteUrl()) && lastLoggedMissUrl !== location.href) {
         lastLoggedMissUrl = location.href;
+        let safeDerivedHost = "";
+        try {
+          if (derivedNovelUrl) safeDerivedHost = new URL(derivedNovelUrl).hostname;
+        } catch {}
         chrome.runtime.sendMessage({
           type: "DIAGNOSTIC_LOG",
           entry: {
             event: "NO_CHAPTER_DETECTED",
-            url: location.href,
+            url: location.hostname || "",
             pageTitle: document.title || "",
-            derivedNovelUrl: derivedNovelUrl || "",
+            derivedNovelUrl: safeDerivedHost,
             detectedName: novelName || ""
           }
         }).catch(() => {});

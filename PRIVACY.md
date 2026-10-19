@@ -51,6 +51,7 @@ Solo si el usuario decide voluntariamente registrarse o iniciar sesión con una 
 Solo si el usuario activa conscientemente las notificaciones de WhatsApp en los ajustes e introduce su teléfono y API Key:
 - **Datos enviados:** Número de teléfono (saneado a dígitos exclusivamente), API Key personal de CallMeBot, título de la novela pausada y URL de reanudación de lectura.
 - **Servidor de destino:** `https://api.callmebot.com/whatsapp.php` mediante petición GET sobre HTTPS cifrado al cumplirse el temporizador de pausa o al pulsar "Probar".
+- **Aviso sobre el servicio:** CallMeBot recibe tu teléfono, tu clave y el título de la novela en la URL de la petición. No actives el aviso si no quieres que ese servicio vea esos datos.
 
 ---
 
@@ -83,6 +84,7 @@ Como usuario, le asisten los derechos de acceso, rectificación, portabilidad y 
 
 ## 9. Reportes de Errores y Diagnóstico Técnico
 La extensión incluye una funcionalidad opcional para enviar reportes de errores técnicos al desarrollador con el fin de resolver fallos o incompatibilidades en sitios web de lectura:
+- **Requisito de sesión autenticada:** Para prevenir abusos, proteger la infraestructura y garantizar el origen legítimo de los reportes, **los reportes solo se aceptan de usuarios con sesión iniciada** en una cuenta de la extensión. Los usuarios sin sesión no pueden enviar reportes desde el formulario integrado; si no dispone de cuenta o prefiere no iniciar sesión, puede remitir su consulta o reporte directamente por correo a `mynovelsystem@gmail.com`.
 - **Carácter voluntario y anónimo por defecto:** El envío de un reporte solo ocurre cuando el usuario pulsa deliberadamente el botón «Enviar reporte». Por defecto, todos los reportes son completamente **anónimos** (se identifican como `anonymous`) y no transmiten el correo de la cuenta del usuario ni información personal identificable.
 - **Consentimiento específico e independiente para el correo:** La casilla «Incluir mi correo de contacto» se encuentra desmarcada por defecto. Solo si el usuario decide activarla conscientemente, se adjuntará el correo de su cuenta para recibir respuesta del desarrollador.
 - **Datos técnicos y URL de pestaña (opcional y desmarcado por defecto):** La casilla «Adjuntar URL actual y registro técnico (logs)» se encuentra desmarcada por defecto. La URL y título de la pestaña activa, así como los eventos técnicos recientes de depuración, **solo se incluyen si el usuario marca deliberadamente dicha casilla**. Si no se marca, no se envía ninguna URL ni registro de logs (valor nulo).

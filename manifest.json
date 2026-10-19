@@ -6,8 +6,7 @@
   "permissions": [
     "tabs",
     "storage",
-    "alarms",
-    "activeTab"
+    "alarms"
   ],
   "host_permissions": [
     "https://identitytoolkit.googleapis.com/*",
@@ -48,15 +47,6 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "locales/es.json",
-        "locales/en.json"
-      ],
-      "matches": ["<all_urls>"]
     }
   ]
 }

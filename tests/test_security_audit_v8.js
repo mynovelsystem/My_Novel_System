@@ -29,18 +29,13 @@ for (const h of expectedHosts) {
   assert.ok(manifest.host_permissions.includes(h), `Missing expected host permission: ${h}`);
 }
 
-// SEC-06: web_accessible_resources should only contain locales
-const war = manifest.web_accessible_resources || [];
-const warResources = war.flatMap((w) => w.resources || []);
-assert.ok(!warResources.includes("achievements_data.js"), "achievements_data.js must NOT be in web_accessible_resources");
-assert.ok(!warResources.some((r) => r.includes("assets/badges")), "assets/badges must NOT be in web_accessible_resources");
-assert.ok(warResources.includes("locales/es.json"), "locales/es.json must be accessible");
-assert.ok(warResources.includes("locales/en.json"), "locales/en.json must be accessible");
+// SEC-06: web_accessible_resources must NOT exist (locales loaded internally by extension)
+assert.strictEqual(manifest.web_accessible_resources, undefined, "web_accessible_resources must NOT exist in manifest.json");
 
 // SEC-02: externally_connectable must NOT exist
 assert.strictEqual(manifest.externally_connectable, undefined, "externally_connectable must NOT exist");
 
-console.log("  [PASS] Minimal host_permissions and restricted web_accessible_resources verified.");
+console.log("  [PASS] Minimal host_permissions and absence of web_accessible_resources verified.");
 
 // ----------------------------------------------------------------------------
 // 2. SETUP VM SANDBOX FOR BACKGROUND.JS

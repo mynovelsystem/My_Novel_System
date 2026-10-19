@@ -172,7 +172,9 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
 
       vm.createContext(sandbox);
 
-      // Extract handleSubmitBugReport function implementation from background.js
+      // Extract helpers and handleSubmitBugReport function implementation from background.js
+      const getFirebaseUrlMatch = bgSource.match(/function getFirebaseUrl\(path, idToken\)[\s\S]*?\n\}/);
+      if (getFirebaseUrlMatch) vm.runInContext(getFirebaseUrlMatch[0], sandbox);
       const fnCodeMatch = bgSource.match(/async function handleSubmitBugReport\(payload\)[\s\S]*?\n\}/);
       assert.ok(fnCodeMatch, "handleSubmitBugReport function found in background.js");
       vm.runInContext(fnCodeMatch[0], sandbox);
@@ -257,7 +259,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
       console.log("  [PASS] Case C: includeEmail=true correctly conveys email upon explicit user consent.");
     }
 
-    // Case D: User checks includeEmail=true but has NO account (guest)
+    // Case D: User checks includeEmail=true but has NO account (guest) -> MUST BE REJECTED
     {
       const initialStorage = {
         diagnosticLogs: []
@@ -270,10 +272,14 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
         includeEmail: true
       });
 
-      assert.strictEqual(result.ok, true, "Report submission returns ok: true");
-      const payload = testEnv.getLastPayload();
-      assert.strictEqual(payload.userEmail, "anonymous", "Guest user email cleanly defaults to anonymous");
-      console.log("  [PASS] Case D: Unauthenticated user safely defaults to anonymous even if checked.");
+      assert.strictEqual(result.ok, false, "Report submission rejected without active session");
+      assert.strictEqual(result.error, "AUTH_REQUIRED", "Error code is 'AUTH_REQUIRED'");
+      assert.ok(
+        result.message && (result.message.includes("Inicia sesión") || result.message.includes("Sign in")),
+        "Controlled i18n error message returned"
+      );
+      assert.strictEqual(testEnv.getLastPayload(), null, "No network request dispatched without auth token");
+      console.log("  [PASS] Case D: Unauthenticated user cleanly rejected with controlled i18n error.");
     }
 
     // Case E: Empty message rejection
@@ -384,7 +390,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
     // Case H: Active Tab URL sanitization (credentials and token query param redaction)
     {
       const initialStorage = {
-        auth: null,
+        auth: { uid: "user_case_h", idToken: "token_case_h" },
         diagnosticLogs: []
       };
       const customTab = {
@@ -422,6 +428,10 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
       ["PRIVACY.md", privacyMdSource],
       ["docs/privacy/index.html", docsPrivacySource]
     ];
+    const docsIndexPath = path.join(rootDir, "docs", "index.html");
+    if (fs.existsSync(docsIndexPath)) {
+      policyDocs.push(["docs/index.html", fs.readFileSync(docsIndexPath, "utf8")]);
+    }
 
     for (const [name, doc] of policyDocs) {
       // 1. Contact email maintained
@@ -467,11 +477,11 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
     assert.ok(bgSource.includes("/users/${auth.uid}/domainBlacklist.json"), "User blacklist isolated to /users/${auth.uid}/");
     assert.ok(bgSource.includes("/users/${auth.uid}.json"), "Account deletion purges /users/${auth.uid}.json");
 
-    // Verify all RTDB fetch calls target only expected routes
-    const matches = bgSource.match(/fetch\(`\$\{dbCleanUrl\}\/([^`]+)`/g) || [];
-    assert.ok(matches.length >= 5, "Expected at least 5 RTDB fetch calls in background.js");
+    // Verify all RTDB calls target only expected routes (via getFirebaseUrl or dbCleanUrl)
+    const matches = bgSource.match(/getFirebaseUrl\(`([^`]+)`/g) || bgSource.match(/fetch\(`\$\{dbCleanUrl\}\/([^`]+)`/g) || [];
+    assert.ok(matches.length >= 5, "Expected at least 5 RTDB calls in background.js");
     for (const m of matches) {
-      const route = m.replace("fetch(`${dbCleanUrl}/", "").replace(/`$/, "");
+      const route = m.replace(/^getFirebaseUrl\(`\/?/, "").replace(/^fetch\(`\$\{dbCleanUrl\}\//, "").replace(/`$/, "");
       const isUserRoute = route.startsWith("users/${auth.uid}");
       const isReportRoute = route.startsWith("reports.json");
       assert.ok(isUserRoute || isReportRoute, `Unexpected RTDB route in background.js: ${route}`);
@@ -499,12 +509,12 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
   }
 
   // ----------------------------------------------------------------------------
-  // Test 7: API Call Audit for 'tabs' and 'activeTab'
+  // Test 7: API Call Audit for 'tabs' and Minimal Permissions
   // ----------------------------------------------------------------------------
   console.log("\n[Test 7] Manifest Permissions Justification Audit:");
   {
     assert.ok(manifest.permissions.includes("tabs"), "Manifest includes 'tabs'");
-    assert.ok(manifest.permissions.includes("activeTab"), "Manifest includes 'activeTab'");
+    assert.strictEqual(manifest.permissions.includes("activeTab"), false, "Manifest must NOT include redundant 'activeTab'");
 
     // Check that chrome.tabs.onUpdated, chrome.tabs.onActivated, chrome.tabs.onRemoved exist in background.js
     assert.ok(bgSource.includes("chrome.tabs.onUpdated"), "chrome.tabs.onUpdated requires 'tabs'");
@@ -513,7 +523,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
     assert.ok(bgSource.includes("chrome.tabs.query({})"), "chrome.tabs.query({}) requires 'tabs'");
 
     console.log("  [PASS] 'tabs' permission required by multi-tab lifecycle listeners & domain blacklisting.");
-    console.log("  [PASS] 'activeTab' permission required for contextual popup & command interactions.");
+    console.log("  [PASS] 'activeTab' permission removed as redundant with 'tabs' to minimize attack surface.");
   }
 
   console.log("\n>>> ALL CWS PRIVACY & BUG REPORT TESTS PASSED (100%)! <<<");

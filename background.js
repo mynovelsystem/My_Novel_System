@@ -8,6 +8,39 @@ const FIREBASE_API_KEY = "AIzaSyCBLWg72OnEmDUUxhc_33MQ9bXdu9rnSTU";
 const FIREBASE_DB_URL = "https://novel-tracker-1d134-default-rtdb.firebaseio.com";
 // ====================================================================
 
+function getFirebaseUrl(path, idToken) {
+  const dbCleanUrl = (typeof FIREBASE_DB_URL !== "undefined" && FIREBASE_DB_URL)
+    ? FIREBASE_DB_URL.replace(/\/+$/, "")
+    : "https://novel-tracker-1d134-default-rtdb.firebaseio.com";
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const authQuery = idToken ? `?auth=${encodeURIComponent(idToken)}` : "";
+  return `${dbCleanUrl}${cleanPath}${authQuery}`;
+}
+
+function verifyExportIntegrity(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { ok: false, error: "INVALID_STRUCTURE" };
+  }
+  let target = payload;
+  if (payload.exportMetadata && payload.data) {
+    if (typeof payload.exportMetadata !== "object" || Array.isArray(payload.exportMetadata)) {
+      return { ok: false, error: "INVALID_METADATA" };
+    }
+    if (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) {
+      return { ok: false, error: "INVALID_DATA" };
+    }
+    target = payload.data;
+  }
+  const hasNovels = (target.novels && typeof target.novels === "object") || (target.savedNovels && typeof target.savedNovels === "object");
+  const hasStats = target.stats && typeof target.stats === "object" && !Array.isArray(target.stats);
+  const hasSettings = target.settings && typeof target.settings === "object" && !Array.isArray(target.settings);
+  const hasBlacklist = Array.isArray(target.domainBlacklist);
+  if (!hasNovels && !hasStats && !hasSettings && !hasBlacklist) {
+    return { ok: false, error: "NO_VALID_DATA_FOUND" };
+  }
+  return { ok: true };
+}
+
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_DIAGNOSTIC_LOGS = 25;
 const CHAPTER_STRIP_PATH_REGEX = /^(.*?)(?:\/|-|_)(?:chapters?|cap[ií]tulos?|capitulos?|episodes?|episodios?|partes?|secci[oó]n|secciones|sections?|ch|cap|ep|c|bab)[-_\/.]?\d+(?:[._-]\d+)?(?:\.html?|\/.*)?$/i;
@@ -217,10 +250,9 @@ async function clearDomainBlacklist() {
 async function pushDomainBlacklistToCloud(list) {
   const auth = await getValidAuth();
   if (!auth) return;
-  const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
   try {
     const payload = Array.isArray(list) ? list : await getStoredDomainBlacklist();
-    await fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`, {
+    await fetch(getFirebaseUrl(`/users/${auth.uid}/domainBlacklist.json`, auth.idToken), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -290,13 +322,63 @@ function withStorageLock(task) {
 
 // ================= SISTEMA DE LOGS DE DIAGNÓSTICO Y REPORTES =================
 
+function getHostnameFromUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  try {
+    const candidate = rawUrl.includes("://") ? rawUrl : `https://${rawUrl}`;
+    return new URL(candidate).hostname || "";
+  } catch {
+    return "";
+  }
+}
+
+async function clearInactiveAlarms() {
+  try {
+    if (chrome.alarms && typeof chrome.alarms.getAll === "function") {
+      const allAlarms = await new Promise((resolve) => {
+        try {
+          const res = chrome.alarms.getAll((alarms) => resolve(alarms));
+          if (res && typeof res.then === "function") res.then(resolve);
+        } catch {
+          resolve([]);
+        }
+      });
+      if (Array.isArray(allAlarms)) {
+        for (const a of allAlarms) {
+          if (a && a.name && a.name.startsWith("inactive_")) {
+            chrome.alarms.clear(a.name);
+          }
+        }
+      }
+    }
+  } catch {}
+
+  try {
+    const all = await chrome.storage.local.get(null);
+    for (const k of Object.keys(all || {})) {
+      if (k.startsWith("tab_")) {
+        const tid = k.replace("tab_", "");
+        if (chrome.alarms?.clear) {
+          chrome.alarms.clear(`inactive_${tid}`);
+        }
+      }
+    }
+  } catch {}
+}
+
 async function appendDiagnosticLog(entry) {
   try {
+    const safeEntry = { ...entry };
+    for (const key of Object.keys(safeEntry)) {
+      if ((key.toLowerCase().endsWith("url") || key === "url" || key === "href") && typeof safeEntry[key] === "string" && safeEntry[key]) {
+        safeEntry[key] = getHostnameFromUrl(safeEntry[key]) || safeEntry[key];
+      }
+    }
     const { diagnosticLogs } = await chrome.storage.local.get(["diagnosticLogs"]);
     const logs = Array.isArray(diagnosticLogs) ? diagnosticLogs : [];
     logs.unshift({
       ts: new Date().toISOString(),
-      ...entry
+      ...safeEntry
     });
     if (logs.length > MAX_DIAGNOSTIC_LOGS) {
       logs.length = MAX_DIAGNOSTIC_LOGS;
@@ -399,6 +481,17 @@ async function handleSubmitBugReport(payload) {
     activeAuth = storage.auth;
   }
 
+  if (!activeAuth || !activeAuth.idToken) {
+    if (typeof initI18n === "function") {
+      try { await initI18n(); } catch {}
+    }
+    const errorMsg = (typeof t === "function" ? t("report_auth_required_err") : null) ||
+      ((typeof currentLang !== "undefined" && currentLang === "en")
+        ? "Sign in to send reports or write to us at mynovelsystem@gmail.com"
+        : "Inicia sesión para enviar reportes o escríbenos a mynovelsystem@gmail.com");
+    return { ok: false, error: "AUTH_REQUIRED", message: errorMsg };
+  }
+
   const userEmail = (includeEmail && activeAuth?.email) ? String(activeAuth.email).trim() : "anonymous";
 
   const reportData = {
@@ -412,11 +505,10 @@ async function handleSubmitBugReport(payload) {
     recentLogs: attachLogs ? sanitizeLogsForReport(storage.diagnosticLogs) : null
   };
 
-  const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
-  const authParam = activeAuth?.idToken ? `?auth=${encodeURIComponent(activeAuth.idToken)}` : "";
+  const reportsEndpoint = getFirebaseUrl("/reports.json", activeAuth.idToken);
 
   try {
-    const res = await fetch(`${dbCleanUrl}/reports.json${authParam}`, {
+    const res = await fetch(reportsEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reportData)
@@ -1907,8 +1999,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const res = await switchAccountProfile("guest");
       await chrome.storage.local.remove(["auth"]);
 
-      if (message.clearLocalData && outgoingUid && outgoingUid !== "guest") {
-        await chrome.storage.local.remove([`account_data_${outgoingUid}`, `userAvatar_${outgoingUid}`]);
+      if (message.clearLocalData) {
+        const { settings } = await chrome.storage.local.get(["settings"]);
+        const cleanSettings = { ...(settings || {}) };
+        delete cleanSettings.phone;
+        delete cleanSettings.apiKey;
+        cleanSettings.enableWhatsapp = false;
+        cleanSettings.whatsappStatus = "unconfigured";
+        await chrome.storage.local.set({ settings: cleanSettings, diagnosticLogs: [], notifiedHistory: {} });
+        await clearInactiveAlarms();
+
+        if (outgoingUid && outgoingUid !== "guest") {
+          await chrome.storage.local.remove([`account_data_${outgoingUid}`, `userAvatar_${outgoingUid}`]);
+        }
+      } else {
+        await chrome.storage.local.set({ diagnosticLogs: [] });
       }
 
       await refreshBrowserActionAppearance();
@@ -1968,10 +2073,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // 3. Confirmada la eliminación en Auth por el servidor: eliminar datos remotos en Realtime Database
       let rtdbDeleted = false;
       try {
-        const dbCleanUrl = (typeof FIREBASE_DB_URL !== "undefined" && FIREBASE_DB_URL)
-          ? FIREBASE_DB_URL.replace(/\/+$/, "")
-          : "https://novel-tracker-1d134-default-rtdb.firebaseio.com";
-        const rtdbRes = await fetch(`${dbCleanUrl}/users/${auth.uid}.json?auth=${encodeURIComponent(auth.idToken)}`, {
+        const rtdbRes = await fetch(getFirebaseUrl(`/users/${auth.uid}.json`, auth.idToken), {
           method: "DELETE"
         });
         rtdbDeleted = rtdbRes.ok;
@@ -1986,6 +2088,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const userVaultKey = `account_data_${auth.uid}`;
       const avatarKey = `userAvatar_${auth.uid}`;
       await chrome.storage.local.remove([userVaultKey, avatarKey, "auth"]);
+
+      const { settings } = await chrome.storage.local.get(["settings"]);
+      const cleanSettings = { ...(settings || {}) };
+      delete cleanSettings.phone;
+      delete cleanSettings.apiKey;
+      cleanSettings.enableWhatsapp = false;
+      cleanSettings.whatsappStatus = "unconfigured";
+      await chrome.storage.local.set({ settings: cleanSettings, diagnosticLogs: [], notifiedHistory: {} });
+      await clearInactiveAlarms();
 
       await refreshBrowserActionAppearance();
 
@@ -2099,10 +2210,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (keysToRemove.length > 0) {
         await chrome.storage.local.remove(keysToRemove);
       }
+      const { settings } = await chrome.storage.local.get(["settings"]);
+      const cleanSettings = { ...(settings || {}) };
+      delete cleanSettings.phone;
+      delete cleanSettings.apiKey;
+      cleanSettings.enableWhatsapp = false;
+      cleanSettings.whatsappStatus = "unconfigured";
+
       await chrome.storage.local.set({
         savedNovels: {},
-        stats: defaultStats
+        stats: defaultStats,
+        settings: cleanSettings,
+        diagnosticLogs: [],
+        notifiedHistory: {}
       });
+      await clearInactiveAlarms();
       await refreshBrowserActionAppearance();
       return { ok: true, stats: defaultStats };
     })
@@ -2391,7 +2513,7 @@ async function handleNovelDetected(novelData, confident, tabId) {
       await appendDiagnosticLog({
         event: "DETECT_UNCONFIRMED (?)",
         reason: !cleanIncomingName ? "MISSING_VALID_NAME" : "LOW_CONFIDENCE_SERIES_URL",
-        url: novelData.url,
+        url: getHostnameFromUrl(novelData.url),
         pageTitle: novelData.pageTitle || "",
         rawName: novelData.novelName || "",
         chapter: resolvedChapterStr,
@@ -2605,8 +2727,8 @@ async function handleNovelDetected(novelData, confident, tabId) {
       chapter: finalChapter,
       detectedChapter: resolvedChapterStr,
       seriesId,
-      novelUrl: stableNovelUrl,
-      url: novelData.url
+      novelUrl: getHostnameFromUrl(stableNovelUrl),
+      url: getHostnameFromUrl(novelData.url)
     });
 
     setTabQuestionBadge(tabId, false);
@@ -2687,41 +2809,96 @@ async function handleTestWhatsapp(data) {
 
 async function handleImportData(payload) {
   return withStorageLock(async () => {
-    if (!payload || typeof payload !== "object") {
-      return { ok: false };
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return { ok: false, error: "INVALID_PAYLOAD" };
+    }
+
+    const integrityCheck = verifyExportIntegrity(payload);
+    if (!integrityCheck.ok) {
+      return { ok: false, error: integrityCheck.error };
     }
 
     let actualPayload = payload;
     if (payload.exportMetadata && payload.data) {
-      if (typeof verifyExportIntegrity === "function") {
-        const verifyRes = await verifyExportIntegrity(payload);
-        if (!verifyRes.ok) {
-          return { ok: false, error: "CHECKSUM_MISMATCH", details: verifyRes.error };
-        }
-      }
       actualPayload = payload.data;
     }
 
     const storage = await chrome.storage.local.get(["savedNovels", "stats", "settings"]);
     const localNovels = storage.savedNovels || {};
-    const incomingNovels = (actualPayload.novels || actualPayload.savedNovels) && typeof (actualPayload.novels || actualPayload.savedNovels) === "object"
-      ? (actualPayload.novels || actualPayload.savedNovels)
-      : {};
+    const rawIncoming = actualPayload.novels || actualPayload.savedNovels || {};
+
+    let incomingEntries = [];
+    if (Array.isArray(rawIncoming)) {
+      incomingEntries = rawIncoming.map((entry, idx) => [entry?.seriesId || String(idx), entry]);
+    } else if (rawIncoming && typeof rawIncoming === "object") {
+      incomingEntries = Object.entries(rawIncoming);
+    }
 
     let added = 0;
     let updated = 0;
     let skipped = 0;
+    let discarded = 0;
+
+    const MAX_IMPORT_NOVELS = 5000;
+    const MAX_IMPORT_DOMAINS = 2000;
+
+    if (incomingEntries.length > MAX_IMPORT_NOVELS) {
+      discarded += (incomingEntries.length - MAX_IMPORT_NOVELS);
+      incomingEntries = incomingEntries.slice(0, MAX_IMPORT_NOVELS);
+    }
 
     const combinedNovels = { ...localNovels };
 
-    for (const [rawKey, incEntry] of Object.entries(incomingNovels)) {
-      if (!incEntry || typeof incEntry !== "object") continue;
-      const { seriesId } = computeCanonicalSeriesId(incEntry, incEntry.seriesId || rawKey);
-      let localEntry = combinedNovels[seriesId] || combinedNovels[rawKey] || (incEntry.seriesId ? combinedNovels[incEntry.seriesId] : null);
+    for (const [rawKey, incEntry] of incomingEntries) {
+      if (!incEntry || typeof incEntry !== "object" || Array.isArray(incEntry)) {
+        discarded++;
+        continue;
+      }
+
+      // URL validation: if url or novelUrl is present, it must be valid http/https and <= 2048 chars
+      if (incEntry.url) {
+        if (typeof incEntry.url !== "string" || !isValidHttpUrl(incEntry.url) || incEntry.url.length > 2048) {
+          discarded++;
+          continue;
+        }
+      }
+      if (incEntry.novelUrl) {
+        if (typeof incEntry.novelUrl !== "string" || !isValidHttpUrl(incEntry.novelUrl) || incEntry.novelUrl.length > 2048) {
+          discarded++;
+          continue;
+        }
+      }
+
+      // Check identifying string
+      const novelNameStr = typeof incEntry.novelName === "string" ? incEntry.novelName.trim() : "";
+      const customNameStr = typeof incEntry.customName === "string" ? incEntry.customName.trim() : "";
+      const seriesIdStr = typeof incEntry.seriesId === "string" ? incEntry.seriesId.trim() : "";
+      const urlStr = typeof incEntry.url === "string" ? incEntry.url.trim() : "";
+      if (!novelNameStr && !customNameStr && !seriesIdStr && !urlStr) {
+        discarded++;
+        continue;
+      }
+
+      // Truncate strings to safe bounds
+      const sanitizedEntry = {
+        ...incEntry,
+        novelName: novelNameStr.slice(0, 300),
+        customName: customNameStr ? customNameStr.slice(0, 300) : undefined,
+        url: urlStr.slice(0, 2048),
+        novelUrl: incEntry.novelUrl ? String(incEntry.novelUrl).slice(0, 2048) : "",
+        chapter: incEntry.chapter !== undefined && incEntry.chapter !== null ? String(incEntry.chapter).slice(0, 50) : "",
+        seriesId: seriesIdStr ? seriesIdStr.slice(0, 256) : undefined
+      };
+      if (!sanitizedEntry.customName) delete sanitizedEntry.customName;
+      if (!sanitizedEntry.novelUrl) delete sanitizedEntry.novelUrl;
+      if (!sanitizedEntry.seriesId) delete sanitizedEntry.seriesId;
+
+      const { seriesId } = computeCanonicalSeriesId(sanitizedEntry, sanitizedEntry.seriesId || rawKey);
+      let localEntry = combinedNovels[seriesId] || combinedNovels[rawKey] || (sanitizedEntry.seriesId ? combinedNovels[sanitizedEntry.seriesId] : null);
 
       if (!localEntry) {
-        const incNovelNorm = normalizeText(incEntry.novelName);
-        const incCustomNorm = normalizeText(incEntry.customName);
+        const incNovelNorm = normalizeText(sanitizedEntry.novelName);
+        const incCustomNorm = normalizeText(sanitizedEntry.customName);
         for (const [locK, locE] of Object.entries(combinedNovels)) {
           if (!locE) continue;
           const locNovelNorm = normalizeText(locE.novelName);
@@ -2742,26 +2919,26 @@ async function handleImportData(payload) {
       if (rawKey !== seriesId && combinedNovels[rawKey]) {
         delete combinedNovels[rawKey];
       }
-      if (incEntry.seriesId && incEntry.seriesId !== seriesId && combinedNovels[incEntry.seriesId]) {
-        delete combinedNovels[incEntry.seriesId];
+      if (sanitizedEntry.seriesId && sanitizedEntry.seriesId !== seriesId && combinedNovels[sanitizedEntry.seriesId]) {
+        delete combinedNovels[sanitizedEntry.seriesId];
       }
 
       if (!localEntry) {
-        combinedNovels[seriesId] = { ...incEntry, seriesId };
-        if (!incEntry.deleted) added++;
+        combinedNovels[seriesId] = { ...sanitizedEntry, seriesId };
+        if (!sanitizedEntry.deleted) added++;
       } else {
-        const incMax = parseFloat(incEntry.maxCounted ?? incEntry.chapter) || 0;
+        const incMax = parseFloat(sanitizedEntry.maxCounted ?? sanitizedEntry.chapter) || 0;
         const locMax = parseFloat(localEntry.maxCounted ?? localEntry.chapter) || 0;
         const bestMax = Math.max(incMax, locMax);
-        const isIncomingNewer = (incEntry.updatedAt || 0) > (localEntry.updatedAt || 0);
+        const isIncomingNewer = (sanitizedEntry.updatedAt || 0) > (localEntry.updatedAt || 0);
         const customName = isIncomingNewer
-          ? (incEntry.customName || localEntry.customName)
-          : (localEntry.customName || incEntry.customName);
+          ? (sanitizedEntry.customName || localEntry.customName)
+          : (localEntry.customName || sanitizedEntry.customName);
 
         if (isIncomingNewer) {
           combinedNovels[seriesId] = {
             ...localEntry,
-            ...incEntry,
+            ...sanitizedEntry,
             seriesId,
             maxCounted: bestMax,
             ...(customName ? { customName } : {})
@@ -2779,10 +2956,14 @@ async function handleImportData(payload) {
     }
 
     const { migratedNovels } = deduplicateAndMigrateMap(combinedNovels);
-    const mergedStats = mergeStatsObjects(storage.stats, actualPayload.stats);
+    const mergedStats = (actualPayload.stats && typeof actualPayload.stats === "object" && !Array.isArray(actualPayload.stats))
+      ? mergeStatsObjects(storage.stats, actualPayload.stats)
+      : (storage.stats || getDefaultStats());
 
     const currentSettings = storage.settings || {};
-    const incSettings = actualPayload.settings || {};
+    const incSettings = (actualPayload.settings && typeof actualPayload.settings === "object" && !Array.isArray(actualPayload.settings))
+      ? actualPayload.settings
+      : {};
     const mergedSettings = {
       ...currentSettings,
       language: incSettings.language || currentSettings.language || detectDefaultLanguage(),
@@ -2803,15 +2984,22 @@ async function handleImportData(payload) {
       const blMap = new Map();
       currentBl.forEach((item) => {
         const d = normalizeDomain(item && item.domain);
-        if (d) blMap.set(d, { domain: d, addedAt: item.addedAt || Date.now() });
+        const rawAddedAt = typeof item === "object" && item !== null ? Number(item.addedAt) : NaN;
+        const safeAddedAt = Number.isFinite(rawAddedAt) && rawAddedAt > 0 ? rawAddedAt : Date.now();
+        if (d) blMap.set(d, { domain: d, addedAt: safeAddedAt });
       });
-      actualPayload.domainBlacklist.forEach((item) => {
+      actualPayload.domainBlacklist.slice(0, MAX_IMPORT_DOMAINS).forEach((item) => {
         const d = normalizeDomain(typeof item === "string" ? item : item?.domain);
-        if (d && !blMap.has(d)) {
-          blMap.set(d, { domain: d, addedAt: item?.addedAt || Date.now() });
+        const rawAddedAt = typeof item === "object" && item !== null ? Number(item.addedAt) : NaN;
+        const safeAddedAt = Number.isFinite(rawAddedAt) && rawAddedAt > 0 ? rawAddedAt : Date.now();
+        const isValid = Boolean(d && d.length <= 253 && d.includes(".") && !/\s/.test(d) && !d.startsWith(".") && !d.endsWith("."));
+        if (isValid && blMap.size < MAX_IMPORT_DOMAINS && !blMap.has(d)) {
+          blMap.set(d, { domain: d, addedAt: safeAddedAt });
         }
       });
-      const mergedBl = Array.from(blMap.values()).sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+      const mergedBl = Array.from(blMap.values())
+        .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
+        .slice(0, MAX_IMPORT_DOMAINS);
       await chrome.storage.local.set({ domainBlacklist: mergedBl });
       cachedDomainBlacklist = mergedBl;
       await pushDomainBlacklistToCloud(mergedBl);
@@ -2819,7 +3007,7 @@ async function handleImportData(payload) {
 
     await refreshBrowserActionAppearance();
     await pushToCloudUnlocked(migratedNovels, mergedStats);
-    return { ok: true, added, updated, skipped };
+    return { ok: true, added, updated, skipped, discarded };
   });
 }
 
@@ -3043,10 +3231,9 @@ async function pushToCloudUnlocked(novelsMap, statsObj, blacklistArr) {
     safePayload[safeKey] = v;
   }
 
-  const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
   try {
     const promises = [
-      fetch(`${dbCleanUrl}/users/${auth.uid}/novels.json?auth=${auth.idToken}`, {
+      fetch(getFirebaseUrl(`/users/${auth.uid}/novels.json`, auth.idToken), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(safePayload)
@@ -3055,7 +3242,7 @@ async function pushToCloudUnlocked(novelsMap, statsObj, blacklistArr) {
 
     if (statsObj) {
       promises.push(
-        fetch(`${dbCleanUrl}/users/${auth.uid}/stats.json?auth=${auth.idToken}`, {
+        fetch(getFirebaseUrl(`/users/${auth.uid}/stats.json`, auth.idToken), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(statsObj)
@@ -3066,7 +3253,7 @@ async function pushToCloudUnlocked(novelsMap, statsObj, blacklistArr) {
     const currentBl = blacklistArr !== undefined ? blacklistArr : cachedDomainBlacklist;
     if (Array.isArray(currentBl)) {
       promises.push(
-        fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`, {
+        fetch(getFirebaseUrl(`/users/${auth.uid}/domainBlacklist.json`, auth.idToken), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(currentBl)
@@ -3084,11 +3271,13 @@ async function switchAccountProfile(targetUid, mergeGuestData = false) {
   const normTarget = targetUid && typeof targetUid === "string" ? targetUid : "guest";
   const storage = await chrome.storage.local.get([
     "lastAuthUid",
+    "lastAuthenticatedUid",
     "savedNovels",
     "stats",
     "domainBlacklist",
     "guest_data",
-    `account_data_${normTarget}`
+    `account_data_${normTarget}`,
+    "settings"
   ]);
 
   const currentUid = storage.lastAuthUid || "guest";
@@ -3175,6 +3364,24 @@ async function switchAccountProfile(targetUid, mergeGuestData = false) {
     }
   }
 
+  // 5. Aislamiento de ajustes de WhatsApp entre cuentas autenticadas distintas
+  if (normTarget !== "guest") {
+    const prevAuthUid = storage.lastAuthenticatedUid || (storage.lastAuthUid && storage.lastAuthUid !== "guest" ? storage.lastAuthUid : null);
+    if (prevAuthUid && prevAuthUid !== normTarget) {
+      const currentSettings = storage.settings || {};
+      const cleanSettings = { ...currentSettings };
+      delete cleanSettings.phone;
+      delete cleanSettings.apiKey;
+      cleanSettings.enableWhatsapp = false;
+      cleanSettings.whatsappStatus = "unconfigured";
+      toSave.settings = cleanSettings;
+      toSave.diagnosticLogs = [];
+      toSave.notifiedHistory = {};
+      await clearInactiveAlarms();
+    }
+    toSave.lastAuthenticatedUid = normTarget;
+  }
+
   toSave.savedNovels = restoredNovels;
   toSave.stats = restoredStats;
   toSave.domainBlacklist = restoredBlacklist;
@@ -3236,12 +3443,11 @@ async function pullFromCloud(force = false) {
       await chrome.storage.local.set({ savedNovels: localMig.migratedNovels });
     }
 
-    const dbCleanUrl = FIREBASE_DB_URL.replace(/\/$/, "");
     try {
       const [novelsRes, statsRes, blacklistRes] = await Promise.all([
-        fetch(`${dbCleanUrl}/users/${auth.uid}/novels.json?auth=${auth.idToken}`),
-        fetch(`${dbCleanUrl}/users/${auth.uid}/stats.json?auth=${auth.idToken}`),
-        fetch(`${dbCleanUrl}/users/${auth.uid}/domainBlacklist.json?auth=${auth.idToken}`).catch(() => null)
+        fetch(getFirebaseUrl(`/users/${auth.uid}/novels.json`, auth.idToken)),
+        fetch(getFirebaseUrl(`/users/${auth.uid}/stats.json`, auth.idToken)),
+        fetch(getFirebaseUrl(`/users/${auth.uid}/domainBlacklist.json`, auth.idToken)).catch(() => null)
       ]);
 
       if (!novelsRes.ok || !statsRes.ok) {
@@ -3424,6 +3630,10 @@ if (typeof globalThis !== "undefined") {
   globalThis.isValidSeriesPath = isValidSeriesPath;
   globalThis.CATALOG_SEGMENTS = CATALOG_SEGMENTS;
   globalThis.BOGUS_NAMES = BOGUS_NAMES;
+  globalThis.clearInactiveAlarms = clearInactiveAlarms;
+  globalThis.getHostnameFromUrl = getHostnameFromUrl;
+  globalThis.getFirebaseUrl = getFirebaseUrl;
+  globalThis.verifyExportIntegrity = verifyExportIntegrity;
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -3457,6 +3667,10 @@ if (typeof module !== "undefined" && module.exports) {
     RARITY_BADGE_COLORS,
     BASE_TOOLBAR_ICONS,
     getToolbarIconPathsForTitle,
-    resetRenderedStateKey
+    resetRenderedStateKey,
+    clearInactiveAlarms,
+    getHostnameFromUrl,
+    getFirebaseUrl,
+    verifyExportIntegrity
   };
 }
