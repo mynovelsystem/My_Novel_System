@@ -1766,8 +1766,8 @@ async function updateAvatarMiniSlots(stats, forceIsLoggedIn) {
 
   const storage = await chrome.storage.local.get(["auth", "lastAuthUid", "stats"]);
   const auth = storage.auth;
-  const currentUid = auth?.uid || storage.lastAuthUid || "guest";
   const isLoggedIn = typeof forceIsLoggedIn === "boolean" ? forceIsLoggedIn : Boolean(auth && auth.email);
+  const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
   const currentStats = stats || storage.stats;
 
   if (profileBtn) {
@@ -1783,10 +1783,10 @@ async function updateAvatarMiniSlots(stats, forceIsLoggedIn) {
   const cfg = (titleId && typeof TITLE_CONFIG !== "undefined") ? TITLE_CONFIG[titleId] : null;
   const defaultEmoji = cfg?.symbol || (isLoggedIn ? "🧙‍♂️" : "👤");
 
-  if (!isLoggedIn) {
-    avatarPortrait.textContent = "👤";
-  } else if (customAvatar) {
+  if (customAvatar) {
     setSafeAvatarImage(avatarPortrait, customAvatar, defaultEmoji);
+  } else if (!isLoggedIn) {
+    avatarPortrait.textContent = "👤";
   } else {
     avatarPortrait.textContent = defaultEmoji;
   }
@@ -3779,8 +3779,9 @@ function initAccountEvents() {
       showModalStatusMsg("", false);
       await checkAuthState();
       const { auth, stats, lastAuthUid } = await chrome.storage.local.get(["auth", "stats", "lastAuthUid"]);
-      const currentUid = auth?.uid || lastAuthUid || "guest";
-      if (!auth || !auth.email) {
+      const isLoggedIn = Boolean(auth && auth.email);
+      const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
+      if (!isLoggedIn) {
         switchModalView("login");
       }
 
@@ -3791,12 +3792,13 @@ function initAccountEvents() {
       const customAvatar = avatarData[avatarKey];
 
       if (largeAvatar) {
+        const titleId = stats?.equippedTitle;
+        const cfg = (titleId && typeof TITLE_CONFIG !== "undefined") ? TITLE_CONFIG[titleId] : null;
+        const defaultEmoji = cfg?.symbol || (auth?.email ? "🧙‍♂️" : "👤");
         if (customAvatar) {
-          setSafeAvatarImage(largeAvatar, customAvatar, "🧙‍♂️");
+          setSafeAvatarImage(largeAvatar, customAvatar, defaultEmoji);
         } else {
-          const titleId = stats?.equippedTitle;
-          const cfg = (titleId && typeof TITLE_CONFIG !== "undefined") ? TITLE_CONFIG[titleId] : null;
-          setSafeAvatarImage(largeAvatar, null, cfg?.symbol || (auth?.email ? "🧙‍♂️" : "👤"));
+          setSafeAvatarImage(largeAvatar, null, defaultEmoji);
         }
       }
 
@@ -3890,7 +3892,8 @@ function initAccountEvents() {
   document.getElementById("btnSaveAvatar")?.addEventListener("click", async () => {
     if (!pendingAvatarDataUrl) return;
     const { auth, lastAuthUid, stats } = await chrome.storage.local.get(["auth", "lastAuthUid", "stats"]);
-    const currentUid = auth?.uid || lastAuthUid || "guest";
+    const isLoggedIn = Boolean(auth && auth.email);
+    const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
     const avatarKey = `userAvatar_${currentUid}`;
 
     await chrome.storage.local.set({ [avatarKey]: pendingAvatarDataUrl });
@@ -3907,7 +3910,8 @@ function initAccountEvents() {
 
   document.getElementById("btnRestoreAvatar")?.addEventListener("click", async () => {
     const { auth, lastAuthUid, stats } = await chrome.storage.local.get(["auth", "lastAuthUid", "stats"]);
-    const currentUid = auth?.uid || lastAuthUid || "guest";
+    const isLoggedIn = Boolean(auth && auth.email);
+    const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
     const avatarKey = `userAvatar_${currentUid}`;
 
     await chrome.storage.local.remove([avatarKey]);
@@ -3935,7 +3939,8 @@ function initAccountEvents() {
   async function openAvatarGalleryModal() {
     if (!avatarGalleryModal) return;
     const { auth, lastAuthUid } = await chrome.storage.local.get(["auth", "lastAuthUid"]);
-    const currentUid = auth?.uid || lastAuthUid || "guest";
+    const isLoggedIn = Boolean(auth && auth.email);
+    const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
     const avatarKey = `userAvatar_${currentUid}`;
     const avatarData = await chrome.storage.local.get([avatarKey]);
     const currentStored = avatarData[avatarKey];
@@ -4078,7 +4083,8 @@ function initAccountEvents() {
     const av = typeof getAvatarById === "function" ? getAvatarById(selectedGalleryAvatarId) : null;
     if (!av) return;
     const { auth, lastAuthUid, stats } = await chrome.storage.local.get(["auth", "lastAuthUid", "stats"]);
-    const currentUid = auth?.uid || lastAuthUid || "guest";
+    const isLoggedIn = Boolean(auth && auth.email);
+    const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
     const avatarKey = `userAvatar_${currentUid}`;
 
     await chrome.storage.local.set({ [avatarKey]: av.path });
@@ -4108,7 +4114,8 @@ function initAccountEvents() {
 
   document.getElementById("btnSettingsRestoreAvatar")?.addEventListener("click", async () => {
     const { auth, lastAuthUid, stats } = await chrome.storage.local.get(["auth", "lastAuthUid", "stats"]);
-    const currentUid = auth?.uid || lastAuthUid || "guest";
+    const isLoggedIn = Boolean(auth && auth.email);
+    const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest";
     const avatarKey = `userAvatar_${currentUid}`;
 
     await chrome.storage.local.remove([avatarKey]);
@@ -4401,6 +4408,17 @@ async function executeFirebaseAuth(email, password, mode, isModal = false) {
     };
 
     await chrome.storage.local.set({ auth: authData });
+
+    // Transferir avatar personalizado de invitado si la cuenta logueada no tiene avatar previo
+    try {
+      const guestAvKey = "userAvatar_guest";
+      const targetAvKey = `userAvatar_${authData.uid}`;
+      const avStore = await chrome.storage.local.get([guestAvKey, targetAvKey]);
+      if (avStore[guestAvKey] && !avStore[targetAvKey]) {
+        await chrome.storage.local.set({ [targetAvKey]: avStore[guestAvKey] });
+      }
+    } catch {}
+
     // 1. Mostrar estado autenticado de inmediato (independiente del estado de sync)
     await checkAuthState();
 

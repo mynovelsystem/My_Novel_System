@@ -3165,6 +3165,16 @@ async function switchAccountProfile(targetUid, mergeGuestData = false) {
     });
   }
 
+  // 4. Asociar avatar personalizado de invitado a cuenta registrada si el perfil de destino no tiene avatar
+  if (normTarget !== "guest" && currentUid === "guest") {
+    const guestAvKey = "userAvatar_guest";
+    const targetAvKey = `userAvatar_${normTarget}`;
+    const avStore = await chrome.storage.local.get([guestAvKey, targetAvKey]);
+    if (avStore[guestAvKey] && !avStore[targetAvKey]) {
+      toSave[targetAvKey] = avStore[guestAvKey];
+    }
+  }
+
   toSave.savedNovels = restoredNovels;
   toSave.stats = restoredStats;
   toSave.domainBlacklist = restoredBlacklist;

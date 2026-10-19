@@ -97,9 +97,17 @@ const EXT_PATH = path.resolve(__dirname, "..");
       assert.strictEqual(isActive, true, `Tab view ${tabTarget} activates on click`);
     }
 
+    // Verify each navigation tab includes its descriptor SVG icon and gear icon on settings
+    for (const tabTarget of tabs) {
+      const iconCount = await popupPage.locator(`.tab-btn[data-target="${tabTarget}"] svg.tab-icon`).count();
+      assert.strictEqual(iconCount, 1, `Tab ${tabTarget} contains descriptor SVG icon`);
+    }
+    const settingsGearCircle = await popupPage.locator('.tab-btn[data-target="view-settings"] svg circle').count();
+    assert.strictEqual(settingsGearCircle, 1, "Settings tab specifically contains gear icon");
+
     // Return to library view
     await popupPage.locator('.tab-btn[data-target="view-library"]').click();
-    console.log("  [PASS] Popup UI loaded, all 5 navigation tabs responsive, guest avatar verified.");
+    console.log("  [PASS] Popup UI loaded, all 5 navigation tabs responsive with descriptor SVG icons, guest avatar verified.");
 
     // ------------------------------------------------------------------------
     // Step 4: Account Modal & P0-2 Guest Transfer Decision Dialog
@@ -602,38 +610,57 @@ const EXT_PATH = path.resolve(__dirname, "..");
     await popupPage.click('.tab-btn[data-target="view-settings"]');
     await popupPage.waitForSelector("#view-settings", { state: "visible" });
 
-    // Open Gallery from Settings
-    await popupPage.click("#btnSettingsChooseAvatar");
+    // Verify duplicate avatar options removed from settings as requested
+    const hasDuplicateSettingsAvatar = await popupPage.evaluate(() => {
+      return Boolean(document.getElementById("btnSettingsChooseAvatar"));
+    });
+    assert.strictEqual(hasDuplicateSettingsAvatar, false, "Duplicate avatar chooser removed from Settings");
+
+    // Verify unauthenticated / guest user avatar customization from header
+    // Simulate guest mode by clearing auth
+    await popupPage.evaluate(async () => {
+      await chrome.storage.local.remove(["auth"]);
+    });
+
+    // Open Account Modal as unauthenticated guest via top-right profile button
+    await popupPage.click("#btnUserProfile");
+    await popupPage.waitForSelector("#accountModal", { state: "visible" });
+
+    // Verify guest can access avatar gallery
+    await popupPage.click("#btnChooseAvatar");
     await popupPage.waitForSelector("#avatarGalleryModal", { state: "visible" });
 
-    // Select Phoenix Maiden
+    // Select Phoenix Maiden as guest
     await popupPage.click('.avatar-card[data-avatar-id="phoenix_maiden"]');
     await popupPage.click("#btnConfirmAvatarGallery");
     await popupPage.waitForSelector("#avatarGalleryModal", { state: "hidden" });
 
-    // Verify Account Modal did NOT pop open
-    const isAccModalVisible = await popupPage.evaluate(() => {
-      const modal = document.getElementById("accountModal");
-      return modal && modal.style.display === "flex";
+    // Verify guest avatar persisted in chrome.storage.local
+    const storedGuestAvatar = await popupPage.evaluate(async () => {
+      const data = await chrome.storage.local.get(["userAvatar_guest"]);
+      return data["userAvatar_guest"];
     });
-    assert.strictEqual(isAccModalVisible, false, "Account modal must NOT open when choosing avatar from Settings");
+    assert.strictEqual(storedGuestAvatar, "assets/avatars/phoenix_maiden.svg", "Guest avatar persisted in storage under userAvatar_guest");
 
-    // Verify Settings avatar preview updated
-    const settingsAvatarSrc = await popupPage.evaluate(() => {
-      const img = document.querySelector("#settingsAvatarPreview img.avatar-custom-img");
+    // Verify header portrait displays custom avatar even when not logged in
+    const guestHeaderAvatarSrc = await popupPage.evaluate(() => {
+      const img = document.querySelector("#userAvatarPortrait img.avatar-custom-img");
       return img ? img.getAttribute("src") : null;
     });
-    assert.strictEqual(settingsAvatarSrc, "assets/avatars/phoenix_maiden.svg", "Settings preview reflects chosen avatar");
+    assert.strictEqual(guestHeaderAvatarSrc, "assets/avatars/phoenix_maiden.svg", "Header portrait displays chosen avatar for unauthenticated user");
 
-    // Restore from Settings
-    await popupPage.click("#btnSettingsRestoreAvatar");
-    const restoredSettingsAvatar = await popupPage.evaluate(async (uid) => {
-      const data = await chrome.storage.local.get([`userAvatar_${uid}`]);
-      return data[`userAvatar_${uid}`];
-    }, avatarUid);
-    assert.strictEqual(restoredSettingsAvatar, undefined, "Restored avatar from settings removed from storage");
+    // Restore Default as guest
+    await popupPage.click("#btnRestoreAvatar");
+    const restoredGuestAvatar = await popupPage.evaluate(async () => {
+      const data = await chrome.storage.local.get(["userAvatar_guest"]);
+      return data["userAvatar_guest"];
+    });
+    assert.strictEqual(restoredGuestAvatar, undefined, "Restored guest avatar removed from storage");
 
-    console.log("  [PASS] Real Chromium gallery rendering, 21 cards, category filtering, settings flow, persistence, and default restoration verified.");
+    await popupPage.click("#btnCloseAccountModal");
+    await popupPage.waitForSelector("#accountModal", { state: "hidden" });
+
+    console.log("  [PASS] Real Chromium gallery rendering, 21 cards, category filtering, unauthenticated guest flow, settings isolation, persistence, and default restoration verified.");
 
     await popupPage.close();
 

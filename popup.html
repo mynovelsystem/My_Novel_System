@@ -1194,7 +1194,9 @@
     /* ACCOUNT MODAL (PHASE 3) */
     .account-modal-dialog {
       max-width: 320px;
-      padding: 20px 18px 18px;
+      max-height: 550px;
+      overflow-y: auto;
+      padding: 16px 18px 18px;
     }
     .account-modal-header {
       text-align: center;
@@ -1594,7 +1596,7 @@
     }
 
     .nav-wrapper {
-      padding: 8px 16px 6px;
+      padding: 7px 8px 5px;
     }
 
     .segmented-nav {
@@ -1603,19 +1605,27 @@
       padding: 3px;
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
+      gap: 1.5px;
     }
 
     .tab-btn {
       flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5px;
       background: transparent;
       border: none;
       color: var(--text-secondary);
-      font-size: 11px;
+      font-size: 9.5px;
       font-weight: 600;
-      padding: 6px 0;
+      letter-spacing: -0.2px;
+      padding: 6px 1px;
       border-radius: 7px;
       cursor: pointer;
       transition: all 0.2s ease;
+      white-space: nowrap;
+      min-width: 0;
     }
 
     .tab-btn:hover {
@@ -1626,6 +1636,34 @@
       background: rgba(255, 255, 255, 0.09);
       color: var(--text-primary);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .tab-btn .tab-icon {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+      stroke: currentColor;
+      opacity: 0.8;
+      pointer-events: none;
+      transition: transform 0.2s ease, opacity 0.2s ease, stroke 0.2s ease;
+    }
+
+    .tab-btn:hover .tab-icon {
+      opacity: 1;
+      transform: translateY(-0.5px);
+    }
+
+    .tab-btn.active .tab-icon {
+      opacity: 1;
+      stroke: #a5b4fc;
+      transform: scale(1.05);
+    }
+
+    .tab-btn .tab-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      pointer-events: none;
     }
 
     .view-container {
@@ -3444,12 +3482,42 @@
 
   <!-- NAVEGACIÓN POR PESTAÑAS -->
   <div class="nav-wrapper">
-    <nav class="segmented-nav">
-      <button type="button" class="tab-btn active" data-target="view-library" data-i18n="tab_library"></button>
-      <button type="button" class="tab-btn" data-target="view-cultivation" data-i18n="tab_cultivation"></button>
-      <button type="button" class="tab-btn" data-target="view-inventory" data-i18n="tab_inventory"></button>
-      <button type="button" class="tab-btn" data-target="view-whatsapp" data-i18n="tab_whatsapp"></button>
-      <button type="button" class="tab-btn" data-target="view-settings" data-i18n="tab_settings"></button>
+    <nav class="segmented-nav" aria-label="Navegación principal">
+      <button type="button" class="tab-btn active" data-target="view-library">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span class="tab-label" data-i18n="tab_library">Biblioteca</span>
+      </button>
+      <button type="button" class="tab-btn" data-target="view-cultivation">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2c.5 2.5 2.5 4.5 4 6 1.5 1.5 2 3.5 2 5a6 6 0 0 1-12 0c0-2 .5-3.5 2-5 1.5-1.5 3.5-3.5 4-6z"/>
+          <path d="M12 18a2.5 2.5 0 0 0 2.5-2.5c0-1.5-1-2.5-2.5-3.5-1.5 1-2.5 2-2.5 3.5A2.5 2.5 0 0 0 12 18z"/>
+        </svg>
+        <span class="tab-label" data-i18n="tab_cultivation">Cultivación</span>
+      </button>
+      <button type="button" class="tab-btn" data-target="view-inventory">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <path d="M3 6h18"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span class="tab-label" data-i18n="tab_inventory">Inventario</span>
+      </button>
+      <button type="button" class="tab-btn" data-target="view-whatsapp">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+        <span class="tab-label" data-i18n="tab_whatsapp">WhatsApp</span>
+      </button>
+      <button type="button" class="tab-btn" data-target="view-settings">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="tab-label" data-i18n="tab_settings">Ajustes</span>
+      </button>
     </nav>
   </div>
 
@@ -3783,20 +3851,6 @@
         </div>
       </div>
 
-      <!-- 1d. Personalización de Perfil (v4.0.0) -->
-      <div class="glass-card" id="profilePersonalizationCard">
-        <div class="card-heading" data-i18n="avatar_settings_title">Personalización de Perfil</div>
-        <p style="font-size:10.5px; color:var(--text-secondary); line-height:1.35;" data-i18n="avatar_settings_desc">Personaliza tu imagen eligiendo uno de nuestros 21 avatares originales o sube tu propia fotografía.</p>
-        <div style="display:flex; align-items:center; gap:12px; margin-top:10px; background:rgba(0,0,0,0.25); padding:10px; border-radius:8px; border:1px solid var(--border-subtle);">
-          <div class="account-portrait-ring" style="width:48px; height:48px; flex-shrink:0;">
-            <div id="settingsAvatarPreview" class="avatar-portrait-inner" style="width:48px; height:48px; font-size:22px;">🧙‍♂️</div>
-          </div>
-          <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
-            <button type="button" id="btnSettingsChooseAvatar" class="btn-primary" style="font-size:11px; padding:5px 10px;" data-i18n="avatar_choose_btn">🎨 Elegir avatar</button>
-            <button type="button" id="btnSettingsRestoreAvatar" class="btn-secondary" style="font-size:10.5px; padding:4px 8px;" data-i18n="avatar_restore_btn">Restaurar predeterminado</button>
-          </div>
-        </div>
-      </div>
 
       <!-- 1c. Lista Negra de Dominios -->
       <div class="glass-card" id="blacklistCard">
@@ -4016,33 +4070,34 @@
     <div class="celebration-modal-dialog account-modal-dialog">
       <button type="button" class="btn-close-modal" id="btnCloseAccountModal" aria-label="Cerrar">&times;</button>
       
+      <!-- SECCIÓN COMÚN: Avatar del Usuario (Accesible para todos los usuarios) -->
+      <div class="account-profile-avatar-large">
+        <div class="account-portrait-ring" id="accountLargePortraitRing">
+          <div id="accountLargeAvatar" class="avatar-portrait-inner">👤</div>
+          <div id="accountLargeItemSlots" class="avatar-item-slots large"></div>
+        </div>
+      </div>
+
+      <!-- Acciones de Personalización de Avatar (v4.0.0) -->
+      <div class="avatar-custom-actions" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:100%;">
+        <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" style="display:none;">
+        <button type="button" id="btnChooseAvatar" class="btn-primary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_choose_btn">🎨 Elegir avatar</button>
+        <button type="button" id="btnChangeAvatar" class="btn-secondary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_upload_btn">📷 Subir foto</button>
+        <button type="button" id="btnRestoreAvatar" class="btn-secondary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_restore_btn">Restaurar predeterminado</button>
+      </div>
+
+      <!-- Vista previa de confirmación de avatar (Fase 6) -->
+      <div id="avatarPreviewBox" class="avatar-preview-box" style="display:none; width:100%; flex-direction:column; align-items:center; gap:8px; background:rgba(15,23,42,0.6); padding:10px; border-radius:8px; border:1px dashed #6366f1;">
+        <div style="font-size:11px; font-weight:600; color:#cbd5e1;" data-i18n="avatar_confirm_title">Vista previa de tu avatar</div>
+        <img id="avatarPreviewImg" style="width:54px; height:54px; border-radius:50%; object-fit:cover; border:2px solid #8b5cf6;" alt="Preview">
+        <div style="display:flex; gap:6px; width:100%;">
+          <button type="button" id="btnCancelAvatar" class="btn-secondary" style="flex:1; font-size:10.5px; padding:4px;" data-i18n="avatar_cancel_btn">Cancelar</button>
+          <button type="button" id="btnSaveAvatar" class="btn-primary" style="flex:1; font-size:10.5px; padding:4px;" data-i18n="avatar_save_btn">Guardar avatar</button>
+        </div>
+      </div>
+
       <!-- ESTADO: INICIADO SESIÓN -->
-      <div id="accountModalLoggedIn" style="display:none; flex-direction:column; gap:12px; align-items:center; width:100%;">
-        <div class="account-profile-avatar-large">
-          <div class="account-portrait-ring" id="accountLargePortraitRing">
-            <div id="accountLargeAvatar" class="avatar-portrait-inner">🧙‍♂️</div>
-            <div id="accountLargeItemSlots" class="avatar-item-slots large"></div>
-          </div>
-        </div>
-
-        <!-- Acciones de Personalización de Avatar (v4.0.0) -->
-        <div class="avatar-custom-actions" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:100%;">
-          <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" style="display:none;">
-          <button type="button" id="btnChooseAvatar" class="btn-primary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_choose_btn">🎨 Elegir avatar</button>
-          <button type="button" id="btnChangeAvatar" class="btn-secondary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_upload_btn">📷 Subir foto</button>
-          <button type="button" id="btnRestoreAvatar" class="btn-secondary" style="font-size:10px; padding:3.5px 8px;" data-i18n="avatar_restore_btn">Restaurar predeterminado</button>
-        </div>
-
-        <!-- Vista previa de confirmación de avatar (Fase 6) -->
-        <div id="avatarPreviewBox" class="avatar-preview-box" style="display:none; width:100%; flex-direction:column; align-items:center; gap:8px; background:rgba(15,23,42,0.6); padding:10px; border-radius:8px; border:1px dashed #6366f1;">
-          <div style="font-size:11px; font-weight:600; color:#cbd5e1;" data-i18n="avatar_confirm_title">Vista previa de tu avatar</div>
-          <img id="avatarPreviewImg" style="width:54px; height:54px; border-radius:50%; object-fit:cover; border:2px solid #8b5cf6;" alt="Preview">
-          <div style="display:flex; gap:6px; width:100%;">
-            <button type="button" id="btnCancelAvatar" class="btn-secondary" style="flex:1; font-size:10.5px; padding:4px;" data-i18n="avatar_cancel_btn">Cancelar</button>
-            <button type="button" id="btnSaveAvatar" class="btn-primary" style="flex:1; font-size:10.5px; padding:4px;" data-i18n="avatar_save_btn">Guardar avatar</button>
-          </div>
-        </div>
-
+      <div id="accountModalLoggedIn" style="display:none; flex-direction:column; gap:12px; align-items:center; width:100%; margin-top:6px; border-top:1px solid var(--border-subtle); padding-top:10px;">
         <div style="text-align:center;">
           <div id="accountModalUserEmail" style="font-size:13px; font-weight:700; color:#fff; word-break:break-all;"></div>
           <div id="accountSyncStatusIndicator" style="font-size:11px; color:#a5b4fc; margin-top:2px;">
@@ -4058,7 +4113,7 @@
       </div>
 
       <!-- ESTADO: NO INICIADO SESIÓN (LOGIN / REGISTRO / RECUPERACIÓN) -->
-      <div id="accountModalLoggedOut" style="display:flex; flex-direction:column; gap:10px; width:100%;">
+      <div id="accountModalLoggedOut" style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:6px; border-top:1px solid var(--border-subtle); padding-top:10px;">
         <div class="account-modal-header">
           <div class="celebration-kicker" data-i18n="account_title">Sistema de Cuenta</div>
           <div id="accountModalTitle" class="account-modal-heading" data-i18n="account_login_title">Acceso MyNovelSystem</div>

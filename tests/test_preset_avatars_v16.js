@@ -324,15 +324,15 @@ console.log("\n[Test 6] DOM Structure & Script Loading Integrity:");
     'id="avatarGalleryPreviewName"',
     'id="avatarGalleryPreviewDesc"',
     'id="btnCancelAvatarGallery"',
-    'id="btnConfirmAvatarGallery"',
-    'id="btnSettingsChooseAvatar"',
-    'id="btnSettingsRestoreAvatar"',
-    'id="settingsAvatarPreview"'
+    'id="btnConfirmAvatarGallery"'
   ];
 
   for (const elem of requiredElements) {
     assert.ok(popupHtml.includes(elem), `popup.html missing element: ${elem}`);
   }
+
+  // Ensure duplicate avatar options in Settings have been removed as per user requirement
+  assert.ok(!popupHtml.includes('id="btnSettingsChooseAvatar"'), "Settings must not contain duplicate avatar button");
 
   console.log("  [PASS] All gallery modal elements, buttons, previews, and script load sequence verified.");
 }
@@ -477,6 +477,71 @@ console.log("\n[Test 9] Profile Portrait Synchronization (3 Locations):");
   assert.ok(popupJsSrc.includes('accountModal && accountModal.style.display === "flex"'), "openAccountModal is conditionally called only when accountModal was already open");
 
   console.log("  [PASS] Tri-location portrait synchronization and settings modal isolation verified.");
+}
+
+// ----------------------------------------------------------------------------
+// Test 10: Navigation Bar Descriptor Icons & i18n Resilience
+// ----------------------------------------------------------------------------
+console.log("\n[Test 10] Navigation Bar Descriptor Icons & i18n Resilience:");
+{
+  const popupHtml = fs.readFileSync(path.join(rootDir, "popup.html"), "utf8");
+
+  const requiredTabs = [
+    { target: "view-library", i18n: "tab_library", iconShape: "M4 19.5" },
+    { target: "view-cultivation", i18n: "tab_cultivation", iconShape: "M12 2c" },
+    { target: "view-inventory", i18n: "tab_inventory", iconShape: "M6 2 3 6v14" },
+    { target: "view-whatsapp", i18n: "tab_whatsapp", iconShape: "M21 11.5" },
+    { target: "view-settings", i18n: "tab_settings", iconShape: 'circle cx="12" cy="12" r="3"' }
+  ];
+
+  for (const tab of requiredTabs) {
+    const tabRegex = new RegExp(`<button[^>]*data-target="${tab.target}"[\\s\\S]*?<\\/button>`);
+    const match = popupHtml.match(tabRegex);
+    assert.ok(match, `Tab button for ${tab.target} must exist in popup.html`);
+    const btnHtml = match[0];
+
+    assert.ok(btnHtml.includes('<svg class="tab-icon"'), `Tab ${tab.target} must contain <svg class="tab-icon">`);
+    assert.ok(btnHtml.includes('aria-hidden="true"'), `Tab ${tab.target} icon must be marked aria-hidden`);
+    assert.ok(btnHtml.includes(tab.iconShape), `Tab ${tab.target} must have expected descriptor icon geometry`);
+    assert.ok(btnHtml.includes(`data-i18n="${tab.i18n}"`), `Tab ${tab.target} must contain label with data-i18n="${tab.i18n}"`);
+    assert.ok(btnHtml.includes('class="tab-label"'), `Tab ${tab.target} label must have class="tab-label"`);
+  }
+
+  // Gear verification specifically for Settings as requested
+  assert.ok(popupHtml.includes('data-target="view-settings"'), "view-settings tab button exists");
+  const settingsMatch = popupHtml.match(/<button[^>]*data-target="view-settings"[\s\S]*?<\/button>/);
+  assert.ok(settingsMatch && settingsMatch[0].includes('r="3"'), "Settings tab button contains gear circle geometry");
+
+  console.log("  [PASS] All 5 navigation tabs verified with clean descriptor icons and i18n preservation.");
+}
+
+// ----------------------------------------------------------------------------
+// Test 11: Unauthenticated Guest Avatar Personalization & Title Preservation
+// ----------------------------------------------------------------------------
+console.log("\n[Test 11] Unauthenticated Guest Avatar Personalization & Title Preservation:");
+{
+  const popupJsSrc = fs.readFileSync(path.join(rootDir, "popup.js"), "utf8");
+
+  // Verify guest uid evaluates cleanly to "guest" when auth is falsy
+  assert.ok(popupJsSrc.includes('const currentUid = isLoggedIn && auth?.uid ? auth.uid : "guest"'),
+    "currentUid resolves to 'guest' when unauthenticated");
+
+  // Verify avatarPortrait renders custom avatar when set, and falls back to 👤 when guest without custom avatar
+  assert.ok(
+    popupJsSrc.includes('setSafeAvatarImage(avatarPortrait, customAvatar, defaultEmoji);'),
+    "avatarPortrait renders custom avatar safely"
+  );
+  assert.ok(
+    popupJsSrc.includes('avatarPortrait.textContent = "👤";'),
+    "avatarPortrait falls back to default 👤 when guest without custom avatar"
+  );
+
+  // Verify duplicate avatar chooser is removed from Settings view
+  const popupHtml = fs.readFileSync(path.join(rootDir, "popup.html"), "utf8");
+  assert.ok(!popupHtml.includes('id="btnSettingsChooseAvatar"'), "Settings must not contain duplicate avatar button");
+  assert.ok(!popupHtml.includes('id="profilePersonalizationCard"'), "Settings must not contain duplicate personalization card");
+
+  console.log("  [PASS] Guest avatar customization, title symbol fallback, and settings deduplication verified.");
 }
 
 console.log("\n====================================================================");
