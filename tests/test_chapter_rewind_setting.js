@@ -406,10 +406,10 @@ async function runAllTests() {
     assert.ok(privacyHtmlSrc.includes("mynovelsystem@gmail.com"), "privacy.html must contain mynovelsystem@gmail.com");
 
     // 3. Verify publication date
-    assert.ok(privacyMdSrc.includes("17 de octubre de 2026"), "PRIVACY.md must specify 17 de octubre de 2026");
-    assert.ok(privacyHtmlSrc.includes("17 de octubre de 2026"), "privacy.html must specify 17 de octubre de 2026");
+    assert.ok(privacyMdSrc.includes("19 de octubre de 2026"), "PRIVACY.md must specify 19 de octubre de 2026");
+    assert.ok(privacyHtmlSrc.includes("19 de octubre de 2026"), "privacy.html must specify 19 de octubre de 2026");
 
-    console.log("  [PASS] Legal policies email (mynovelsystem@gmail.com) and date (17 de octubre de 2026) verified.");
+    console.log("  [PASS] Legal policies email (mynovelsystem@gmail.com) and date (19 de octubre de 2026) verified.");
   }
 
   // ----------------------------------------------------------------------------

@@ -434,7 +434,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "manifest.json"),
       assert.ok(doc.includes("mynovelsystem@gmail.com"), `${name} must include contact email mynovelsystem@gmail.com`);
 
       // 2. Publication date intact
-      assert.ok(doc.includes("17 de octubre de 2026"), `${name} must preserve update date 17 de octubre de 2026`);
+      assert.ok(doc.includes("19 de octubre de 2026"), `${name} must preserve update date 19 de octubre de 2026`);
 
       // 3. No sale of data / No advertising declaration
       assert.ok(

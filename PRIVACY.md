@@ -1,6 +1,6 @@
 # Política de Privacidad — MyNovelSystem
 
-**Última actualización:** 17 de octubre de 2026  
+**Última actualización:** 19 de octubre de 2026  
 **Versión:** 4.0.0  
 **Contacto:** mynovelsystem@gmail.com  
 
